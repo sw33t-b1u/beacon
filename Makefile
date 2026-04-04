@@ -23,7 +23,7 @@ audit:
 	uv run pip-audit
 
 generate:
-	uv run python -m cmd.generate_pir $(ARGS)
+	uv run python cmd/generate_pir.py $(ARGS)
 
 validate:
-	uv run python -m cmd.validate_pir $(ARGS)
+	uv run python cmd/validate_pir.py $(ARGS)

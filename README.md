@@ -54,7 +54,7 @@ uv sync
 ### Generate PIR (dictionary-only mode)
 
 ```bash
-uv run python -m cmd.generate_pir \
+uv run python cmd/generate_pir.py \
   --context tests/fixtures/sample_context_manufacturing.json \
   --no-llm \
   --output pir_output.json
@@ -65,7 +65,7 @@ uv run python -m cmd.generate_pir \
 ```bash
 export GCP_PROJECT_ID=your-project-id
 
-uv run python -m cmd.generate_pir \
+uv run python cmd/generate_pir.py \
   --context tests/fixtures/sample_context_manufacturing.json \
   --output pir_output.json
 ```
@@ -73,7 +73,7 @@ uv run python -m cmd.generate_pir \
 ### Parse Markdown input
 
 ```bash
-uv run python -m cmd.generate_pir \
+uv run python cmd/generate_pir.py \
   --context strategy_doc.md \
   --output pir_output.json
 ```
@@ -81,7 +81,7 @@ uv run python -m cmd.generate_pir \
 ### Validate PIR for SAGE compatibility
 
 ```bash
-uv run python -m cmd.validate_pir --pir pir_output.json
+uv run python cmd/validate_pir.py --pir pir_output.json
 ```
 
 ---
@@ -113,7 +113,7 @@ uv run python -m cmd.validate_pir --pir pir_output.json
 }
 ```
 
-Full schema: `schema/business_context.schema.json` (generate with `uv run python -m cmd.generate_schemas`)
+Full schema: `schema/business_context.schema.json` (generate with `uv run python cmd/generate_schemas.py`)
 
 ---
 

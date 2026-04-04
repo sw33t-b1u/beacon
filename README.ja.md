@@ -56,7 +56,7 @@ uv sync
 ### PIR 生成（辞書のみモード）
 
 ```bash
-uv run python -m cmd.generate_pir \
+uv run python cmd/generate_pir.py \
   --context tests/fixtures/sample_context_manufacturing.json \
   --no-llm \
   --output pir_output.json
@@ -67,7 +67,7 @@ uv run python -m cmd.generate_pir \
 ```bash
 export GCP_PROJECT_ID=your-project-id
 
-uv run python -m cmd.generate_pir \
+uv run python cmd/generate_pir.py \
   --context tests/fixtures/sample_context_manufacturing.json \
   --output pir_output.json
 ```
@@ -75,7 +75,7 @@ uv run python -m cmd.generate_pir \
 ### Markdown 入力の解析
 
 ```bash
-uv run python -m cmd.generate_pir \
+uv run python cmd/generate_pir.py \
   --context strategy_doc.md \
   --output pir_output.json
 ```
@@ -83,7 +83,7 @@ uv run python -m cmd.generate_pir \
 ### SAGE 互換性の検証
 
 ```bash
-uv run python -m cmd.validate_pir --pir pir_output.json
+uv run python cmd/validate_pir.py --pir pir_output.json
 ```
 
 ---
@@ -115,7 +115,7 @@ uv run python -m cmd.validate_pir --pir pir_output.json
 }
 ```
 
-完全なスキーマ: `schema/business_context.schema.json`（`uv run python -m cmd.generate_schemas` で生成）
+完全なスキーマ: `schema/business_context.schema.json`（`uv run python cmd/generate_schemas.py` で生成）
 
 ---
 

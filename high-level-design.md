@@ -530,25 +530,25 @@ BEACON/
 
 ```bash
 # JSON 入力 → PIR 生成（LLMあり）＋ 収集計画も出力
-uv run python -m cmd.generate_pir \
+uv run python cmd/generate_pir.py \
   --context sample_context.json \
   --taxonomy schema/threat_taxonomy.json \
   --output pir_output.json \
   --collection-plan collection_plan.md
 
 # Markdown 入力 → LLMで構造化してから生成
-uv run python -m cmd.generate_pir \
+uv run python cmd/generate_pir.py \
   --context strategy_doc.md \
   --output pir_output.json
 
 # LLM なし（辞書のみ、エアギャップ環境向け）
-uv run python -m cmd.generate_pir \
+uv run python cmd/generate_pir.py \
   --context sample_context.json \
   --no-llm \
   --output pir_output.json
 
 # PIR JSON が SAGE 互換かを検証
-uv run python -m cmd.validate_pir --pir pir_output.json
+uv run python cmd/validate_pir.py --pir pir_output.json
 
 # Pydantic から JSONSchema を生成（schema/*.schema.json に出力）
 uv run python cmd/generate_schemas.py

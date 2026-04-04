@@ -73,7 +73,7 @@ export PIR_FILE_PATH=/path/to/beacon/pir_output.json
 
 ```bash
 cd ../SAGE/
-uv run python -m cmd.run_etl
+uv run python cmd/run_etl.py
 ```
 
 SAGE ETL は以下を実行します：
@@ -97,7 +97,7 @@ targets_generated   count=K
 ### SAGE ビジュアライザー経由
 
 ```bash
-uv run python -m cmd.visualize_graph
+uv run python cmd/visualize_graph.py
 ```
 
 生成された HTML を開きます。PIR にマッチしたアクターが Targets エッジで紐づく資産は、

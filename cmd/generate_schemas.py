@@ -1,7 +1,7 @@
 """Generate JSON Schema files from Pydantic models.
 
 Run once to produce schema/*.schema.json:
-  uv run python -m cmd.generate_schemas
+  uv run python cmd/generate_schemas.py
 """
 
 from __future__ import annotations
