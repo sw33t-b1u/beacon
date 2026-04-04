@@ -1,0 +1,150 @@
+{
+  "type": "bundle",
+  "id": "bundle--test-001",
+  "objects": [
+    {
+      "type": "intrusion-set",
+      "id": "intrusion-set--test-apt10",
+      "name": "APT10",
+      "aliases": ["Stone Panda", "menuPass", "APT10"]
+    },
+    {
+      "type": "intrusion-set",
+      "id": "intrusion-set--test-apt41",
+      "name": "APT41",
+      "aliases": ["Double Dragon", "APT41"]
+    },
+    {
+      "type": "intrusion-set",
+      "id": "intrusion-set--test-lazarus",
+      "name": "Lazarus Group",
+      "aliases": ["Lazarus", "HIDDEN COBRA", "Guardians of Peace"]
+    },
+    {
+      "type": "intrusion-set",
+      "id": "intrusion-set--test-new-group",
+      "name": "NewThreatGroup2024",
+      "aliases": ["NTG24"]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1190",
+      "name": "Exploit Public-Facing Application",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1190"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1566",
+      "name": "Phishing",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1566"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1566.001",
+      "name": "Spearphishing Attachment",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1566.001"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1078",
+      "name": "Valid Accounts",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1078"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1041",
+      "name": "Exfiltration Over C2 Channel",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1041"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1059",
+      "name": "Command and Scripting Interpreter",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1059"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1486",
+      "name": "Data Encrypted for Impact",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1486"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1083",
+      "name": "File and Directory Discovery",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1083"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1195",
+      "name": "Supply Chain Compromise",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1195"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1003.001",
+      "name": "LSASS Memory",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1003.001"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1537",
+      "name": "Transfer Data to Cloud Account",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1537"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1498",
+      "name": "Network Denial of Service",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1498"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1499",
+      "name": "Endpoint Denial of Service",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1499"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1491",
+      "name": "Defacement",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1491"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1574.002",
+      "name": "DLL Side-Loading",
+      "external_references": [
+        {"source_name": "mitre-attack", "external_id": "T1574.002"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "$defs": {
+    "RiskScoreModel": {
+      "properties": {
+        "likelihood": {
+          "title": "Likelihood",
+          "type": "integer"
+        },
+        "impact": {
+          "title": "Impact",
+          "type": "integer"
+        },
+        "composite": {
+          "title": "Composite",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "likelihood",
+        "impact",
+        "composite"
+      ],
+      "title": "RiskScoreModel",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "pir_id": {
+      "title": "Pir Id",
+      "type": "string"
+    },
+    "intelligence_level": {
+      "enum": [
+        "strategic",
+        "operational",
+        "tactical"
+      ],
+      "title": "Intelligence Level",
+      "type": "string"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string"
+    },
+    "rationale": {
+      "title": "Rationale",
+      "type": "string"
+    },
+    "threat_actor_tags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Threat Actor Tags",
+      "type": "array"
+    },
+    "asset_weight_rules": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Asset Weight Rules",
+      "type": "array"
+    },
+    "collection_focus": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Collection Focus",
+      "type": "array"
+    },
+    "valid_from": {
+      "title": "Valid From",
+      "type": "string"
+    },
+    "valid_until": {
+      "title": "Valid Until",
+      "type": "string"
+    },
+    "risk_score": {
+      "$ref": "#/$defs/RiskScoreModel"
+    },
+    "source_elements": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Elements",
+      "type": "array"
+    }
+  },
+  "required": [
+    "pir_id",
+    "intelligence_level",
+    "description",
+    "rationale",
+    "threat_actor_tags",
+    "asset_weight_rules",
+    "collection_focus",
+    "valid_from",
+    "valid_until",
+    "risk_score"
+  ],
+  "title": "PIROutput",
+  "type": "object"
+}

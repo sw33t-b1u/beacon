@@ -1,0 +1,54 @@
+{
+  "organization": {
+    "name": "Example Manufacturing Corp",
+    "industry": "manufacturing",
+    "sub_industries": ["automotive", "aerospace"],
+    "geography": ["Japan", "Southeast Asia"],
+    "employee_count_range": "1000-5000",
+    "revenue_range_usd": "1B-10B",
+    "stock_listed": true,
+    "regulatory_context": ["APPI", "ISO27001", "TISAX"]
+  },
+  "strategic_objectives": [
+    {
+      "id": "OBJ-001",
+      "title": "東南アジア市場への拡大",
+      "description": "2027年までにタイ・ベトナムに製造拠点を設立",
+      "timeline": "2025-2027",
+      "sensitivity": "high",
+      "key_decisions": ["現地パートナー選定", "M&A候補デューデリジェンス"]
+    }
+  ],
+  "projects": [
+    {
+      "id": "PROJ-001",
+      "name": "SAP S/4HANA 移行",
+      "status": "in_progress",
+      "sensitivity": "critical",
+      "involved_vendors": ["SAP", "Accenture"],
+      "cloud_providers": ["GCP"],
+      "data_types": ["financial", "hr", "manufacturing"]
+    }
+  ],
+  "crown_jewels": [
+    {
+      "id": "CJ-001",
+      "name": "製品設計図（CADデータ）",
+      "system": "PLM system",
+      "business_impact": "critical",
+      "exposure_risk": "medium"
+    }
+  ],
+  "supply_chain": {
+    "critical_vendors": ["Tier1サプライヤー"],
+    "cloud_providers": ["GCP"],
+    "ot_connectivity": true
+  },
+  "recent_incidents": [
+    {
+      "year": 2024,
+      "type": "phishing",
+      "impact": "low"
+    }
+  ]
+}

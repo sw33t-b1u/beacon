@@ -1,0 +1,158 @@
+{
+  "actor_categories": {
+    "state_sponsored": {
+      "China": {
+        "tags": ["apt-china", "espionage", "ip-theft"],
+        "target_industries": ["manufacturing", "defense", "technology", "aerospace", "logistics"],
+        "target_geographies": ["Japan", "Southeast Asia", "USA", "Europe"],
+        "mitre_groups": ["APT10", "APT41", "MirrorFace", "Mustang Panda", "Earth Kasha"],
+        "priority_ttps": ["T1190", "T1566.001", "T1574.002", "T1041", "T1083"]
+      },
+      "Russia": {
+        "tags": ["apt-russia", "espionage", "destructive"],
+        "target_industries": ["energy", "defense", "government", "finance"],
+        "target_geographies": ["Europe", "USA", "Ukraine"],
+        "mitre_groups": ["APT28", "APT29", "Sandworm", "Cozy Bear"],
+        "priority_ttps": ["T1566", "T1078", "T1486", "T1059"]
+      },
+      "North Korea": {
+        "tags": ["apt-north-korea", "financially-motivated", "cryptocurrency"],
+        "target_industries": ["finance", "cryptocurrency", "defense", "technology"],
+        "target_geographies": ["Japan", "South Korea", "USA", "Southeast Asia"],
+        "mitre_groups": ["Lazarus", "Kimsuky", "APT38", "BlueNoroff"],
+        "priority_ttps": ["T1059", "T1566", "T1041", "T1195"]
+      },
+      "Iran": {
+        "tags": ["apt-iran", "espionage", "hacktivism"],
+        "target_industries": ["energy", "government", "defense"],
+        "target_geographies": ["Middle East", "USA", "Israel"],
+        "mitre_groups": ["APT33", "APT34", "Charming Kitten", "MuddyWater"],
+        "priority_ttps": ["T1566", "T1190", "T1078", "T1486"]
+      }
+    },
+    "ransomware": {
+      "tags": ["ransomware", "financially-motivated", "raas"],
+      "target_industries": [
+        "healthcare", "manufacturing", "finance", "education", "logistics", "energy"
+      ],
+      "target_geographies": ["Global"],
+      "mitre_groups": ["LockBit", "RansomHub", "BlackCat", "INC Ransomware", "Cl0p"],
+      "priority_ttps": ["T1190", "T1078", "T1003.001", "T1486", "T1537"]
+    },
+    "hacktivist": {
+      "tags": ["hacktivism", "ideological", "ddos"],
+      "target_industries": ["government", "energy", "finance", "media"],
+      "target_geographies": ["Context-dependent"],
+      "mitre_groups": [],
+      "priority_ttps": ["T1498", "T1499", "T1491"]
+    }
+  },
+  "industry_threat_map": {
+    "manufacturing": {
+      "applicable_categories": ["state_sponsored.China", "state_sponsored.North Korea", "ransomware"],
+      "additional_tags": ["ip-theft", "ot-targeting"],
+      "priority_ttps": ["T1190", "T1078", "T1486", "T1566.001"]
+    },
+    "finance": {
+      "applicable_categories": ["state_sponsored.North Korea", "ransomware"],
+      "additional_tags": ["fraud", "swift-targeting"],
+      "priority_ttps": ["T1059", "T1566", "T1041"]
+    },
+    "energy": {
+      "applicable_categories": ["state_sponsored.Russia", "state_sponsored.Iran", "ransomware"],
+      "additional_tags": ["critical-infrastructure", "ot-targeting"],
+      "priority_ttps": ["T1190", "T1078", "T1486"]
+    },
+    "healthcare": {
+      "applicable_categories": ["ransomware"],
+      "additional_tags": ["phi-targeting"],
+      "priority_ttps": ["T1190", "T1486", "T1078"]
+    },
+    "defense": {
+      "applicable_categories": [
+        "state_sponsored.China", "state_sponsored.Russia", "state_sponsored.North Korea"
+      ],
+      "additional_tags": ["espionage", "ip-theft"],
+      "priority_ttps": ["T1566.001", "T1574.002", "T1083", "T1041"]
+    },
+    "technology": {
+      "applicable_categories": ["state_sponsored.China", "state_sponsored.North Korea", "ransomware"],
+      "additional_tags": ["ip-theft", "supply-chain-attack"],
+      "priority_ttps": ["T1195", "T1566", "T1190"]
+    },
+    "logistics": {
+      "applicable_categories": ["state_sponsored.China", "ransomware"],
+      "additional_tags": ["supply-chain-attack"],
+      "priority_ttps": ["T1190", "T1078", "T1486"]
+    },
+    "government": {
+      "applicable_categories": [
+        "state_sponsored.China", "state_sponsored.Russia", "state_sponsored.Iran", "hacktivist"
+      ],
+      "additional_tags": ["espionage"],
+      "priority_ttps": ["T1566", "T1078", "T1190"]
+    },
+    "education": {
+      "applicable_categories": ["ransomware", "state_sponsored.China"],
+      "additional_tags": ["research-theft"],
+      "priority_ttps": ["T1190", "T1078", "T1486"]
+    },
+    "other": {
+      "applicable_categories": ["ransomware"],
+      "additional_tags": [],
+      "priority_ttps": ["T1190", "T1078", "T1486"]
+    }
+  },
+  "geography_threat_map": {
+    "Japan": {
+      "apt_tags": ["targets-japan", "apt-china", "apt-north-korea"],
+      "notable_groups": ["MirrorFace", "Earth Kasha", "Lazarus", "Kimsuky", "APT10"]
+    },
+    "Southeast Asia": {
+      "apt_tags": ["targets-sea", "apt-china"],
+      "notable_groups": ["APT41", "Mustang Panda"]
+    },
+    "South Korea": {
+      "apt_tags": ["targets-south-korea", "apt-north-korea", "apt-china"],
+      "notable_groups": ["Lazarus", "Kimsuky", "APT38"]
+    },
+    "Europe": {
+      "apt_tags": ["targets-europe", "apt-russia", "apt-china"],
+      "notable_groups": ["APT28", "APT29", "APT10", "Sandworm"]
+    },
+    "USA": {
+      "apt_tags": ["targets-usa", "apt-china", "apt-russia", "apt-north-korea", "apt-iran"],
+      "notable_groups": ["APT28", "APT29", "APT41", "Lazarus", "APT33"]
+    },
+    "Middle East": {
+      "apt_tags": ["targets-middle-east", "apt-iran"],
+      "notable_groups": ["APT33", "APT34", "MuddyWater"]
+    },
+    "Global": {
+      "apt_tags": [],
+      "notable_groups": []
+    }
+  },
+  "business_trigger_map": {
+    "m_and_a": {
+      "additional_tags": ["espionage", "insider-threat"],
+      "rationale": "M&A期間中は競合・国家による情報収集活動（デューデリジェンスデータの窃取）が増加する"
+    },
+    "ot_connectivity": {
+      "additional_tags": ["ot-targeting", "critical-infrastructure"],
+      "rationale": "OT環境とIT環境の接続点はサプライチェーン攻撃のラテラルムーブ経路となる"
+    },
+    "cloud_migration": {
+      "additional_tags": ["cloud-targeting"],
+      "rationale": "移行期は設定ミスによるクラウド資産の外部露出リスクが高まる"
+    },
+    "ipo_or_listing": {
+      "additional_tags": ["espionage", "fraud"],
+      "rationale": "IPO前後は未公開の財務・戦略情報が標的になりやすい"
+    },
+    "supply_chain_expansion": {
+      "additional_tags": ["supply-chain-attack"],
+      "rationale": "新規ベンダーとの接続はサードパーティリスクを高める"
+    }
+  }
+}

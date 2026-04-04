@@ -1,0 +1,88 @@
+{
+  "asset_type_map": {
+    "plm": {
+      "sage_tags": ["plm"],
+      "description": "Product Lifecycle Management system (CAD, design data)",
+      "criticality_multiplier": 2.5,
+      "keywords": ["plm", "cad", "product design", "catia", "siemens nx", "ptc windchill"]
+    },
+    "erp": {
+      "sage_tags": ["erp"],
+      "description": "Enterprise Resource Planning system (SAP, Oracle)",
+      "criticality_multiplier": 2.5,
+      "keywords": ["erp", "sap", "oracle", "s/4hana", "dynamics", "financial system"]
+    },
+    "ot": {
+      "sage_tags": ["ot"],
+      "description": "Operational Technology / Industrial Control System",
+      "criticality_multiplier": 2.0,
+      "keywords": ["ot", "ics", "scada", "plc", "dcs", "historian", "operational technology"]
+    },
+    "cloud": {
+      "sage_tags": ["cloud"],
+      "description": "Cloud infrastructure (GCP, AWS, Azure)",
+      "criticality_multiplier": 1.8,
+      "keywords": ["cloud", "gcp", "aws", "azure", "kubernetes", "gke", "eks", "aks"]
+    },
+    "external-facing": {
+      "sage_tags": ["external-facing"],
+      "description": "Internet-facing systems (web, API, VPN gateway)",
+      "criticality_multiplier": 1.8,
+      "keywords": ["web", "api", "vpn", "gateway", "dmz", "public", "external", "internet-facing"]
+    },
+    "backup": {
+      "sage_tags": ["backup"],
+      "description": "Backup and recovery systems",
+      "criticality_multiplier": 1.5,
+      "keywords": ["backup", "recovery", "restore", "snapshot", "dr", "disaster recovery"]
+    },
+    "identity": {
+      "sage_tags": ["identity"],
+      "description": "Identity and access management (AD, IAM)",
+      "criticality_multiplier": 2.0,
+      "keywords": ["ad", "active directory", "iam", "identity", "sso", "ldap", "okta", "entra"]
+    },
+    "financial": {
+      "sage_tags": ["financial"],
+      "description": "Financial data processing systems",
+      "criticality_multiplier": 2.0,
+      "keywords": ["financial", "accounting", "treasury", "payment", "swift", "finance"]
+    },
+    "hr": {
+      "sage_tags": ["hr"],
+      "description": "Human resources data systems",
+      "criticality_multiplier": 1.5,
+      "keywords": ["hr", "human resources", "payroll", "personnel", "workday", "successfactors"]
+    },
+    "r_and_d": {
+      "sage_tags": ["r_and_d"],
+      "description": "Research and development systems",
+      "criticality_multiplier": 2.0,
+      "keywords": ["r&d", "research", "lab", "prototype", "experiment", "ip"]
+    },
+    "supply_chain": {
+      "sage_tags": ["supply_chain"],
+      "description": "Supply chain management and procurement systems",
+      "criticality_multiplier": 1.5,
+      "keywords": ["supply chain", "procurement", "vendor", "supplier", "scm", "logistics"]
+    }
+  },
+  "data_type_tag_map": {
+    "financial": ["erp", "financial"],
+    "hr": ["hr"],
+    "manufacturing": ["erp", "ot", "plm"],
+    "research": ["r_and_d"],
+    "customer": ["external-facing"],
+    "intellectual_property": ["plm", "r_and_d"],
+    "source_code": ["r_and_d"],
+    "healthcare": ["external-facing"],
+    "personal": ["identity", "hr"]
+  },
+  "cloud_provider_tag_map": {
+    "GCP": ["cloud"],
+    "AWS": ["cloud"],
+    "Azure": ["cloud"],
+    "Oracle Cloud": ["cloud"],
+    "IBM Cloud": ["cloud"]
+  }
+}

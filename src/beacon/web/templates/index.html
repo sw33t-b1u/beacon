@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}BEACON — Generate PIR{% endblock %}
+{% block content %}
+<h1>PIR Generation</h1>
+<div class="card">
+  <form action="/generate" method="post" enctype="multipart/form-data">
+    <div style="margin-bottom:1rem;">
+      <label for="context_file">Business Context File (.json or .md)</label>
+      <input type="file" id="context_file" name="context_file" accept=".json,.md" required>
+    </div>
+    <div style="margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">
+      <input type="checkbox" id="no_llm" name="no_llm" value="true" checked>
+      <label for="no_llm" style="display:inline; font-weight:normal;">Dictionary-only mode (no Vertex AI)</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Generate PIRs</button>
+  </form>
+</div>
+<div class="alert alert-info">
+  Upload a <code>business_context.json</code> (or Markdown with LLM mode) to generate
+  SAGE-compatible Priority Intelligence Requirements.
+</div>
+{% endblock %}

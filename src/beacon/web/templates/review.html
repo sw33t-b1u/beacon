@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}BEACON — Review PIRs{% endblock %}
+{% block content %}
+<h1>PIR Review</h1>
+
+{% if not pirs %}
+<div class="alert alert-info">No PIRs to review. <a href="/">Generate PIRs first.</a></div>
+{% else %}
+
+<div style="display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap;">
+  <form action="/review/approve" method="post" style="display:inline;">
+    <button type="submit" class="btn btn-primary">Approve &amp; Submit to GHE</button>
+  </form>
+  <a href="/review/export" class="btn btn-secondary">Export pir_output.json</a>
+</div>
+
+{% for pir in pirs %}
+<div class="card">
+  <div style="display:flex; align-items:center; gap:1rem; margin-bottom:0.75rem; flex-wrap:wrap;">
+    <strong>{{ pir.pir_id }}</strong>
+    <span class="badge badge-{{ pir.intelligence_level }}">{{ pir.intelligence_level }}</span>
+    {% if pir.risk_score %}
+    <span style="font-size:0.85rem; color:#555;">
+      L={{ pir.risk_score.likelihood }} &times; I={{ pir.risk_score.impact }} = {{ pir.risk_score.composite }}
+    </span>
+    {% endif %}
+    <span style="font-size:0.82rem; color:#777;">{{ pir.valid_from }} → {{ pir.valid_until }}</span>
+  </div>
+
+  <div style="margin-bottom:0.5rem;">
+    {% for tag in pir.threat_actor_tags %}<span class="tag">{{ tag }}</span>{% endfor %}
+  </div>
+
+  <form action="/review/save" method="post" style="margin-top:1rem;">
+    <input type="hidden" name="pir_index" value="{{ loop.index0 }}">
+
+    <div style="margin-bottom:0.75rem;">
+      <label>Description</label>
+      <textarea name="description" rows="3">{{ pir.description }}</textarea>
+    </div>
+    <div style="margin-bottom:0.75rem;">
+      <label>Rationale</label>
+      <textarea name="rationale" rows="2">{{ pir.rationale }}</textarea>
+    </div>
+    <div style="margin-bottom:0.75rem;">
+      <label>Collection Focus (one item per line)</label>
+      <textarea name="collection_focus" rows="4">{{ pir.collection_focus | join('\n') }}</textarea>
+    </div>
+
+    {% if pir.asset_weight_rules %}
+    <h2>Asset Weight Rules</h2>
+    <table style="margin-bottom:0.75rem; width:auto;">
+      <tr><th>Tag</th><th>Multiplier</th></tr>
+      {% for rule in pir.asset_weight_rules %}
+      <tr><td>{{ rule.tag }}</td><td>{{ rule.criticality_multiplier }}</td></tr>
+      {% endfor %}
+    </table>
+    {% endif %}
+
+    <button type="submit" class="btn btn-secondary">Save Changes</button>
+  </form>
+</div>
+{% endfor %}
+
+{% if collection_plan %}
+<div class="card">
+  <h2>Collection Plan</h2>
+  <pre style="font-size:0.82rem; white-space:pre-wrap; background:#f9f9f9; padding:1rem; border-radius:4px;">{{ collection_plan }}</pre>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

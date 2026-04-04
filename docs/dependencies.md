@@ -1,0 +1,34 @@
+# BEACON Dependencies
+
+## Runtime Dependencies
+
+| Package | Version | Purpose | License |
+|---------|---------|---------|---------|
+| `pydantic` | `>=2.0` | BusinessContext / PIR input–output schema validation; JSONSchema auto-generation via `model_json_schema()` | MIT |
+| `google-cloud-aiplatform` | `>=1.60` | Vertex AI Gemini calls (includes the `vertexai` sub-package) — used from Phase 2 onwards | Apache-2.0 |
+| `structlog` | `>=24.4.0` | Structured logging (aligned with SAGE) | Apache-2.0 / MIT |
+| `httpx` | `>=0.27.0` | HTTP client for MITRE CTI STIX bundle fetch (`cmd/update_taxonomy.py`) and SAGE Analysis API polling (`src/beacon/sage/client.py`) | BSD-3-Clause |
+| `fastapi` | `>=0.111.0` | Web UI framework — declarative routing, automatic OpenAPI docs, Jinja2 template integration | MIT |
+| `uvicorn[standard]` | `>=0.30.0` | ASGI server for FastAPI (`cmd/web_app.py`); `[standard]` extras include WebSocket and HTTP/2 support | BSD-3-Clause |
+| `python-multipart` | `>=0.0.9` | Multipart form-data parsing for file uploads in FastAPI (`POST /generate`) | Apache-2.0 |
+| `jinja2` | `>=3.1.0` | HTML template rendering for the Web UI (`src/beacon/web/templates/`) | BSD-3-Clause |
+
+## Development Dependencies
+
+| Package | Version | Purpose | License |
+|---------|---------|---------|---------|
+| `ruff` | `>=0.6.0` | Lint + format (aligned with SAGE) | MIT |
+| `pytest` | `>=8.3.0` | Test framework | MIT |
+| `pytest-cov` | `>=5.0.0` | Coverage measurement | MIT |
+| `pip-audit` | `>=2.7.0` | Known-vulnerability scanning (`make audit`, included in `make check`) | Apache-2.0 |
+
+## Dependency Selection Rationale
+
+- **pydantic**: Type-safe input validation was required from Phase 1. v2 is fast and supports `model_json_schema()` for automatic JSONSchema generation.
+- **google-cloud-aiplatform**: Selected because it uses ADC authentication within the same GCP project as SAGE, eliminating API key management.
+- **structlog**: Already adopted as a shared library with SAGE. Outputs JSON logs compatible with Cloud Logging.
+- **httpx**: Chosen as a modern, synchronous/async-capable HTTP client. Used for both MITRE CTI STIX bundle fetching and SAGE API calls. Unlike `requests`, httpx supports both sync and async with a unified interface.
+- **fastapi**: Selected for the Web UI because it provides automatic OpenAPI generation, Pydantic v2 validation, and a clean path to a React SPA migration (REST endpoints are co-located with HTML routes).
+- **uvicorn[standard]**: The de facto ASGI server for FastAPI; maintained by the same Encode team.
+- **python-multipart**: Required by FastAPI/Starlette to handle `multipart/form-data` file uploads.
+- **jinja2**: Minimal server-side templating for the Web UI. Chosen over a full JS framework to keep dependencies lean; the `/api/*` endpoints allow future React migration without server-side changes.

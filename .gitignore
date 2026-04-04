@@ -1,0 +1,78 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# Virtual environment (uv)
+.venv/
+
+# uv lock file — keep for reproducible builds
+# uv.lock  ← intentionally tracked
+
+# Environment / secrets
+.env
+.env.*
+*.pem
+*.key
+service_account*.json
+credentials*.json
+
+# Google Cloud / Vertex AI
+gcloud-service-key.json
+application_default_credentials.json
+
+# GitHub token
+.gh_token
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+coverage.xml
+*.cover
+
+# Ruff cache
+.ruff_cache/
+
+# mypy
+.mypy_cache/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+
+# Web session files (runtime-generated)
+/tmp/beacon_session_*.json
+
+# PIR output (runtime-generated, not source)
+pir_output.json
+collection_plan.md

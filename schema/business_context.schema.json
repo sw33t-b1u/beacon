@@ -1,0 +1,317 @@
+{
+  "$defs": {
+    "CrownJewel": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "system": {
+          "default": "",
+          "title": "System",
+          "type": "string"
+        },
+        "business_impact": {
+          "default": "high",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "title": "Business Impact",
+          "type": "string"
+        },
+        "exposure_risk": {
+          "default": "medium",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "title": "Exposure Risk",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "CrownJewel",
+      "type": "object"
+    },
+    "Organization": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "industry": {
+          "enum": [
+            "manufacturing",
+            "finance",
+            "energy",
+            "healthcare",
+            "defense",
+            "technology",
+            "logistics",
+            "government",
+            "education",
+            "other"
+          ],
+          "title": "Industry",
+          "type": "string"
+        },
+        "sub_industries": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sub Industries",
+          "type": "array"
+        },
+        "geography": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Geography",
+          "type": "array"
+        },
+        "employee_count_range": {
+          "default": "",
+          "title": "Employee Count Range",
+          "type": "string"
+        },
+        "revenue_range_usd": {
+          "default": "",
+          "title": "Revenue Range Usd",
+          "type": "string"
+        },
+        "stock_listed": {
+          "default": false,
+          "title": "Stock Listed",
+          "type": "boolean"
+        },
+        "regulatory_context": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Regulatory Context",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "industry"
+      ],
+      "title": "Organization",
+      "type": "object"
+    },
+    "Project": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "status": {
+          "default": "in_progress",
+          "enum": [
+            "planned",
+            "in_progress",
+            "completed",
+            "cancelled"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "sensitivity": {
+          "default": "medium",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "title": "Sensitivity",
+          "type": "string"
+        },
+        "involved_vendors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Involved Vendors",
+          "type": "array"
+        },
+        "cloud_providers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Cloud Providers",
+          "type": "array"
+        },
+        "data_types": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Data Types",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "Project",
+      "type": "object"
+    },
+    "RecentIncident": {
+      "properties": {
+        "year": {
+          "title": "Year",
+          "type": "integer"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "impact": {
+          "default": "low",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "title": "Impact",
+          "type": "string"
+        }
+      },
+      "required": [
+        "year",
+        "type"
+      ],
+      "title": "RecentIncident",
+      "type": "object"
+    },
+    "StrategicObjective": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "timeline": {
+          "default": "",
+          "title": "Timeline",
+          "type": "string"
+        },
+        "sensitivity": {
+          "default": "medium",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "title": "Sensitivity",
+          "type": "string"
+        },
+        "key_decisions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Key Decisions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "title"
+      ],
+      "title": "StrategicObjective",
+      "type": "object"
+    },
+    "SupplyChain": {
+      "properties": {
+        "critical_vendors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Critical Vendors",
+          "type": "array"
+        },
+        "cloud_providers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Cloud Providers",
+          "type": "array"
+        },
+        "ot_connectivity": {
+          "default": false,
+          "title": "Ot Connectivity",
+          "type": "boolean"
+        }
+      },
+      "title": "SupplyChain",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "organization": {
+      "$ref": "#/$defs/Organization"
+    },
+    "strategic_objectives": {
+      "items": {
+        "$ref": "#/$defs/StrategicObjective"
+      },
+      "title": "Strategic Objectives",
+      "type": "array"
+    },
+    "projects": {
+      "items": {
+        "$ref": "#/$defs/Project"
+      },
+      "title": "Projects",
+      "type": "array"
+    },
+    "crown_jewels": {
+      "items": {
+        "$ref": "#/$defs/CrownJewel"
+      },
+      "title": "Crown Jewels",
+      "type": "array"
+    },
+    "supply_chain": {
+      "$ref": "#/$defs/SupplyChain"
+    },
+    "recent_incidents": {
+      "items": {
+        "$ref": "#/$defs/RecentIncident"
+      },
+      "title": "Recent Incidents",
+      "type": "array"
+    }
+  },
+  "required": [
+    "organization"
+  ],
+  "title": "BusinessContext",
+  "type": "object"
+}
