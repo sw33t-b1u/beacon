@@ -19,6 +19,7 @@
 | Phase 1 | プロジェクト基盤 + 入力スキーマ + 辞書ベースPIR生成 | `--no-llm` で動くCLI | ✅ 完了 |
 | Phase 2 | Vertex AI Gemini 統合 + LLM補完パイプライン | Markdown入力対応・PIR品質向上 | ✅ 完了 |
 | Phase 3 | レポート・収集計画生成 + SAGE連携検証 | `collection_plan.md` | ✅ 完了 |
+| Phase 4 | MITRE 自動更新 + GHE レビュー + SAGE API 連携 + Web UI | 全機能統合 | ✅ 完了 |
 
 ---
 
@@ -151,7 +152,7 @@
 - 4-3 SAGE Spanner 参照: SAGE Analysis API 経由（`SAGE_API_URL` 環境変数）— Spanner に直接依存しない疎結合設計
 - 4-4 Web UI: FastAPI + Jinja2 — 依存最小・Python のみ。利用者増加時に React SPA へ移行検討（API 構造は共通化しておく）
 
-### P4-1: MITRE ATT&CK 自動更新 [ ]
+### P4-1: MITRE ATT&CK 自動更新 ✅
 
 **目的:** MITRE CTI GitHub の最新 ATT&CK STIX バンドルを取得して `schema/threat_taxonomy.json` の `mitre_groups` と `priority_ttps` を自動更新する。`geography_threat_map` / `business_trigger_map` / `industry_threat_map` は手動管理のため上書きしない。
 
@@ -179,7 +180,7 @@ uv run python cmd/update_taxonomy.py [--output schema/threat_taxonomy.json] [--d
 
 ---
 
-### P4-2: PIR レビューワークフロー (GHE) [ ]
+### P4-2: PIR レビューワークフロー (GHE) ✅
 
 **目的:** 生成済み `pir_output.json` を GitHub Enterprise の Issue としてアナリストに投稿し、コメントによる承認フローを実現する。`generate_pir.py` とは独立したコマンドとして提供。
 
@@ -241,7 +242,7 @@ uv run python cmd/submit_for_review.py --pir pir_output.json [--collection-plan 
 
 ---
 
-### P4-3: SAGE Analysis API 連携 [ ]
+### P4-3: SAGE Analysis API 連携 ✅
 
 **目的:** SAGE Analysis API から脅威アクター観測データを取得し、Likelihood スコアを実績ベースで補正する。Spanner には直接接続せず、`SAGE_API_URL` 経由でアクセス。
 
@@ -296,7 +297,7 @@ def score(
 
 ---
 
-### P4-4: Web UI (FastAPI + Jinja2) [ ]
+### P4-4: Web UI (FastAPI + Jinja2) ✅
 
 **目的:** PIR 生成・レビュー・編集・GHE 投稿を一画面で行える社内向け Web インターフェース。利用者増加時は Jinja2 → React SPA への移行を想定し、API ルートをフロントエンドと分離して設計する。
 

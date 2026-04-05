@@ -124,15 +124,16 @@ def _build_description(elements: ExtractedElements, threat: ThreatProfile) -> st
         systems = (
             ", ".join(elements.crown_jewel_systems[:2]) if elements.crown_jewel_systems else ""
         )
-        system_part = f"（{systems}）" if systems else ""
+        system_part = f" ({systems})" if systems else ""
         return (
-            f"{industry}×{geos} 環境のクラウンジュエル{system_part}を狙う脅威アクターへの耐性強化"
+            f"Strengthen defenses against threat actors targeting"
+            f" {industry}\u00d7{geos} crown jewels{system_part}"
         )
 
     tags_summary = (
         ", ".join(threat.threat_actor_tags[:3]) if threat.threat_actor_tags else "unknown"
     )
-    return f"{industry}×{geos} における脅威（{tags_summary}）の監視"
+    return f"Monitor threats ({tags_summary}) in {industry}\u00d7{geos} environment"
 
 
 def _build_collection_focus(threat: ThreatProfile, elements: ExtractedElements) -> list[str]:
@@ -140,23 +141,23 @@ def _build_collection_focus(threat: ThreatProfile, elements: ExtractedElements) 
 
     if threat.notable_groups:
         groups = " / ".join(threat.notable_groups[:3])
-        focus.append(f"{groups} の新規TTP・インフラ変化の観測")
+        focus.append(f"Monitor new TTPs and infrastructure changes: {groups}")
 
     if "ip-theft" in threat.threat_actor_tags or "espionage" in threat.threat_actor_tags:
-        focus.append("スピアフィッシング・サプライチェーン経由の侵入試行")
+        focus.append("Track spear-phishing and supply-chain intrusion attempts")
 
     if "ransomware" in threat.threat_actor_tags:
-        focus.append("ランサムウェアグループによる業種標的型キャンペーン")
+        focus.append("Ransomware group campaigns targeting this industry")
 
     if elements.has_ot_connectivity:
-        focus.append("OT/ICS環境を標的とする脆弱性悪用情報")
+        focus.append("Vulnerability exploitation targeting OT/ICS environments")
 
     if elements.project_cloud_providers:
         providers = ", ".join(elements.project_cloud_providers[:2])
-        focus.append(f"{providers} 環境を狙ったクラウド設定ミス・侵害事例")
+        focus.append(f"Cloud misconfiguration and compromise cases targeting {providers}")
 
     if not focus:
-        focus.append("業種関連の脅威インテリジェンスの継続収集")
+        focus.append("Continuous threat intelligence collection for this industry")
 
     return focus
 

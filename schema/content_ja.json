@@ -1,0 +1,70 @@
+{
+  "source_map": {
+    "state_sponsored.China": [
+      "MITRE ATT&CK Groups: APT10, APT41, MirrorFace, Mustang Panda",
+      "JPCERT/CC 情報共有 (OSINT)",
+      "CISA/FBI Joint Advisories (中国系APT)",
+      "台湾 CERT / 地域 ISAC 情報共有"
+    ],
+    "state_sponsored.Russia": [
+      "MITRE ATT&CK Groups: APT28, APT29, Sandworm",
+      "CERT-UA / EU-CERT 情報共有",
+      "NCSC (UK) / NSA Advisories",
+      "Cybersecurity Coalition ロシア脅威情報"
+    ],
+    "state_sponsored.NorthKorea": [
+      "MITRE ATT&CK Groups: Lazarus, Kimsuky, APT38",
+      "CISA / FBI Advisories (北朝鮮APT)",
+      "金融 ISAC 情報共有 (APT38 金融標的)",
+      "OFAC 制裁関連情報"
+    ],
+    "state_sponsored.Iran": [
+      "MITRE ATT&CK Groups: APT33, APT34, MuddyWater",
+      "CISA Advisories (イラン系APT)",
+      "製造・エネルギー ISAC 情報共有",
+      "ICS-CERT OT 脅威情報"
+    ],
+    "ransomware": [
+      "Ransomware Tracker (各社 CTI フィード)",
+      "FBI Flash / CISA Ransomware Advisories",
+      "業種 ISAC ランサムウェアアラート",
+      "VirusTotal / MalwareBazaar 検体情報"
+    ],
+    "hacktivist": [
+      "ソーシャルメディアモニタリング (Telegram, X)",
+      "DDoS 観測フィード (Cloudflare Radar 等)",
+      "ハクティビスト Telegram チャンネル追跡"
+    ]
+  },
+  "default_sources": [
+    "業種 ISAC 情報共有",
+    "OSINT 脅威インテリジェンスフィード",
+    "JPCERT/CC 注意喚起"
+  ],
+  "trigger_actions": {
+    "m_and_a": "M&A 先企業のサプライチェーンリスク・過去インシデント調査",
+    "ot_connectivity": "ICS-CERT / JPCERT OT 脆弱性情報・ICS脅威インテリジェンス",
+    "cloud_migration": "CSP セキュリティアドバイザリ (GCP/AWS/Azure) ・クラウド設定ミス事例",
+    "ipo_or_listing": "SEC / 金融庁 開示リスク・インサイダー脅威・財務データ漏洩事例",
+    "supply_chain_expansion": "サプライヤーセキュリティ評価レポート・SBOM リスク情報"
+  },
+  "level_frequency": {
+    "strategic": "月次",
+    "operational": "週次",
+    "tactical": "日次",
+    "default": "月次"
+  },
+  "table": {
+    "feed_collection_item": "脅威インテリジェンスフィード収集",
+    "ot_vuln_item": "OT/ICS 脆弱性情報確認",
+    "ransomware_watch_item": "ランサムウェアキャンペーン監視",
+    "apt_ttp_watch_prefix": "APTグループ TTP 更新確認",
+    "pir_review_item": "BEACON PIR 定期見直し",
+    "weekly": "週次",
+    "monthly": "月次",
+    "quarterly": "四半期",
+    "cti_team": "CTIチーム",
+    "ot_team": "OT セキュリティ担当",
+    "ciso_office": "CISOオフィス"
+  }
+}

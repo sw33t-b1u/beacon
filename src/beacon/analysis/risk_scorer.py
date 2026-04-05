@@ -146,28 +146,29 @@ def _build_rationale(
 
     if threat.matched_categories:
         cats = ", ".join(threat.matched_categories)
-        parts.append(f"業種×地域マッチ: {cats}")
+        parts.append(f"Industry/geography match: {cats}")
 
     if elements.has_ot_connectivity:
-        parts.append("OT接続によるラテラルムーブリスクあり")
+        parts.append("OT connectivity — lateral movement risk")
 
     if elements.crown_jewel_ids:
-        cj_names = f"クラウンジュエル {len(elements.crown_jewel_ids)}件"
         max_impact = max(
             (elements.crown_jewel_impacts or ["low"]),
             key=lambda x: _IMPACT_WEIGHTS.get(x, 2),
         )
-        parts.append(f"{cj_names}（最大影響度: {max_impact}）")
+        parts.append(
+            f"Crown jewels: {len(elements.crown_jewel_ids)} (max impact: {max_impact})"
+        )
 
     if threat.notable_groups:
         groups = ", ".join(threat.notable_groups[:4])
-        parts.append(f"関連グループ: {groups}")
+        parts.append(f"Matched groups: {groups}")
 
     if threat.active_triggers:
-        parts.append(f"ビジネストリガー: {', '.join(threat.active_triggers)}")
+        parts.append(f"Business triggers: {', '.join(threat.active_triggers)}")
 
     if sage_observation_count >= 1:
-        parts.append(f"SAGE観測: {sage_observation_count}件")
+        parts.append(f"SAGE observations: {sage_observation_count}")
 
     base = f"Likelihood={likelihood}, Impact={impact}"
     if parts:

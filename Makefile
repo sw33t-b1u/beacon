@@ -1,4 +1,4 @@
-.PHONY: check vet lint format test audit generate validate
+.PHONY: check vet lint format test audit generate validate setup
 
 # Full quality gate: vet → lint → test
 check: vet lint test audit
@@ -27,3 +27,8 @@ generate:
 
 validate:
 	uv run python cmd/validate_pir.py $(ARGS)
+
+setup:
+	git config core.hooksPath .githooks
+	chmod +x .githooks/pre-commit .githooks/pre-push
+	@echo "Git hooks installed (pre-commit: vet+lint, pre-push: full check)."

@@ -2,11 +2,21 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
 
 import structlog
 
 from beacon.ingest.schema import BusinessContext
+
+# Load trigger detection keywords from schema/trigger_keywords.json.
+# The file includes both English and Japanese keywords to match input documents
+# written in either language (Rule 11: source code in English; data in JSON).
+_KEYWORDS_PATH = Path(__file__).parents[3] / "schema" / "trigger_keywords.json"
+_TRIGGER_KEYWORDS: dict = json.loads(_KEYWORDS_PATH.read_text(encoding="utf-8"))
+_MA_KEYWORDS: frozenset[str] = frozenset(_TRIGGER_KEYWORDS["ma_keywords"])
+_EXPANSION_KEYWORDS: frozenset[str] = frozenset(_TRIGGER_KEYWORDS["expansion_keywords"])
 
 logger = structlog.get_logger(__name__)
 
@@ -113,10 +123,9 @@ def _detect_triggers(ctx: BusinessContext, cloud_providers: list[str]) -> list[s
         triggers.append("cloud_migration")
 
     # M&A signal: key_decisions mention M&A / due diligence keywords
-    ma_keywords = {"m&a", "merger", "acquisition", "due diligence", "デューデリジェンス", "m&a候補"}
     for obj in ctx.strategic_objectives:
         text = " ".join(obj.key_decisions).lower() + " " + obj.description.lower()
-        if any(kw in text for kw in ma_keywords):
+        if any(kw in text for kw in _MA_KEYWORDS):
             triggers.append("m_and_a")
             break
 
@@ -126,10 +135,9 @@ def _detect_triggers(ctx: BusinessContext, cloud_providers: list[str]) -> list[s
 
     # Supply chain expansion: critical vendors + active expansion objectives
     if ctx.supply_chain.critical_vendors:
-        expansion_keywords = {"expand", "拡大", "新規", "new", "partner", "パートナー"}
         for obj in ctx.strategic_objectives:
             text = obj.description.lower() + " " + obj.title.lower()
-            if any(kw in text for kw in expansion_keywords):
+            if any(kw in text for kw in _EXPANSION_KEYWORDS):
                 triggers.append("supply_chain_expansion")
                 break
 

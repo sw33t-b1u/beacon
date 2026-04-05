@@ -3,10 +3,14 @@
 Produces a Markdown document listing threat watch items and trigger-based collection
 actions for areas that did not meet the P1/P2 PIR threshold (composite < 12), or
 as supplemental monitoring guidance alongside generated PIRs.
+
+Japanese display strings are loaded from schema/content_ja.json to keep source code
+language-neutral (Rule 11).
 """
 
 from __future__ import annotations
 
+import json
 from datetime import date
 from pathlib import Path
 
@@ -19,66 +23,22 @@ from beacon.generator.pir_builder import PIROutput
 
 logger = structlog.get_logger(__name__)
 
-# Recommended collection sources per threat category
-_SOURCE_MAP: dict[str, list[str]] = {
-    "state_sponsored.China": [
-        "MITRE ATT&CK Groups: APT10, APT41, MirrorFace, Mustang Panda",
-        "JPCERT/CC 情報共有 (OSINT)",
-        "CISA/FBI Joint Advisories (中国系APT)",
-        "台湾 CERT / 地域 ISAC 情報共有",
-    ],
-    "state_sponsored.Russia": [
-        "MITRE ATT&CK Groups: APT28, APT29, Sandworm",
-        "CERT-UA / EU-CERT 情報共有",
-        "NCSC (UK) / NSA Advisories",
-        "Cybersecurity Coalition ロシア脅威情報",
-    ],
-    "state_sponsored.NorthKorea": [
-        "MITRE ATT&CK Groups: Lazarus, Kimsuky, APT38",
-        "CISA / FBI Advisories (北朝鮮APT)",
-        "金融 ISAC 情報共有 (APT38 金融標的)",
-        "OFAC 制裁関連情報",
-    ],
-    "state_sponsored.Iran": [
-        "MITRE ATT&CK Groups: APT33, APT34, MuddyWater",
-        "CISA Advisories (イラン系APT)",
-        "製造・エネルギー ISAC 情報共有",
-        "ICS-CERT OT 脅威情報",
-    ],
-    "ransomware": [
-        "Ransomware Tracker (各社 CTI フィード)",
-        "FBI Flash / CISA Ransomware Advisories",
-        "業種 ISAC ランサムウェアアラート",
-        "VirusTotal / MalwareBazaar 検体情報",
-    ],
-    "hacktivist": [
-        "ソーシャルメディアモニタリング (Telegram, X)",
-        "DDoS 観測フィード (Cloudflare Radar 等)",
-        "ハクティビスト Telegram チャンネル追跡",
-    ],
-}
+# Load Japanese display strings from schema/content_ja.json
+_CONTENT_PATH = Path(__file__).parents[3] / "schema" / "content_ja.json"
+_CONTENT: dict = json.loads(_CONTENT_PATH.read_text(encoding="utf-8"))
 
-_DEFAULT_SOURCES: list[str] = [
-    "業種 ISAC 情報共有",
-    "OSINT 脅威インテリジェンスフィード",
-    "JPCERT/CC 注意喚起",
-]
+# Recommended collection sources per threat category
+_SOURCE_MAP: dict[str, list[str]] = _CONTENT["source_map"]
+_DEFAULT_SOURCES: list[str] = _CONTENT["default_sources"]
 
 # Trigger-specific collection actions
-_TRIGGER_ACTIONS: dict[str, str] = {
-    "m_and_a": "M&A 先企業のサプライチェーンリスク・過去インシデント調査",
-    "ot_connectivity": "ICS-CERT / JPCERT OT 脆弱性情報・ICS脅威インテリジェンス",
-    "cloud_migration": "CSP セキュリティアドバイザリ (GCP/AWS/Azure) ・クラウド設定ミス事例",
-    "ipo_or_listing": "SEC / 金融庁 開示リスク・インサイダー脅威・財務データ漏洩事例",
-    "supply_chain_expansion": "サプライヤーセキュリティ評価レポート・SBOM リスク情報",
-}
+_TRIGGER_ACTIONS: dict[str, str] = _CONTENT["trigger_actions"]
 
 # Suggested collection frequencies
-_LEVEL_FREQUENCY: dict[str, str] = {
-    "strategic": "月次",
-    "operational": "週次",
-    "tactical": "日次",
-}
+_LEVEL_FREQUENCY: dict[str, str] = _CONTENT["level_frequency"]
+
+# Collection frequency table labels
+_TABLE: dict[str, str] = _CONTENT["table"]
 
 
 def build_collection_plan(
@@ -220,18 +180,27 @@ def build_collection_plan(
     lines.append("|------|-----------|-------|")
 
     # Determine frequency based on intelligence level
-    freq = _LEVEL_FREQUENCY.get(risk.intelligence_level, "月次")
-    lines.append(f"| 脅威インテリジェンスフィード収集 | {freq} | CTIチーム |")
+    freq = _LEVEL_FREQUENCY.get(risk.intelligence_level, _LEVEL_FREQUENCY["default"])
+    lines.append(f"| {_TABLE['feed_collection_item']} | {freq} | {_TABLE['cti_team']} |")
 
     if "ot_connectivity" in threat.active_triggers:
-        lines.append("| OT/ICS 脆弱性情報確認 | 週次 | OT セキュリティ担当 |")
+        lines.append(
+            f"| {_TABLE['ot_vuln_item']} | {_TABLE['weekly']} | {_TABLE['ot_team']} |"
+        )
     if "ransomware" in threat.threat_actor_tags:
-        lines.append("| ランサムウェアキャンペーン監視 | 週次 | CTIチーム |")
+        lines.append(
+            f"| {_TABLE['ransomware_watch_item']} | {_TABLE['weekly']} | {_TABLE['cti_team']} |"
+        )
     if threat.notable_groups:
         groups_summary = ", ".join(threat.notable_groups[:3])
-        lines.append(f"| APTグループ TTP 更新確認 ({groups_summary}) | 月次 | CTIチーム |")
+        lines.append(
+            f"| {_TABLE['apt_ttp_watch_prefix']} ({groups_summary})"
+            f" | {_TABLE['monthly']} | {_TABLE['cti_team']} |"
+        )
 
-    lines.append("| BEACON PIR 定期見直し | 四半期 | CISOオフィス |")
+    lines.append(
+        f"| {_TABLE['pir_review_item']} | {_TABLE['quarterly']} | {_TABLE['ciso_office']} |"
+    )
     lines.append("")
     lines.append("---")
     lines.append("")
