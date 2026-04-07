@@ -76,6 +76,29 @@ Only P1 and P2 are included in `pir_output.json`. P3 items are tracked in `colle
 
 ---
 
+## Collection Plan (collection_plan.md)
+
+`collection_plan.md` is a Markdown report generated alongside `pir_output.json`. It captures items that did not make the P1/P2 threshold and serves as the CTI team's operational collection schedule.
+
+**Generated with:**
+
+```bash
+uv run python cmd/generate_pir.py --context ... --output pir_output.json \
+  --collection-plan collection_plan.md
+```
+
+**Contents:**
+
+| Section | Description |
+|---------|-------------|
+| P3 watch items | Threats below the P2 threshold; monitor but do not act immediately |
+| Trigger-based actions | Collection actions triggered by business events (M&A, OT expansion, IPO) |
+| Collection frequency table | Monthly / weekly / daily schedule per feed type for the CTI team |
+
+`collection_plan.md` is listed in `.gitignore` (runtime output; not committed).
+
+---
+
 ## Intelligence Level & Validity
 
 | Level | Composite | valid_until | Example |

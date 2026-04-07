@@ -76,6 +76,29 @@
 
 ---
 
+## コレクションプラン（collection_plan.md）
+
+`collection_plan.md` は `pir_output.json` と並行して生成される Markdown レポートです。P1/P2 の閾値に達しなかった項目を記録し、CTI チームの運用収集スケジュールとして機能します。
+
+**生成コマンド:**
+
+```bash
+uv run python cmd/generate_pir.py --context ... --output pir_output.json \
+  --collection-plan collection_plan.md
+```
+
+**内容:**
+
+| セクション | 説明 |
+|-----------|------|
+| P3 監視項目 | P2 閾値未満の脅威。即時対応は不要だが継続監視が必要な項目 |
+| トリガー別アクション | ビジネストリガー（M&A・OT拡張・IPO）に対応する収集アクション |
+| 収集頻度テーブル | フィードタイプ別の月次/週次/日次スケジュール（CTI チーム向け） |
+
+`collection_plan.md` は `.gitignore` に登録済み（実行時出力のためコミット対象外）。
+
+---
+
 ## インテリジェンスレベルと有効期間
 
 | レベル | composite | valid_until | 例 |

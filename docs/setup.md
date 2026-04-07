@@ -78,15 +78,77 @@ make test
 
 # Run full quality gate
 make check
+```
 
-# Generate PIR without LLM (no GCP required)
+---
+
+## PIR Generation Workflow
+
+### Option A: No-LLM mode (JSON input, no GCP required)
+
+Use when you already have a `business_context.json` and want to avoid LLM costs.
+
+```bash
 uv run python cmd/generate_pir.py \
   --context tests/fixtures/sample_context_manufacturing.json \
   --no-llm \
-  --output /tmp/pir_output.json
-
-uv run python cmd/validate_pir.py --pir /tmp/pir_output.json
+  --output pir_output.json \
+  --collection-plan collection_plan.md
 ```
+
+### Option B: LLM mode — Markdown input (requires GCP)
+
+Use when your business context is a strategy document in Markdown format.
+The LLM converts the Markdown into a structured `BusinessContext` and enriches the PIR output.
+
+```bash
+# Ensure GCP_PROJECT_ID is set and ADC is configured (see Step 4)
+uv run python cmd/generate_pir.py \
+  --context your_strategy_doc.md \
+  --output pir_output.json \
+  --collection-plan collection_plan.md
+```
+
+### Option C: LLM mode — JSON input
+
+Use when you have a JSON context file and want LLM-enriched descriptions and collection focus.
+
+```bash
+uv run python cmd/generate_pir.py \
+  --context your_context.json \
+  --output pir_output.json \
+  --collection-plan collection_plan.md
+```
+
+---
+
+## After Generation: Review and Export
+
+1. **Validate** — check that the output conforms to the SAGE-compatible PIR schema:
+
+   ```bash
+   uv run python cmd/validate_pir.py --pir pir_output.json
+   ```
+
+2. **Review** — inspect and edit `pir_output.json` manually, or use the Web UI:
+
+   ```bash
+   uv run python cmd/web_app.py --port 8080
+   # Open http://localhost:8080 → upload context → review → export
+   ```
+
+3. **Submit for GHE review** (optional) — create GitHub Issues for analyst sign-off:
+
+   ```bash
+   uv run python cmd/submit_for_review.py --pir pir_output.json
+   ```
+
+4. **Deploy to SAGE** — copy the validated PIR to SAGE's `PIR_FILE_PATH` and run ETL:
+
+   ```bash
+   cp pir_output.json /path/to/sage/config/pir.json
+   # Then run SAGE ETL (see docs/sage_integration.md)
+   ```
 
 ---
 

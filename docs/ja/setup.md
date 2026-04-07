@@ -78,15 +78,77 @@ make test
 
 # フル品質ゲート
 make check
+```
 
-# LLM なしで PIR 生成（GCP 不要）
+---
+
+## PIR 生成ワークフロー
+
+### Option A: LLM なしモード（JSON 入力、GCP 不要）
+
+すでに `business_context.json` があり、LLM コストを避けたい場合に使用。
+
+```bash
 uv run python cmd/generate_pir.py \
   --context tests/fixtures/sample_context_manufacturing.json \
   --no-llm \
-  --output /tmp/pir_output.json
-
-uv run python cmd/validate_pir.py --pir /tmp/pir_output.json
+  --output pir_output.json \
+  --collection-plan collection_plan.md
 ```
+
+### Option B: LLM モード — Markdown 入力（GCP 必要）
+
+ビジネスコンテキストが Markdown 形式の戦略ドキュメントの場合に使用。
+LLM が Markdown を構造化された `BusinessContext` に変換し、PIR 出力を拡充する。
+
+```bash
+# GCP_PROJECT_ID を設定し、ADC を構成済みであること（Step 4 参照）
+uv run python cmd/generate_pir.py \
+  --context your_strategy_doc.md \
+  --output pir_output.json \
+  --collection-plan collection_plan.md
+```
+
+### Option C: LLM モード — JSON 入力
+
+JSON コンテキストファイルがあり、LLM による説明・収集フォーカスの拡充を使いたい場合。
+
+```bash
+uv run python cmd/generate_pir.py \
+  --context your_context.json \
+  --output pir_output.json \
+  --collection-plan collection_plan.md
+```
+
+---
+
+## 生成後のレビューとエクスポート
+
+1. **バリデーション** — SAGE 互換 PIR スキーマへの準拠を確認:
+
+   ```bash
+   uv run python cmd/validate_pir.py --pir pir_output.json
+   ```
+
+2. **レビュー** — `pir_output.json` を手動で確認・編集するか、Web UI を使用:
+
+   ```bash
+   uv run python cmd/web_app.py --port 8080
+   # ブラウザで http://localhost:8080 → コンテキストをアップロード → レビュー → エクスポート
+   ```
+
+3. **GHE レビュー依頼**（任意）— アナリストのサインオフ用に GitHub Issue を作成:
+
+   ```bash
+   uv run python cmd/submit_for_review.py --pir pir_output.json
+   ```
+
+4. **SAGE へデプロイ** — 検証済み PIR を SAGE の `PIR_FILE_PATH` にコピーして ETL を実行:
+
+   ```bash
+   cp pir_output.json /path/to/sage/config/pir.json
+   # その後 SAGE ETL を実行（docs/ja/sage_integration.md 参照）
+   ```
 
 ---
 
