@@ -97,7 +97,8 @@ class TestReviewRoute:
 
     def test_review_with_session_shows_pir(self):
         sid = self._create_session_with_pirs()
-        resp = client.get("/review", cookies={"beacon_session": sid})
+        session_client = TestClient(app, cookies={"beacon_session": sid})
+        resp = session_client.get("/review")
         assert resp.status_code == 200
         assert b"PIR-2026-001" in resp.content
 
@@ -116,7 +117,8 @@ class TestReviewSaveRoute:
 
     def test_save_updates_description(self):
         sid = self._create_session()
-        resp = client.post(
+        session_client = TestClient(app, cookies={"beacon_session": sid})
+        resp = session_client.post(
             "/review/save",
             data={
                 "pir_index": "0",
@@ -124,19 +126,19 @@ class TestReviewSaveRoute:
                 "rationale": "Updated rationale",
                 "collection_focus": "Track IOC A\nTrack IOC B",
             },
-            cookies={"beacon_session": sid},
             follow_redirects=False,
         )
         assert resp.status_code == 303
 
         # Verify via /api/pir
-        api_resp = client.get("/api/pir", cookies={"beacon_session": sid})
+        api_resp = session_client.get("/api/pir")
         pirs = api_resp.json()["pirs"]
         assert pirs[0]["description"] == "Updated description"
 
     def test_save_persists_collection_focus_as_list(self):
         sid = self._create_session()
-        client.post(
+        session_client = TestClient(app, cookies={"beacon_session": sid})
+        session_client.post(
             "/review/save",
             data={
                 "pir_index": "0",
@@ -144,10 +146,9 @@ class TestReviewSaveRoute:
                 "rationale": "rat",
                 "collection_focus": "Item A\nItem B\n\nItem C",
             },
-            cookies={"beacon_session": sid},
             follow_redirects=False,
         )
-        api_resp = client.get("/api/pir", cookies={"beacon_session": sid})
+        api_resp = session_client.get("/api/pir")
         focus = api_resp.json()["pirs"][0]["collection_focus"]
         assert "Item A" in focus
         assert "Item B" in focus
@@ -169,7 +170,8 @@ class TestExportRoute:
 
     def test_export_returns_valid_json(self):
         sid = self._create_session()
-        resp = client.get("/review/export", cookies={"beacon_session": sid})
+        session_client = TestClient(app, cookies={"beacon_session": sid})
+        resp = session_client.get("/review/export")
         assert resp.status_code == 200
         assert resp.headers["content-type"].startswith("application/json")
         data = resp.json()
@@ -199,6 +201,7 @@ class TestAPIPirRoute:
                 follow_redirects=False,
             )
         sid = gen_resp.cookies.get("beacon_session")
-        resp = client.get("/api/pir", cookies={"beacon_session": sid})
+        session_client = TestClient(app, cookies={"beacon_session": sid})
+        resp = session_client.get("/api/pir")
         assert resp.status_code == 200
         assert len(resp.json()["pirs"]) > 0

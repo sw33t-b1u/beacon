@@ -178,7 +178,7 @@ class TestRiskScorerUseSage:
             self._make_elements(), self._make_threat(), use_sage=True, sage_client=mock_client
         )
 
-        assert "SAGE観測: 5件" in result.rationale
+        assert "SAGE observations: 5" in result.rationale
 
     def test_likelihood_capped_at_5(self):
         from beacon.analysis.risk_scorer import score  # noqa: PLC0415

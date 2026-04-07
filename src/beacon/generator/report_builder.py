@@ -184,9 +184,7 @@ def build_collection_plan(
     lines.append(f"| {_TABLE['feed_collection_item']} | {freq} | {_TABLE['cti_team']} |")
 
     if "ot_connectivity" in threat.active_triggers:
-        lines.append(
-            f"| {_TABLE['ot_vuln_item']} | {_TABLE['weekly']} | {_TABLE['ot_team']} |"
-        )
+        lines.append(f"| {_TABLE['ot_vuln_item']} | {_TABLE['weekly']} | {_TABLE['ot_team']} |")
     if "ransomware" in threat.threat_actor_tags:
         lines.append(
             f"| {_TABLE['ransomware_watch_item']} | {_TABLE['weekly']} | {_TABLE['cti_team']} |"

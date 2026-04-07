@@ -10,7 +10,16 @@ import importlib.util
 import sys
 from pathlib import Path
 
+_PROJECT_ROOT = str(Path(__file__).parent.parent)
 _CMD_DIR = Path(__file__).parent.parent / "cmd"
+
+# Move the project root and cmd/ directory to the end of sys.path so that
+# Python's stdlib modules (e.g. 'cmd' used by pdb) are resolved before
+# BEACON's cmd/ directory.
+for _p in (_PROJECT_ROOT, str(_CMD_DIR)):
+    if _p in sys.path:
+        sys.path.remove(_p)
+        sys.path.append(_p)
 
 
 def load_cmd_module(name: str):

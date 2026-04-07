@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import structlog
@@ -18,12 +19,14 @@ logger = structlog.get_logger(__name__)
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
-app = FastAPI(title="BEACON PIR Generator")
 
-
-@app.on_event("startup")
-async def _startup() -> None:
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
     cleanup_old_sessions()
+    yield
+
+
+app = FastAPI(title="BEACON PIR Generator", lifespan=_lifespan)
 
 
 # ---------------------------------------------------------------------------

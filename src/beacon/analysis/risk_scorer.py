@@ -156,9 +156,7 @@ def _build_rationale(
             (elements.crown_jewel_impacts or ["low"]),
             key=lambda x: _IMPACT_WEIGHTS.get(x, 2),
         )
-        parts.append(
-            f"Crown jewels: {len(elements.crown_jewel_ids)} (max impact: {max_impact})"
-        )
+        parts.append(f"Crown jewels: {len(elements.crown_jewel_ids)} (max impact: {max_impact})")
 
     if threat.notable_groups:
         groups = ", ".join(threat.notable_groups[:4])
