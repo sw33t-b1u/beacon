@@ -24,7 +24,6 @@ lib64/
 
 # Environment / secrets
 .env
-.env.*
 *.pem
 *.key
 service_account*.json
