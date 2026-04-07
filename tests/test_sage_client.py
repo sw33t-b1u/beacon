@@ -102,6 +102,8 @@ class TestRiskScorerUseSage:
 
         return ExtractedElements(
             org_industry="manufacturing",
+            org_unit_name="",
+            org_unit_type="company",
             org_geographies=["Japan"],
             strategic_sensitivity=[],
             project_data_types=[],

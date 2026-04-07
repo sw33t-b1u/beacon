@@ -138,6 +138,8 @@ class TestBuildCollectionPlanNoTriggers:
 
         elements = ExtractedElements(
             org_industry="education",
+            org_unit_name="",
+            org_unit_type="company",
             org_geographies=["USA"],
             strategic_sensitivity=["medium"],
             project_data_types=[],

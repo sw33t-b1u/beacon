@@ -23,6 +23,7 @@ Return ONLY valid JSON (no markdown, no explanation):
 
 ### Organization
 - Industry: {{INDUSTRY}}
+- Organizational scope: {{ORG_UNIT}}
 - Geography: {{GEOGRAPHY}}
 - Regulatory context: {{REGULATORY}}
 
@@ -50,8 +51,9 @@ Return ONLY valid JSON (no markdown, no explanation):
 
 ## Instructions
 
-- Make the description specific to this organization's context (mention industry + geography + key asset type).
-- The rationale should explain the threat actor motivation and why this organization is a target.
+- **Scope**: The PIR is for the organizational unit specified in "Organizational scope". If it is a department or team (not "entire company"), all fields must reflect that unit's context — do NOT broaden scope to the whole company.
+- Make the description specific to this unit's context (mention industry + organizational scope + geography + key asset type).
+- The rationale should explain the threat actor motivation and why this specific unit is a target (e.g., the data it holds, decisions it makes, systems it operates).
 - Collection focus items should be concrete and actionable (specific group names, CVEs, campaigns, data types).
 - Do NOT fabricate group names or TTPs not present in the analysis results.
 - Preserve or improve the draft — do not reduce specificity.

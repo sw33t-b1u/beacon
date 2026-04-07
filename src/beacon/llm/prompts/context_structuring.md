@@ -8,6 +8,8 @@ Return ONLY valid JSON (no markdown, no explanation) with this exact structure:
 {
   "organization": {
     "name": "string",
+    "unit_name": "string — department or team name if the document describes a sub-unit; otherwise empty string",
+    "unit_type": "one of: company | division | department | team",
     "industry": "one of: manufacturing | finance | energy | healthcare | defense | technology | logistics | government | education | other",
     "sub_industries": ["string"],
     "geography": ["string"],
@@ -63,7 +65,8 @@ Return ONLY valid JSON (no markdown, no explanation) with this exact structure:
 
 ## Rules
 
-- Use English for all field values except `name`, `title`, `description` (preserve original language).
+- Use English for all field values except `name`, `unit_name`, `title`, `description` (preserve original language).
+- `unit_type`: set to "company" when the document describes the whole company; set to "division", "department", or "team" when it describes a specific organizational sub-unit.
 - If information is not present in the document, use empty arrays `[]` or empty strings `""`.
 - Assign IDs sequentially: OBJ-001, OBJ-002 ... / PROJ-001, PROJ-002 ... / CJ-001, CJ-002 ...
 - For `industry`, choose the closest match from the allowed values.

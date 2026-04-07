@@ -1,7 +1,7 @@
-"""Vertex AI Gemini LLM client for BEACON.
+"""Google Gen AI (Vertex AI) LLM client for BEACON.
 
 Exposes a single `call_llm(task, prompt)` function that is easy to mock in tests.
-Vertex AI is initialized lazily on first call.
+The Gen AI client is initialized lazily on first call.
 """
 
 from __future__ import annotations
@@ -13,38 +13,41 @@ import structlog
 
 from beacon.config import Config, load_config
 
-# Top-level import with fallback so tests can patch beacon.llm.client.vertexai
-# and beacon.llm.client.GenerativeModel without vertexai being installed.
+# Top-level import with fallback so tests can patch beacon.llm.client.genai
+# without google-genai being installed.
 try:
-    import vertexai
-    from vertexai.generative_models import GenerationConfig, GenerativeModel
+    from google import genai
+    from google.genai import types as genai_types
 except ImportError:  # pragma: no cover
-    vertexai = None  # type: ignore[assignment]
-    GenerativeModel = None  # type: ignore[assignment,misc]
-    GenerationConfig = None  # type: ignore[assignment,misc]
+    genai = None  # type: ignore[assignment]
+    genai_types = None  # type: ignore[assignment]
 
 logger = structlog.get_logger(__name__)
 
 TaskType = Literal["simple", "medium", "complex"]
 
-_initialized = False
-_config: Config | None = None
+_client: genai.Client | None = None
+_client_config: Config | None = None
 
 
-def _ensure_initialized(config: Config) -> None:
-    global _initialized, _config
-    if _initialized and _config is config:
-        return
-    if vertexai is None:
-        raise RuntimeError("google-cloud-aiplatform is required for LLM mode. Run: uv sync")
-    vertexai.init(project=config.gcp_project_id, location=config.vertex_location)
-    _initialized = True
-    _config = config
-    logger.info(
-        "vertexai_initialized",
+def _ensure_client(config: Config) -> genai.Client:
+    global _client, _client_config
+    if _client is not None and _client_config is config:
+        return _client
+    if genai is None:
+        raise RuntimeError("google-genai is required for LLM mode. Run: uv sync")
+    _client = genai.Client(
+        vertexai=True,
         project=config.gcp_project_id,
         location=config.vertex_location,
     )
+    _client_config = config
+    logger.info(
+        "genai_client_initialized",
+        project=config.gcp_project_id,
+        location=config.vertex_location,
+    )
+    return _client
 
 
 def call_llm(
@@ -54,7 +57,7 @@ def call_llm(
     config: Config | None = None,
     json_mode: bool = True,
 ) -> str:
-    """Call Vertex AI Gemini and return the text response.
+    """Call Vertex AI Gemini via Google Gen AI SDK and return the text response.
 
     Args:
         task: Complexity level — selects the model ("simple", "medium", "complex").
@@ -66,18 +69,21 @@ def call_llm(
         The model's text response (JSON string if json_mode=True).
     """
     cfg = config or load_config()
-    _ensure_initialized(cfg)
+    client = _ensure_client(cfg)
 
     model_name = _model_for_task(task, cfg)
 
-    model = GenerativeModel(model_name)
-    generation_config = GenerationConfig(
+    generation_config = genai_types.GenerateContentConfig(
         response_mime_type="application/json" if json_mode else "text/plain",
         temperature=0.2,
     )
 
     logger.info("llm_call_start", task=task, model=model_name)
-    response = model.generate_content(prompt, generation_config=generation_config)
+    response = client.models.generate_content(
+        model=model_name,
+        contents=prompt,
+        config=generation_config,
+    )
     text = response.text
     logger.info("llm_call_done", task=task, model=model_name, chars=len(text))
     return text

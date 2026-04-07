@@ -13,6 +13,8 @@ from pydantic import BaseModel, Field
 
 class Organization(BaseModel):
     name: str
+    unit_name: str = ""  # department / team name (e.g. "Financial Crime Intelligence Team")
+    unit_type: Literal["company", "division", "department", "team"] = "company"
     industry: Literal[
         "manufacturing",
         "finance",

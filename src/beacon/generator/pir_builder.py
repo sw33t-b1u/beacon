@@ -33,6 +33,7 @@ class RiskScoreModel(BaseModel):
 class PIROutput(BaseModel):
     pir_id: str
     intelligence_level: IntelligenceLevel
+    organizational_scope: str  # e.g. "Financial Crime Team (department)" or "entire company"
     description: str
     rationale: str
     threat_actor_tags: list[str]
@@ -62,7 +63,7 @@ def build_pirs(
     P3/P4 are tracked only in report/collection_plan (Phase 3).
 
     When use_llm=True, description/rationale/collection_focus are augmented
-    by Vertex AI (gemini-2.5-flash) using the dictionary results as context.
+    by Google Gen AI (gemini-2.5-flash) using the dictionary results as context.
     """
     today = generated_on or date.today()
 
@@ -80,15 +81,22 @@ def build_pirs(
     collection_focus = _build_collection_focus(threat, elements)
     rationale = risk.rationale
 
+    org_scope = (
+        f"{elements.org_unit_name} ({elements.org_unit_type})"
+        if elements.org_unit_name
+        else f"entire company ({elements.org_unit_type})"
+    )
+
     # LLM augmentation: improve text fields using dictionary results as context
     if use_llm:
         description, rationale, collection_focus = _llm_augment_text(
-            elements, threat, risk, description, rationale, collection_focus, config
+            elements, threat, risk, description, rationale, collection_focus, org_scope, config
         )
 
     pir = PIROutput(
         pir_id=pir_id,
         intelligence_level=level,
+        organizational_scope=org_scope,
         description=description,
         rationale=rationale,
         threat_actor_tags=threat.threat_actor_tags,
@@ -169,9 +177,10 @@ def _llm_augment_text(
     draft_description: str,
     draft_rationale: str,
     draft_collection_focus: list[str],
+    org_scope: str,
     config=None,
 ) -> tuple[str, str, list[str]]:
-    """Augment PIR text fields using Vertex AI (gemini-2.5-flash).
+    """Augment PIR text fields using Google Gen AI (gemini-2.5-flash).
 
     The dictionary-based drafts are passed as context so the LLM improves
     rather than invents content.
@@ -191,6 +200,7 @@ def _llm_augment_text(
     template = load_prompt("pir_generation.md")
     prompt = (
         template.replace("{{INDUSTRY}}", elements.org_industry)
+        .replace("{{ORG_UNIT}}", org_scope)
         .replace("{{GEOGRAPHY}}", ", ".join(elements.org_geographies))
         .replace("{{REGULATORY}}", ", ".join(getattr(elements, "regulatory_context", [])))
         .replace("{{CROWN_JEWELS}}", crown_jewels_text)

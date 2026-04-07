@@ -1,4 +1,4 @@
-"""Tests for llm/client.py — Vertex AI is fully mocked."""
+"""Tests for llm/client.py — Google Gen AI is fully mocked."""
 
 from __future__ import annotations
 
@@ -28,19 +28,34 @@ def _mock_response(text: str) -> MagicMock:
     return resp
 
 
+def _make_mock_genai(response_text: str) -> tuple[MagicMock, MagicMock]:
+    """Return (mock_genai_module, mock_client_instance)."""
+    mock_client = MagicMock()
+    mock_client.models.generate_content.return_value = _mock_response(response_text)
+
+    mock_genai = MagicMock()
+    mock_genai.Client.return_value = mock_client
+
+    return mock_genai, mock_client
+
+
+def _reset_client():
+    import beacon.llm.client as m
+
+    m._client = None
+    m._client_config = None
+
+
 class TestCallLlm:
+    def setup_method(self):
+        _reset_client()
+
     def test_returns_model_text(self):
         config = _make_config()
         expected = '{"key": "value"}'
+        mock_genai, _ = _make_mock_genai(expected)
 
-        with (
-            patch("beacon.llm.client._ensure_initialized"),
-            patch("beacon.llm.client.GenerativeModel") as mock_model,
-        ):
-            mock_instance = MagicMock()
-            mock_instance.generate_content.return_value = _mock_response(expected)
-            mock_model.return_value = mock_instance
-
+        with patch("beacon.llm.client.genai", mock_genai):
             from beacon.llm.client import call_llm
 
             result = call_llm("simple", "test prompt", config=config)
@@ -49,52 +64,39 @@ class TestCallLlm:
 
     def test_selects_correct_model_for_task(self):
         config = _make_config()
+        mock_genai, mock_client = _make_mock_genai("{}")
 
-        with (
-            patch("beacon.llm.client._ensure_initialized"),
-            patch("beacon.llm.client.GenerativeModel") as mock_model,
-        ):
-            mock_instance = MagicMock()
-            mock_instance.generate_content.return_value = _mock_response("{}")
-            mock_model.return_value = mock_instance
-
+        with patch("beacon.llm.client.genai", mock_genai):
             from beacon.llm.client import call_llm
 
             call_llm("complex", "test", config=config)
 
-        mock_model.assert_called_once_with("gemini-2.5-pro")
+        call_kwargs = mock_client.models.generate_content.call_args.kwargs
+        assert call_kwargs["model"] == "gemini-2.5-pro"
 
     def test_medium_model_selected(self):
         config = _make_config()
+        mock_genai, mock_client = _make_mock_genai("{}")
 
-        with (
-            patch("beacon.llm.client._ensure_initialized"),
-            patch("beacon.llm.client.GenerativeModel") as mock_model,
-        ):
-            mock_instance = MagicMock()
-            mock_instance.generate_content.return_value = _mock_response("{}")
-            mock_model.return_value = mock_instance
-
+        with patch("beacon.llm.client.genai", mock_genai):
             from beacon.llm.client import call_llm
 
             call_llm("medium", "test", config=config)
 
-        mock_model.assert_called_once_with("gemini-2.5-flash")
+        call_kwargs = mock_client.models.generate_content.call_args.kwargs
+        assert call_kwargs["model"] == "gemini-2.5-flash"
 
 
 class TestCallLlmJson:
+    def setup_method(self):
+        _reset_client()
+
     def test_parses_json_response(self):
         config = _make_config()
         payload = {"threat_actor_tags": ["apt-china"], "notable_groups": ["APT41"]}
+        mock_genai, _ = _make_mock_genai(json.dumps(payload))
 
-        with (
-            patch("beacon.llm.client._ensure_initialized"),
-            patch("beacon.llm.client.GenerativeModel") as mock_model,
-        ):
-            mock_instance = MagicMock()
-            mock_instance.generate_content.return_value = _mock_response(json.dumps(payload))
-            mock_model.return_value = mock_instance
-
+        with patch("beacon.llm.client.genai", mock_genai):
             from beacon.llm.client import call_llm_json
 
             result = call_llm_json("simple", "test", config=config)
@@ -103,15 +105,9 @@ class TestCallLlmJson:
 
     def test_raises_on_invalid_json(self):
         config = _make_config()
+        mock_genai, _ = _make_mock_genai("not json at all")
 
-        with (
-            patch("beacon.llm.client._ensure_initialized"),
-            patch("beacon.llm.client.GenerativeModel") as mock_model,
-        ):
-            mock_instance = MagicMock()
-            mock_instance.generate_content.return_value = _mock_response("not json at all")
-            mock_model.return_value = mock_instance
-
+        with patch("beacon.llm.client.genai", mock_genai):
             from beacon.llm.client import call_llm_json
 
             with pytest.raises(ValueError, match="non-JSON"):
@@ -147,39 +143,45 @@ class TestLoadPrompt:
         assert "{{EXISTING_TAGS}}" in text
 
 
-class TestEnsureInitialized:
-    def test_calls_vertexai_init(self):
+class TestEnsureClient:
+    def setup_method(self):
+        _reset_client()
+
+    def teardown_method(self):
+        _reset_client()
+
+    def test_creates_client_with_correct_args(self):
         config = _make_config(gcp_project_id="my-project", vertex_location="us-central1")
+        mock_genai = MagicMock()
 
-        import beacon.llm.client as client_module
+        with patch("beacon.llm.client.genai", mock_genai):
+            from beacon.llm.client import _ensure_client
 
-        client_module._initialized = False
-        client_module._config = None
+            _ensure_client(config)
 
-        with patch("beacon.llm.client.vertexai") as mock_vertexai:
-            from beacon.llm.client import _ensure_initialized
-
-            _ensure_initialized(config)
-
-        mock_vertexai.init.assert_called_once_with(project="my-project", location="us-central1")
+        mock_genai.Client.assert_called_once_with(
+            vertexai=True,
+            project="my-project",
+            location="us-central1",
+        )
 
     def test_skips_reinit_same_config(self):
         config = _make_config()
 
-        import beacon.llm.client as client_module
+        import beacon.llm.client as m
 
-        client_module._initialized = True
-        client_module._config = config
+        existing_client = MagicMock()
+        m._client = existing_client
+        m._client_config = config
 
-        with patch("beacon.llm.client.vertexai") as mock_vertexai:
-            from beacon.llm.client import _ensure_initialized
+        mock_genai = MagicMock()
+        with patch("beacon.llm.client.genai", mock_genai):
+            from beacon.llm.client import _ensure_client
 
-            _ensure_initialized(config)
+            result = _ensure_client(config)
 
-        mock_vertexai.init.assert_not_called()
-        # Reset for other tests
-        client_module._initialized = False
-        client_module._config = None
+        mock_genai.Client.assert_not_called()
+        assert result is existing_client
 
 
 @pytest.mark.integration

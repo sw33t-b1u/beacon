@@ -26,6 +26,8 @@ class ExtractedElements:
     """Flat list of business elements relevant for threat mapping."""
 
     org_industry: str
+    org_unit_name: str  # department / team name, empty string if company-level
+    org_unit_type: str  # "company" | "division" | "department" | "team"
     org_geographies: list[str]
     strategic_sensitivity: list[str]  # sensitivity levels from strategic objectives
     project_data_types: list[str]  # deduplicated data types across projects
@@ -78,12 +80,16 @@ def extract(ctx: BusinessContext) -> ExtractedElements:
     logger.info(
         "elements_extracted",
         industry=ctx.organization.industry,
+        unit_name=ctx.organization.unit_name,
+        unit_type=ctx.organization.unit_type,
         triggers=active_triggers,
         crown_jewels=len(crown_jewel_ids),
     )
 
     return ExtractedElements(
         org_industry=ctx.organization.industry,
+        org_unit_name=ctx.organization.unit_name,
+        org_unit_type=ctx.organization.unit_type,
         org_geographies=list(ctx.organization.geography),
         strategic_sensitivity=_dedup([o.sensitivity for o in ctx.strategic_objectives]),
         project_data_types=project_data_types,
