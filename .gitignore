@@ -75,3 +75,4 @@ temp/
 # PIR output (runtime-generated, not source)
 pir_output.json
 collection_plan.md
+TODO.md
