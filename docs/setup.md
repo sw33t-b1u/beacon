@@ -152,6 +152,29 @@ uv run python cmd/generate_pir.py \
 
 ---
 
+## Updating the Threat Taxonomy
+
+`schema/threat_taxonomy.json` maps industries, geographies, and business triggers to threat actor tags. It is maintained in two ways:
+
+**Automatic update** — syncs `mitre_groups` and `priority_ttps` from the MITRE ATT&CK STIX bundle:
+
+```bash
+# Preview changes without writing to disk
+uv run python -m cmd.update_taxonomy --dry-run
+
+# Apply updates
+uv run python -m cmd.update_taxonomy
+```
+
+**Manual update** — edit `schema/threat_taxonomy.json` directly for:
+- Adding new actor categories or nations
+- Tuning `target_industries` / `target_geographies`
+- Updating `geography_threat_map`, `industry_threat_map`, `business_trigger_map`
+
+> The automatic update does **not** touch manually managed sections. Run it periodically (e.g. quarterly) to keep MITRE group names and TTP IDs current.
+
+---
+
 ## Web UI (optional)
 
 ```bash

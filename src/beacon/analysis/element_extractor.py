@@ -22,6 +22,17 @@ logger = structlog.get_logger(__name__)
 
 
 @dataclass
+class CrownJewelDetail:
+    """Per-CJ structured data for prompt building."""
+
+    id: str
+    name: str
+    system: str
+    business_impact: str
+    exposure_risk: str
+
+
+@dataclass
 class ExtractedElements:
     """Flat list of business elements relevant for threat mapping."""
 
@@ -34,7 +45,8 @@ class ExtractedElements:
     project_cloud_providers: list[str]
     crown_jewel_ids: list[str]
     crown_jewel_systems: list[str]
-    crown_jewel_impacts: list[str]  # business_impact values
+    crown_jewel_impacts: list[str]  # business_impact values (deduped)
+    crown_jewel_details: list[CrownJewelDetail]  # per-CJ structured data
     has_ot_connectivity: bool
     has_stock_listing: bool
     active_vendors: list[str]  # vendors from in_progress projects
@@ -68,6 +80,16 @@ def extract(ctx: BusinessContext) -> ExtractedElements:
     crown_jewel_ids = [cj.id for cj in ctx.crown_jewels]
     crown_jewel_systems = _dedup([cj.system for cj in ctx.crown_jewels if cj.system])
     crown_jewel_impacts = _dedup([cj.business_impact for cj in ctx.crown_jewels])
+    crown_jewel_details = [
+        CrownJewelDetail(
+            id=cj.id,
+            name=cj.name,
+            system=cj.system or "",
+            business_impact=cj.business_impact,
+            exposure_risk=cj.exposure_risk,
+        )
+        for cj in ctx.crown_jewels
+    ]
 
     active_triggers = _detect_triggers(ctx, project_cloud_providers)
 
@@ -97,6 +119,7 @@ def extract(ctx: BusinessContext) -> ExtractedElements:
         crown_jewel_ids=crown_jewel_ids,
         crown_jewel_systems=crown_jewel_systems,
         crown_jewel_impacts=crown_jewel_impacts,
+        crown_jewel_details=crown_jewel_details,
         has_ot_connectivity=ctx.supply_chain.ot_connectivity,
         has_stock_listing=ctx.organization.stock_listed,
         active_vendors=active_vendors,

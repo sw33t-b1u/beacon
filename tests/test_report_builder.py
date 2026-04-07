@@ -147,6 +147,7 @@ class TestBuildCollectionPlanNoTriggers:
             crown_jewel_ids=[],
             crown_jewel_systems=[],
             crown_jewel_impacts=[],
+            crown_jewel_details=[],
             has_ot_connectivity=False,
             has_stock_listing=False,
             active_vendors=[],

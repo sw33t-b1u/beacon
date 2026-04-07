@@ -152,6 +152,29 @@ uv run python cmd/generate_pir.py \
 
 ---
 
+## 脅威タクソノミーの更新
+
+`schema/threat_taxonomy.json` は、業種・地域・ビジネストリガーを脅威アクタータグに対応付けるファイルです。更新方法は2つあります。
+
+**自動更新** — MITRE ATT&CK STIX バンドルから `mitre_groups` と `priority_ttps` を同期:
+
+```bash
+# 変更内容をプレビュー（ファイル書き込みなし）
+uv run python -m cmd.update_taxonomy --dry-run
+
+# 実際に更新
+uv run python -m cmd.update_taxonomy
+```
+
+**手動更新** — 以下の項目は `schema/threat_taxonomy.json` を直接編集:
+- 新しいアクターカテゴリや国の追加
+- `target_industries` / `target_geographies` の調整
+- `geography_threat_map`、`industry_threat_map`、`business_trigger_map` の更新
+
+> 自動更新は手動管理セクションを変更しません。MITRE のグループ名や TTP ID を最新化するために、定期的（例: 四半期ごと）に実行することを推奨します。
+
+---
+
 ## Web UI（オプション）
 
 ```bash

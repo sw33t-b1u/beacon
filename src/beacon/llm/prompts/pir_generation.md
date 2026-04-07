@@ -30,6 +30,10 @@ Return ONLY valid JSON (no markdown, no explanation):
 ### Crown Jewels
 {{CROWN_JEWELS}}
 
+### Data and Supply Chain
+- Data types handled: {{DATA_TYPES}}
+- Critical vendors / supply chain: {{ACTIVE_VENDORS}}
+
 ### Matched Threat Actors
 - Categories: {{MATCHED_CATEGORIES}}
 - Notable groups: {{NOTABLE_GROUPS}}

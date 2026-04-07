@@ -191,11 +191,14 @@ def _llm_augment_text(
 
     crown_jewels_text = (
         "\n".join(
-            f"- {cj_id}: system={sys_}"
-            for cj_id, sys_ in zip(elements.crown_jewel_ids, elements.crown_jewel_systems or [""])
+            f"- {cj.id} ({cj.name}): system={cj.system or 'N/A'}"
+            f", impact={cj.business_impact}, exposure={cj.exposure_risk}"
+            for cj in elements.crown_jewel_details
         )
         or "none"
     )
+    data_types_text = ", ".join(elements.project_data_types) or "none"
+    vendors_text = ", ".join(elements.active_vendors[:5]) or "none"
 
     template = load_prompt("pir_generation.md")
     prompt = (
@@ -203,6 +206,8 @@ def _llm_augment_text(
         .replace("{{ORG_UNIT}}", org_scope)
         .replace("{{GEOGRAPHY}}", ", ".join(elements.org_geographies))
         .replace("{{REGULATORY}}", ", ".join(getattr(elements, "regulatory_context", [])))
+        .replace("{{DATA_TYPES}}", data_types_text)
+        .replace("{{ACTIVE_VENDORS}}", vendors_text)
         .replace("{{CROWN_JEWELS}}", crown_jewels_text)
         .replace("{{MATCHED_CATEGORIES}}", ", ".join(threat.matched_categories) or "none")
         .replace("{{NOTABLE_GROUPS}}", ", ".join(threat.notable_groups[:6]) or "none")

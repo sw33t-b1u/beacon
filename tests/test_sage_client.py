@@ -111,6 +111,7 @@ class TestRiskScorerUseSage:
             crown_jewel_ids=["CJ-1"],
             crown_jewel_systems=["PLM"],
             crown_jewel_impacts=["high"],
+            crown_jewel_details=[],
             has_ot_connectivity=False,
             has_stock_listing=False,
             active_vendors=[],
