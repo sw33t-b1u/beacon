@@ -2,7 +2,7 @@
 
 **Business Environment Assessment for CTI Organizational Needs**
 
-Converts organizational business context (JSON or Markdown strategy documents) into [SAGE](../SAGE)-compatible **Priority Intelligence Requirements (PIR) JSON** using a dictionary-based pipeline augmented by Vertex AI Gemini.
+Converts organizational business context (JSON or Markdown strategy documents) into [SAGE](../SAGE)-compatible **Priority Intelligence Requirements (PIR) JSON** using a dictionary-based pipeline augmented by Google Gen AI (Gemini).
 
 [日本語版 README はこちら](README.ja.md)
 
@@ -32,7 +32,7 @@ Converts organizational business context (JSON or Markdown strategy documents) i
 | Mode | Input | LLM | Use case |
 |------|-------|-----|----------|
 | `--no-llm` | JSON only | None | Air-gapped / cost-constrained |
-| Default | JSON or Markdown | Vertex AI Gemini | Full quality |
+| Default | JSON or Markdown | Google Gen AI (Gemini) | Full quality |
 
 ## Documentation
 
@@ -98,15 +98,6 @@ make format    # ruff format + fix
 make test      # pytest (unit tests)
 make audit     # pip-audit
 ```
-
-## Implementation Phases
-
-| Phase | Scope | Status |
-|-------|-------|--------|
-| Phase 1 | Dictionary pipeline (element extraction → PIR JSON) | Complete |
-| Phase 2 | LLM augmentation via Vertex AI Gemini | Complete |
-| Phase 3 | Collection plan generation | Complete |
-| Phase 4 | MITRE auto-update + GHE review + SAGE API + Web UI | Complete |
 
 ## License
 

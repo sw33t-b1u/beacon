@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import structlog
-from fastapi import Cookie, FastAPI, File, Form, Request, UploadFile
+from fastapi import Cookie, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
@@ -43,17 +43,22 @@ async def index(request: Request):
 async def generate(
     request: Request,
     context_file: UploadFile = File(...),
-    no_llm: bool = Form(default=True),
+    no_llm: str = Form(default="true"),
+    model_simple: str = Form(default=""),
+    model_medium: str = Form(default=""),
+    model_complex: str = Form(default=""),
 ):
     """Run PIR pipeline on uploaded business context file, store results in session."""
-    # Write uploaded file to a temp location
+    no_llm_bool = no_llm.lower() not in {"false", "0", "no"}
+    cfg = _build_config(model_simple, model_medium, model_complex)
+
     suffix = Path(context_file.filename or "ctx.json").suffix
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
         tmp.write(await context_file.read())
         tmp_path = Path(tmp.name)
 
     try:
-        pirs, collection_plan_md = _run_pipeline(tmp_path, no_llm=no_llm)
+        pirs, collection_plan_md = _run_pipeline(tmp_path, no_llm=no_llm_bool, config=cfg)
     finally:
         tmp_path.unlink(missing_ok=True)
 
@@ -61,6 +66,36 @@ async def generate(
         "pirs": pirs,
         "collection_plan": collection_plan_md,
     }
+    session_id = create_session(session_data)
+
+    response = RedirectResponse(url="/review", status_code=303)
+    response.set_cookie("beacon_session", session_id, httponly=True, max_age=86400)
+    return response
+
+
+@app.post("/load")
+async def load_pir(
+    request: Request,
+    pir_file: UploadFile = File(...),
+):
+    """Load an existing pir_output.json into a session for review."""
+    raw = await pir_file.read()
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON: {exc}") from exc
+
+    if isinstance(data, dict):
+        # Accept both {"pirs": [...]} and bare list
+        pirs = data.get("pirs", [data]) if "pirs" in data else [data]
+    elif isinstance(data, list):
+        pirs = data
+    else:
+        raise HTTPException(
+            status_code=400, detail="pir_output.json must be a JSON array or object"
+        )
+
+    session_data = {"pirs": pirs, "collection_plan": ""}
     session_id = create_session(session_data)
 
     response = RedirectResponse(url="/review", status_code=303)
@@ -180,16 +215,22 @@ async def api_pir(beacon_session: str = Cookie(default="")):
 @app.post("/api/generate")
 async def api_generate(
     context_file: UploadFile = File(...),
-    no_llm: bool = Form(default=True),
+    no_llm: str = Form(default="true"),
+    model_simple: str = Form(default=""),
+    model_medium: str = Form(default=""),
+    model_complex: str = Form(default=""),
 ):
     """REST endpoint: run pipeline and return PIR JSON directly."""
+    no_llm_bool = no_llm.lower() not in {"false", "0", "no"}
+    cfg = _build_config(model_simple, model_medium, model_complex)
+
     suffix = Path(context_file.filename or "ctx.json").suffix
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
         tmp.write(await context_file.read())
         tmp_path = Path(tmp.name)
 
     try:
-        pirs, collection_plan_md = _run_pipeline(tmp_path, no_llm=no_llm)
+        pirs, collection_plan_md = _run_pipeline(tmp_path, no_llm=no_llm_bool, config=cfg)
     finally:
         tmp_path.unlink(missing_ok=True)
 
@@ -201,7 +242,21 @@ async def api_generate(
 # ---------------------------------------------------------------------------
 
 
-def _run_pipeline(context_path: Path, *, no_llm: bool) -> tuple[list[dict], str]:
+def _build_config(model_simple: str, model_medium: str, model_complex: str):
+    """Build a Config with optional model overrides. Falls back to env-var defaults."""
+    from beacon.config import load_config  # noqa: PLC0415
+
+    cfg = load_config()
+    if model_simple:
+        cfg.llm_model_simple = model_simple
+    if model_medium:
+        cfg.llm_model_medium = model_medium
+    if model_complex:
+        cfg.llm_model_complex = model_complex
+    return cfg
+
+
+def _run_pipeline(context_path: Path, *, no_llm: bool, config=None) -> tuple[list[dict], str]:
     """Execute the BEACON pipeline and return (pirs_as_dicts, collection_plan_markdown)."""
     from beacon.analysis.asset_mapper import load_asset_tags, map_asset_tags  # noqa: PLC0415
     from beacon.analysis.element_extractor import extract  # noqa: PLC0415
@@ -213,15 +268,17 @@ def _run_pipeline(context_path: Path, *, no_llm: bool) -> tuple[list[dict], str]
 
     use_llm = not no_llm
 
-    ctx = parse(context_path, no_llm=no_llm)
+    ctx = parse(context_path, no_llm=no_llm, config=config)
     taxonomy = load_taxonomy(None)
     asset_tags_dict = load_asset_tags(None)
 
     elements = extract(ctx)
     asset_tag_list = map_asset_tags(elements, asset_tags_dict)
-    threat = map_threats(elements, taxonomy, use_llm=use_llm)
-    risk = score(elements, threat, use_llm=use_llm)
-    pirs = build_pirs(elements, threat, risk, asset_tag_list, asset_tags_dict, use_llm=use_llm)
+    threat = map_threats(elements, taxonomy, use_llm=use_llm, config=config)
+    risk = score(elements, threat, use_llm=use_llm, config=config)
+    pirs = build_pirs(
+        elements, threat, risk, asset_tag_list, asset_tags_dict, use_llm=use_llm, config=config
+    )
 
     plan = build_collection_plan(elements, threat, risk, pirs)
     # Render to markdown string (reuse write helper by capturing output)

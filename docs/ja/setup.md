@@ -183,6 +183,14 @@ uv run python cmd/web_app.py --port 8080
 
 ブラウザで `http://localhost:8080` を開く。
 
+Web UI は 2 つのワークフローを提供します。
+
+**Business Context から生成** — `business_context.json` または Markdown 形式の戦略ドキュメントをアップロードし、モードを選択:
+- **Dictionary only**（LLM なし / GCP 不要） — 高速な辞書ベース PIR 生成
+- **LLM mode**（GCP 必要） — Google Gen AI（Gemini）による説明・根拠・収集フォーカスの拡充。LLM モード選択時は、各タスクレベル（simple / medium / complex）のモデルを UI 上で上書き可能（空白のままにすると `.env` のデフォルト値を使用）
+
+**既存の PIR JSON を読み込む** — 生成済みの `pir_output.json` をアップロードして、パイプラインを再実行せずにレビュー・編集・エクスポートできます。
+
 ---
 
 ## セキュリティスキャン

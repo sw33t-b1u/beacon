@@ -183,6 +183,14 @@ uv run python cmd/web_app.py --port 8080
 
 Open `http://localhost:8080` in your browser.
 
+The Web UI provides two workflows:
+
+**Generate from business context** — Upload a `business_context.json` or Markdown strategy document. Choose between:
+- **Dictionary only** (no LLM, no GCP required) — fast, rule-based PIR generation
+- **LLM mode** (requires GCP) — enriched descriptions, rationale, and collection focus via Google Gen AI (Gemini). When LLM mode is selected, you can override the default models for each complexity tier (simple / medium / complex) directly in the UI; leave blank to use the `.env` defaults.
+
+**Load existing PIR JSON** — Upload a previously generated `pir_output.json` to review, edit, and re-export without re-running the pipeline.
+
 ---
 
 ## Security scanning
