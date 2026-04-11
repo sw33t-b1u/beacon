@@ -72,40 +72,7 @@ See [docs/setup.md](docs/setup.md) for the full setup procedure.
 
 ## Project Structure
 
-```
-BEACON/
-├── pyproject.toml
-├── Makefile
-├── .env.example
-├── input/              # Drop context.md here (gitignored — contains sensitive data)
-├── output/             # Generated files: pir_output.json, collection_plan.md (gitignored)
-├── src/beacon/
-│   ├── config.py
-│   ├── ingest/{schema,context_parser,report_reader,stix_extractor}.py
-│   ├── analysis/{element_extractor,asset_mapper,assets_generator,threat_mapper,risk_scorer}.py
-│   ├── generator/{pir_builder,report_builder}.py
-│   ├── llm/{client,prompts/}
-│   ├── review/github.py
-│   ├── sage/client.py
-│   └── web/{app,session,templates/}
-├── cmd/
-│   ├── generate_pir.py
-│   ├── generate_assets.py
-│   ├── stix_from_report.py
-│   ├── validate_pir.py
-│   ├── generate_schemas.py
-│   ├── update_taxonomy.py
-│   ├── submit_for_review.py
-│   └── web_app.py
-├── schema/
-│   ├── threat_taxonomy.json
-│   ├── asset_tags.json
-│   ├── content_ja.json
-│   └── trigger_keywords.json
-└── tests/
-    ├── fixtures/
-    └── test_*.py
-```
+See [docs/structure.md](docs/structure.md) for the full directory layout and design criteria.
 
 ## Development
 

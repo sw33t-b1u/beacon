@@ -72,40 +72,7 @@ cp .env.example .env   # GCP_PROJECT_ID などの変数を入力
 
 ## ディレクトリ構成
 
-```
-BEACON/
-├── pyproject.toml
-├── Makefile
-├── .env.example
-├── input/              # context.md を置くディレクトリ（gitignore 対象 — 機密データ）
-├── output/             # 生成ファイル: pir_output.json, collection_plan.md（gitignore 対象）
-├── src/beacon/
-│   ├── config.py
-│   ├── ingest/{schema,context_parser,report_reader,stix_extractor}.py
-│   ├── analysis/{element_extractor,asset_mapper,assets_generator,threat_mapper,risk_scorer}.py
-│   ├── generator/{pir_builder,report_builder}.py
-│   ├── llm/{client,prompts/}
-│   ├── review/github.py
-│   ├── sage/client.py
-│   └── web/{app,session,templates/}
-├── cmd/
-│   ├── generate_pir.py
-│   ├── generate_assets.py
-│   ├── stix_from_report.py
-│   ├── validate_pir.py
-│   ├── generate_schemas.py
-│   ├── update_taxonomy.py
-│   ├── submit_for_review.py
-│   └── web_app.py
-├── schema/
-│   ├── threat_taxonomy.json
-│   ├── asset_tags.json
-│   ├── content_ja.json
-│   └── trigger_keywords.json
-└── tests/
-    ├── fixtures/
-    └── test_*.py
-```
+詳細なディレクトリレイアウトと設計方針は [docs/ja/structure.md](docs/ja/structure.md) を参照。
 
 ## 開発
 
