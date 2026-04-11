@@ -84,6 +84,8 @@ make check
 
 ## PIR Generation Workflow
 
+Place your strategy document as `input/context.md` (see [`docs/context_template.md`](context_template.md) for the template). The `input/` and `output/` directories are gitignored — they contain sensitive data and must not be committed.
+
 ### Option A: No-LLM mode (JSON input, no GCP required)
 
 Use when you already have a `business_context.json` and want to avoid LLM costs.
@@ -92,21 +94,26 @@ Use when you already have a `business_context.json` and want to avoid LLM costs.
 uv run python cmd/generate_pir.py \
   --context tests/fixtures/sample_context_manufacturing.json \
   --no-llm \
-  --output pir_output.json \
-  --collection-plan collection_plan.md
+  --output output/pir_output.json \
+  --collection-plan output/collection_plan.md
 ```
 
-### Option B: LLM mode — Markdown input (requires GCP)
+### Option B: LLM mode — Markdown input (default, requires GCP)
 
-Use when your business context is a strategy document in Markdown format.
-The LLM converts the Markdown into a structured `BusinessContext` and enriches the PIR output.
+Drop your strategy document as `input/context.md`, then run without arguments:
 
 ```bash
 # Ensure GCP_PROJECT_ID is set and ADC is configured (see Step 4)
-uv run python cmd/generate_pir.py \
-  --context your_strategy_doc.md \
-  --output pir_output.json \
-  --collection-plan collection_plan.md
+uv run python cmd/generate_pir.py
+# Reads:  input/context.md
+# Writes: output/pir_output.json, output/collection_plan.md
+```
+
+To also save the intermediate `BusinessContext` JSON for inspection or reuse:
+
+```bash
+uv run python cmd/generate_pir.py --save-context
+# Writes: output/pir_output.json, output/collection_plan.md, output/business_context.json
 ```
 
 ### Option C: LLM mode — JSON input
@@ -116,8 +123,8 @@ Use when you have a JSON context file and want LLM-enriched descriptions and col
 ```bash
 uv run python cmd/generate_pir.py \
   --context your_context.json \
-  --output pir_output.json \
-  --collection-plan collection_plan.md
+  --output output/pir_output.json \
+  --collection-plan output/collection_plan.md
 ```
 
 ---
@@ -172,6 +179,16 @@ uv run python -m cmd.update_taxonomy
 - Updating `geography_threat_map`, `industry_threat_map`, `business_trigger_map`
 
 > The automatic update does **not** touch manually managed sections. Run it periodically (e.g. quarterly) to keep MITRE group names and TTP IDs current.
+
+**Updating the `threat_tag_completion.md` whitelist** — when the LLM fallback path is active (dictionary finds zero matches), `src/beacon/llm/prompts/threat_tag_completion.md` constrains the group names the LLM may suggest. The whitelist in that file is maintained manually using these reference sources:
+
+| Source | What to update |
+|--------|---------------|
+| [MITRE ATT&CK Groups](https://attack.mitre.org/groups/) | Nation-state and criminal group canonical names |
+| [MISP Galaxy threat-actor cluster](https://github.com/MISP/misp-galaxy) | Aliases, new emerging actors |
+| [BushidoUK Ransomware Tool Matrix](https://github.com/BushidoUK/Ransomware-Tool-Matrix) | Active RaaS and ransomware group names |
+
+Edit the `## Notable Group Reference` section in `threat_tag_completion.md` to add or retire groups. Keep it in sync with the actor categories in `threat_taxonomy.json`.
 
 ---
 

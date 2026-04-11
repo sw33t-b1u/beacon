@@ -39,6 +39,7 @@ Converts organizational business context (JSON or Markdown strategy documents) i
 | Document | Description |
 |----------|-------------|
 | [docs/setup.md](docs/setup.md) | Prerequisites, installation, environment variables, GCP authentication |
+| [docs/context_template.md](docs/context_template.md) | Template for `input/context.md` — the Markdown strategy document used as pipeline input |
 | [docs/data-model.md](docs/data-model.md) | BusinessContext schema, PIR output format, intelligence levels, threat taxonomy |
 | [docs/sage_integration.md](docs/sage_integration.md) | PIR deployment to SAGE and ETL verification procedure |
 | [docs/dependencies.md](docs/dependencies.md) | Dependency rationale and license information |
@@ -61,6 +62,8 @@ BEACON/
 ├── pyproject.toml
 ├── Makefile
 ├── .env.example
+├── input/              # Drop context.md here (gitignored — contains sensitive data)
+├── output/             # Generated files: pir_output.json, collection_plan.md (gitignored)
 ├── src/beacon/
 │   ├── config.py
 │   ├── ingest/{schema,context_parser}.py

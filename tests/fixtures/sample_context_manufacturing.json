@@ -39,6 +39,38 @@
       "exposure_risk": "medium"
     }
   ],
+  "critical_assets": [
+    {
+      "id": "CA-001",
+      "name": "SAP S/4HANA Production",
+      "type": "application",
+      "function": "Core ERP system managing financial, manufacturing, and HR data",
+      "hostname": "erp-prod-01.internal",
+      "os_platform": "SUSE Linux Enterprise Server 15",
+      "network_zone": "corporate",
+      "criticality": "critical",
+      "data_types": ["financial", "manufacturing", "hr"],
+      "managing_vendor": "Accenture",
+      "supply_chain_role": "",
+      "dependencies": ["CA-002"],
+      "exposure_risk": "medium"
+    },
+    {
+      "id": "CA-002",
+      "name": "Tier1 Supplier EDI Gateway",
+      "type": "application",
+      "function": "EDI connection to Tier-1 automotive supplier for parts ordering",
+      "hostname": "",
+      "os_platform": "",
+      "network_zone": "ot",
+      "criticality": "high",
+      "data_types": ["manufacturing"],
+      "managing_vendor": "Tier1サプライヤー",
+      "supply_chain_role": "tier1_supplier_edi_connectivity",
+      "dependencies": [],
+      "exposure_risk": "high"
+    }
+  ],
   "supply_chain": {
     "critical_vendors": ["Tier1サプライヤー"],
     "cloud_providers": ["GCP"],

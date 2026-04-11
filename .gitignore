@@ -76,3 +76,7 @@ temp/
 pir_output.json
 collection_plan.md
 TODO.md
+
+# User input and generated output (sensitive operational data — never commit)
+input/
+output/

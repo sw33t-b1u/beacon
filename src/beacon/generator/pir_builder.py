@@ -197,6 +197,16 @@ def _llm_augment_text(
         )
         or "none"
     )
+    critical_assets_text = (
+        "\n".join(
+            f"- {ca.id} ({ca.name}): type={ca.type}, zone={ca.network_zone}"
+            f", criticality={ca.criticality}"
+            + (f", vendor={ca.managing_vendor}" if ca.managing_vendor else "")
+            + (f", supply_chain={ca.supply_chain_role}" if ca.supply_chain_role else "")
+            for ca in elements.critical_asset_details
+        )
+        or "none"
+    )
     data_types_text = ", ".join(elements.project_data_types) or "none"
     vendors_text = ", ".join(elements.active_vendors[:5]) or "none"
 
@@ -205,10 +215,11 @@ def _llm_augment_text(
         template.replace("{{INDUSTRY}}", elements.org_industry)
         .replace("{{ORG_UNIT}}", org_scope)
         .replace("{{GEOGRAPHY}}", ", ".join(elements.org_geographies))
-        .replace("{{REGULATORY}}", ", ".join(getattr(elements, "regulatory_context", [])))
+        .replace("{{REGULATORY}}", ", ".join(elements.org_regulatory_context))
         .replace("{{DATA_TYPES}}", data_types_text)
         .replace("{{ACTIVE_VENDORS}}", vendors_text)
         .replace("{{CROWN_JEWELS}}", crown_jewels_text)
+        .replace("{{CRITICAL_ASSETS}}", critical_assets_text)
         .replace("{{MATCHED_CATEGORIES}}", ", ".join(threat.matched_categories) or "none")
         .replace("{{NOTABLE_GROUPS}}", ", ".join(threat.notable_groups[:6]) or "none")
         .replace("{{THREAT_TAGS}}", ", ".join(threat.threat_actor_tags[:8]) or "none")

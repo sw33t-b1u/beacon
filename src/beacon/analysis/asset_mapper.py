@@ -55,6 +55,22 @@ def map_asset_tags(elements: ExtractedElements, asset_tags: dict | None = None) 
             for tag in info.get("sage_tags", []):
                 tags.add(tag)
 
+    # From critical assets — keyword match on function + name, and data type mapping
+    for ca in elements.critical_asset_details:
+        ca_text = (ca.function + " " + ca.name).lower()
+        for asset_type, info in type_map.items():
+            keywords = info.get("keywords", [])
+            if any(kw in ca_text for kw in keywords):
+                for tag in info.get("sage_tags", []):
+                    tags.add(tag)
+        for dt in ca.data_types:
+            for tag in data_type_map.get(dt, []):
+                tags.add(tag)
+        if ca.network_zone == "ot":
+            tags.add("ot")
+        if ca.network_zone in {"internet", "dmz"}:
+            tags.add("external-facing")
+
     # OT connectivity → always add ot tag
     if elements.has_ot_connectivity:
         tags.add("ot")

@@ -4,6 +4,9 @@
 
 ## 入力: BusinessContext JSON
 
+戦略ドキュメントを `input/context.md` として配置してください（[`docs/ja/context_template.md`](context_template.md) 参照）。
+LLM が Markdown を構造化 `BusinessContext` JSON に変換します。`--save-context` で中間 JSON を確認できます。
+
 ```json
 {
   "organization": {
@@ -22,12 +25,47 @@
       "exposure_risk": "medium"
     }
   ],
+  "critical_assets": [
+    {
+      "id": "CA-001",
+      "name": "SAP ERP 本番環境",
+      "type": "application",
+      "function": "財務・製造オペレーションの中核 ERP",
+      "hostname": "sap-prod-01",
+      "os_platform": "SLES 15",
+      "network_zone": "corporate",
+      "criticality": "critical",
+      "data_types": ["financial", "pii"],
+      "managing_vendor": "SAP SE",
+      "supply_chain_role": "",
+      "dependencies": ["CA-002"],
+      "exposure_risk": "medium"
+    }
+  ],
   "supply_chain": {
     "ot_connectivity": true,
     "cloud_providers": ["GCP"]
   }
 }
 ```
+
+### CriticalAsset フィールド一覧
+
+| フィールド | 型 | 説明 |
+|-----------|-----|------|
+| `id` | string | アセット識別子（例: `CA-001`） |
+| `name` | string | アセット名 |
+| `type` | enum | `server`, `database`, `network_device`, `application`, `endpoint`, `storage`, `identity_system`, `ot_device`, `cloud_service`, `other` |
+| `function` | string | ビジネス機能の説明（タグ推定のキーワード照合に使用） |
+| `hostname` | string | ホスト名または FQDN（任意） |
+| `os_platform` | string | OS またはプラットフォーム（任意） |
+| `network_zone` | enum | `internet`, `dmz`, `corporate`, `ot`, `cloud`, `restricted`, `unknown` |
+| `criticality` | enum | `low`, `medium`, `high`, `critical` |
+| `data_types` | list[string] | 保存・処理するデータ種別（例: `pii`, `financial`, `phi`） |
+| `managing_vendor` | string | 管理ベンダー（アクティブベンダーシグナルとして使用） |
+| `supply_chain_role` | string | サプライチェーン上の役割（例: `tier1-supplier-gateway`） |
+| `dependencies` | list[string] | 依存するアセットの ID リスト |
+| `exposure_risk` | enum | `low`, `medium`, `high`, `critical` |
 
 完全なスキーマ: `schema/business_context.schema.json`（`uv run python cmd/generate_schemas.py` で生成）
 
@@ -126,21 +164,27 @@ uv run python cmd/generate_pir.py --context ... --output pir_output.json \
 
 ## 脅威タクソノミーカバレッジ
 
-`schema/threat_taxonomy.json`（MITRE ATT&CK Groups v15 ベース）:
+`schema/threat_taxonomy.json`（ソース: MITRE ATT&CK Groups、MISP Galaxy、BushidoUK Ransomware Tool Matrix）:
 
-| カテゴリ | グループ |
-|---------|---------|
-| 中国（国家） | APT10, APT41, MirrorFace, Mustang Panda |
-| ロシア（国家） | APT28, APT29, Sandworm |
-| 北朝鮮（国家） | Lazarus, Kimsuky, APT38 |
-| イラン（国家） | APT33, APT34, MuddyWater |
-| ランサムウェア | LockBit, RansomHub, BlackCat, Cl0p |
-| ハクティビスト | （タグベース、名称なしグループ） |
+| カテゴリ | 主要グループ |
+|---------|------------|
+| 中国（国家） | APT10, APT41, APT40, APT27, MirrorFace, Earth Kasha, Mustang Panda, Salt Typhoon, Volt Typhoon |
+| ロシア（国家） | APT28, APT29, Sandworm, Turla, TEMP.Veles |
+| 北朝鮮（国家） | Lazarus, Kimsuky, APT38, BlueNoroff, TraderTraitor, Andariel |
+| イラン（国家） | APT33, APT34, Charming Kitten, MuddyWater, OilRig |
+| インド（国家） | SideWinder, Patchwork |
+| ランサムウェア / RaaS | LockBit, RansomHub, BlackCat, Cl0p, INC Ransomware, Akira, Play, Dark Angels, Hunters International, Medusa, BlackSuit, BianLian |
+| サイバー犯罪 | FIN7, FIN11, TA505, Scattered Spider |
+| ハクティビスト | KillNet, Anonymous Sudan, NoName057(16) |
 
-対応業種: 製造業、金融、エネルギー、医療、防衛、テクノロジー、物流、政府、教育。
+対応業種: 製造業、金融、エネルギー、医療、防衛、テクノロジー、物流、政府、教育、製薬、通信、小売、自動車、航空宇宙。
 
-脅威タクソノミーを MITRE ATT&CK から更新:
+対応地域: 日本、東南アジア、米国、欧州、韓国、台湾、英国、ドイツ、オーストラリア、カナダ、インド、中東。
+
+MITRE ATT&CK STIX から `mitre_groups` と `priority_ttps` を自動更新:
 
 ```bash
 uv run python cmd/update_taxonomy.py [--dry-run]
 ```
+
+LLM フォールバックホワイトリスト（`threat_tag_completion.md`）の更新手順は [`docs/ja/setup.md`](setup.md#脅威タクソノミーの更新) を参照。

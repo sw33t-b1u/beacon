@@ -6,6 +6,57 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [0.6.0] — 2026-04-11
+
+### Added — Phase 5: CriticalAsset Model, Input/Output Structure, Taxonomy Enrichment
+
+**CriticalAsset Schema Extension**
+- `src/beacon/ingest/schema.py` — new `CriticalAsset` Pydantic v2 model with 12 fields: `type`, `hostname`, `os_platform`, `network_zone`, `criticality`, `data_types`, `managing_vendor`, `supply_chain_role`, `dependencies`, `exposure_risk`; added `critical_assets: list[CriticalAsset]` to `BusinessContext`
+- `src/beacon/analysis/element_extractor.py` — new `CriticalAssetDetail` dataclass; `ExtractedElements` extended with `org_regulatory_context`, `critical_asset_ids`, `critical_asset_details`; `has_ot_connectivity` now also checks `network_zone == "ot"` in `critical_assets`; `managing_vendor` added to `active_vendors`
+- `src/beacon/analysis/asset_mapper.py` — `map_asset_tags()` processes `critical_asset_details`: keyword matching on function+name, `data_types` mapping, OT/DMZ zone → tag
+
+**Bug Fix: regulatory_context**
+- `src/beacon/generator/pir_builder.py` — fixed `getattr(elements, "regulatory_context", [])` that always returned `[]` (field never existed on `ExtractedElements`); corrected to `elements.org_regulatory_context`; added `{{CRITICAL_ASSETS}}` placeholder and `critical_assets_text` rendering
+
+**Input/Output Directory Structure**
+- `.gitignore` — added `input/` and `output/` (sensitive runtime data; not committed); `cmd/generate_pir.py` auto-creates output dir at runtime
+- `cmd/generate_pir.py` — new defaults: `--context input/context.md`, `--output output/pir_output.json`, `--collection-plan output/collection_plan.md`; added `--save-context` option to persist intermediate `business_context.json` to `output/`
+
+**Prompt Updates**
+- `src/beacon/llm/prompts/context_structuring.md` — complete rewrite: added `critical_assets[]` to output schema, Section Recognition Guide, Crown Jewels vs Critical Assets distinction, supply chain mapping rules, language preservation rules
+- `src/beacon/llm/prompts/pir_generation.md` — added `### Critical Assets` section with `{{CRITICAL_ASSETS}}` placeholder; instructions updated to reference supply chain assets in rationale and collection_focus
+- `src/beacon/llm/prompts/threat_tag_completion.md` — complete rewrite: whitelist expanded to 40+ named groups across 7 categories; source citations added (MITRE ATT&CK, MISP Galaxy, BushidoUK Ransomware Tool Matrix); new tags: `apt-india`, `bec`, `fraud`, `double-extortion`, `targets-taiwan`, `targets-uk`, `targets-germany`, `targets-australia`
+
+**Threat Taxonomy Enrichment (`schema/threat_taxonomy.json`)**
+- Added `_metadata` with 6 source citations
+- New actor categories: `cybercriminal` (FIN7, Scattered Spider, TA505), `insider_threat`, `state_sponsored.India` (SideWinder, Patchwork)
+- China expanded: Salt Typhoon, Volt Typhoon, APT40, APT27 subgroups
+- Russia expanded: Turla, TEMP.Veles subgroups
+- DPRK expanded: BlueNoroff, TraderTraitor, Andariel subgroups
+- 8 new ransomware groups: Akira, Play, Dark Angels, Hunters International, Medusa, BlackSuit, BianLian, Scattered Spider
+- New industries: pharmaceutical, telecom, retail, automotive, aerospace
+- New geographies: Germany, UK, Australia, Taiwan, Canada, India
+- New triggers: regulatory_change, digital_transformation
+- New section: `supply_chain_threat_map` (6 entries)
+- All rationale fields translated to English (Rule 11)
+
+**Asset Tag Enrichment (`schema/asset_tags.json`)**
+- 10 new asset types: `email_gateway`, `vpn_remote_access`, `firewall_ngfw`, `siem`, `pki`, `database`, `devops_cicd`, `domain_controller` (multiplier 2.5), `file_server`, `api_gateway`
+- New `network_zone_tag_map` section
+
+**Documentation**
+- `docs/context_template.md` — new English primary template for `input/context.md` (Rule 11 compliance)
+- `docs/ja/context_template.md` — Japanese translation of context template
+- `high-level-design.md` — updated sections 3, 4.1, 4.2, 9, 10
+
+**Tests**
+- `tests/test_element_extractor.py` — 10 new tests: `TestCriticalAssets` (7) and `TestCriticalAssetTagMapping` (3)
+- `tests/fixtures/sample_context_manufacturing.json` — added `critical_assets` array (CA-001: SAP ERP / corporate, CA-002: EDI gateway / OT zone)
+- `tests/test_report_builder.py`, `tests/test_sage_client.py` — updated `ExtractedElements` instantiation for new fields
+- 183 tests total (181 passed, 2 skipped) / lint clean
+
+---
+
 ## [0.5.0] — 2026-04-04
 
 ### Added — Phase 4: MITRE Auto-Update, GHE Review, SAGE API, Web UI

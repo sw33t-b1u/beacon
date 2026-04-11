@@ -27,8 +27,11 @@ Return ONLY valid JSON (no markdown, no explanation):
 - Geography: {{GEOGRAPHY}}
 - Regulatory context: {{REGULATORY}}
 
-### Crown Jewels
+### Crown Jewels (high-value data/IP assets)
 {{CROWN_JEWELS}}
+
+### Critical Assets (key systems and infrastructure)
+{{CRITICAL_ASSETS}}
 
 ### Data and Supply Chain
 - Data types handled: {{DATA_TYPES}}
@@ -56,8 +59,9 @@ Return ONLY valid JSON (no markdown, no explanation):
 ## Instructions
 
 - **Scope**: The PIR is for the organizational unit specified in "Organizational scope". If it is a department or team (not "entire company"), all fields must reflect that unit's context — do NOT broaden scope to the whole company.
-- Make the description specific to this unit's context (mention industry + organizational scope + geography + key asset type).
-- The rationale should explain the threat actor motivation and why this specific unit is a target (e.g., the data it holds, decisions it makes, systems it operates).
-- Collection focus items should be concrete and actionable (specific group names, CVEs, campaigns, data types).
+- Make the description specific to this unit's context (mention industry + organizational scope + geography + key asset type or system).
+- The rationale should explain the threat actor motivation and why this specific unit is a target (e.g., the data it holds, critical systems it operates, supply chain role, decisions it makes).
+- If Critical Assets include supply-chain-connected systems (supply_chain field non-empty), reference the supply chain risk in the rationale.
+- Collection focus items should be concrete and actionable (specific group names, CVEs, campaigns, system names from Critical Assets, data types).
 - Do NOT fabricate group names or TTPs not present in the analysis results.
 - Preserve or improve the draft — do not reduce specificity.

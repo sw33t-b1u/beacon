@@ -18,9 +18,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--context",
-        required=True,
+        default="input/context.md",
         metavar="FILE",
-        help="Path to business_context.json (or .md with LLM mode)",
+        help="Path to context.md or business_context.json (default: input/context.md)",
     )
     parser.add_argument(
         "--taxonomy",
@@ -36,20 +36,27 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--output",
-        default="pir_output.json",
+        default="output/pir_output.json",
         metavar="FILE",
-        help="Output path for PIR JSON (default: pir_output.json)",
+        help="Output path for PIR JSON (default: output/pir_output.json)",
+    )
+    parser.add_argument(
+        "--collection-plan",
+        default="output/collection_plan.md",
+        metavar="FILE",
+        help="Path to write collection_plan.md (default: output/collection_plan.md)",
+    )
+    parser.add_argument(
+        "--save-context",
+        default=None,
+        metavar="FILE",
+        help="Save the parsed BusinessContext as JSON for review"
+        " (e.g. output/business_context.json)",
     )
     parser.add_argument(
         "--no-llm",
         action="store_true",
         help="Use dictionary-only mode (no Vertex AI calls). JSON input only.",
-    )
-    parser.add_argument(
-        "--collection-plan",
-        default=None,
-        metavar="FILE",
-        help="Path to write collection_plan.md (P3/P4 watch items and trigger actions).",
     )
     parser.add_argument(
         "--use-sage",
@@ -81,6 +88,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
 
+    # Optionally save the parsed BusinessContext for analyst review / editing
+    if args.save_context:
+        save_path = Path(args.save_context)
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        save_path.write_text(
+            json.dumps(ctx.model_dump(), ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        print(f"Business context → {save_path}")
+
     taxonomy_path = Path(args.taxonomy) if args.taxonomy else None
     asset_tags_path = Path(args.asset_tags) if args.asset_tags else None
 
@@ -110,6 +126,9 @@ def main(argv: list[str] | None = None) -> int:
     risk = score(elements, threat, use_llm=use_llm, use_sage=use_sage, sage_client=sage_client)
     pirs = build_pirs(elements, threat, risk, asset_tag_list, asset_tags_dict, use_llm=use_llm)
 
+    output_path = Path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
     if not pirs:
         print(
             f"No PIRs generated (composite score {risk.composite} < 12). "
@@ -117,7 +136,6 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
     else:
-        output_path = Path(args.output)
         output_data = [p.model_dump() for p in pirs]
         output_path.write_text(
             json.dumps(output_data, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -125,8 +143,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Generated {len(pirs)} PIR(s) → {output_path}")
 
     if args.collection_plan:
+        collection_plan_path = Path(args.collection_plan)
+        collection_plan_path.parent.mkdir(parents=True, exist_ok=True)
         plan = build_collection_plan(elements, threat, risk, pirs)
-        write_collection_plan(plan, Path(args.collection_plan))
+        write_collection_plan(plan, collection_plan_path)
         print(f"Collection plan → {args.collection_plan}")
 
     return 0

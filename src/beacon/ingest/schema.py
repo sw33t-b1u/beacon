@@ -62,6 +62,37 @@ class CrownJewel(BaseModel):
     exposure_risk: Literal["low", "medium", "high", "critical"] = "medium"
 
 
+class CriticalAsset(BaseModel):
+    """Detailed technical asset record — from the Critical Assets section of context.md."""
+
+    id: str
+    name: str
+    type: Literal[
+        "server",
+        "database",
+        "network_device",
+        "application",
+        "endpoint",
+        "storage",
+        "identity_system",
+        "ot_device",
+        "cloud_service",
+        "other",
+    ] = "other"
+    function: str = ""  # what the asset does in the business context
+    hostname: str = ""  # optional — e.g. "erp-prod-01.internal"
+    os_platform: str = ""  # optional — e.g. "Windows Server 2022", "RHEL 9"
+    network_zone: Literal[
+        "internet", "dmz", "corporate", "ot", "cloud", "restricted", "unknown"
+    ] = "unknown"
+    criticality: Literal["low", "medium", "high", "critical"] = "high"
+    data_types: list[str] = Field(default_factory=list)
+    managing_vendor: str = ""  # vendor responsible for management/operation
+    supply_chain_role: str = ""  # non-empty when asset is part of supply chain connectivity
+    dependencies: list[str] = Field(default_factory=list)  # other asset IDs this depends on
+    exposure_risk: Literal["low", "medium", "high", "critical"] = "medium"
+
+
 class SupplyChain(BaseModel):
     critical_vendors: list[str] = Field(default_factory=list)
     cloud_providers: list[str] = Field(default_factory=list)
@@ -84,5 +115,6 @@ class BusinessContext(BaseModel):
     strategic_objectives: list[StrategicObjective] = Field(default_factory=list)
     projects: list[Project] = Field(default_factory=list)
     crown_jewels: list[CrownJewel] = Field(default_factory=list)
+    critical_assets: list[CriticalAsset] = Field(default_factory=list)
     supply_chain: SupplyChain = Field(default_factory=SupplyChain)
     recent_incidents: list[RecentIncident] = Field(default_factory=list)

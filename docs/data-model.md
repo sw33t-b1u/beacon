@@ -4,6 +4,9 @@ Japanese translation: [`docs/ja/data-model.md`](ja/data-model.md)
 
 ## Input: BusinessContext JSON
 
+Place your strategy document as `input/context.md` (see [`docs/context_template.md`](context_template.md)).
+The LLM converts it to a structured `BusinessContext`; use `--save-context` to inspect the intermediate JSON.
+
 ```json
 {
   "organization": {
@@ -22,12 +25,47 @@ Japanese translation: [`docs/ja/data-model.md`](ja/data-model.md)
       "exposure_risk": "medium"
     }
   ],
+  "critical_assets": [
+    {
+      "id": "CA-001",
+      "name": "SAP ERP Production",
+      "type": "application",
+      "function": "Core ERP for finance and manufacturing operations",
+      "hostname": "sap-prod-01",
+      "os_platform": "SLES 15",
+      "network_zone": "corporate",
+      "criticality": "critical",
+      "data_types": ["financial", "pii"],
+      "managing_vendor": "SAP SE",
+      "supply_chain_role": "",
+      "dependencies": ["CA-002"],
+      "exposure_risk": "medium"
+    }
+  ],
   "supply_chain": {
     "ot_connectivity": true,
     "cloud_providers": ["GCP"]
   }
 }
 ```
+
+### CriticalAsset fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique asset identifier (e.g. `CA-001`) |
+| `name` | string | Human-readable asset name |
+| `type` | enum | `server`, `database`, `network_device`, `application`, `endpoint`, `storage`, `identity_system`, `ot_device`, `cloud_service`, `other` |
+| `function` | string | Business function description (used for keyword-based tag matching) |
+| `hostname` | string | Hostname or FQDN (optional) |
+| `os_platform` | string | OS or platform (optional) |
+| `network_zone` | enum | `internet`, `dmz`, `corporate`, `ot`, `cloud`, `restricted`, `unknown` |
+| `criticality` | enum | `low`, `medium`, `high`, `critical` |
+| `data_types` | list[string] | Data types stored/processed (e.g. `pii`, `financial`, `phi`) |
+| `managing_vendor` | string | Vendor responsible for the asset (used as active vendor signal) |
+| `supply_chain_role` | string | Role in supply chain (e.g. `tier1-supplier-gateway`) |
+| `dependencies` | list[string] | Asset IDs this asset depends on |
+| `exposure_risk` | enum | `low`, `medium`, `high`, `critical` |
 
 Full schema: `schema/business_context.schema.json` (generate with `uv run python cmd/generate_schemas.py`)
 
@@ -126,21 +164,27 @@ Authentication uses Application Default Credentials (ADC). No API key management
 
 ## Threat Taxonomy Coverage
 
-`schema/threat_taxonomy.json` (MITRE ATT&CK Groups v15-based):
+`schema/threat_taxonomy.json` (sources: MITRE ATT&CK Groups, MISP Galaxy, BushidoUK Ransomware Tool Matrix):
 
-| Category | Groups |
-|----------|--------|
-| China (state) | APT10, APT41, MirrorFace, Mustang Panda |
-| Russia (state) | APT28, APT29, Sandworm |
-| North Korea (state) | Lazarus, Kimsuky, APT38 |
-| Iran (state) | APT33, APT34, MuddyWater |
-| Ransomware | LockBit, RansomHub, BlackCat, Cl0p |
-| Hacktivist | (tag-based, no named groups) |
+| Category | Notable Groups |
+|----------|---------------|
+| China (state) | APT10, APT41, APT40, APT27, MirrorFace, Earth Kasha, Mustang Panda, Salt Typhoon, Volt Typhoon |
+| Russia (state) | APT28, APT29, Sandworm, Turla, TEMP.Veles |
+| North Korea (state) | Lazarus, Kimsuky, APT38, BlueNoroff, TraderTraitor, Andariel |
+| Iran (state) | APT33, APT34, Charming Kitten, MuddyWater, OilRig |
+| India (state) | SideWinder, Patchwork |
+| Ransomware / RaaS | LockBit, RansomHub, BlackCat, Cl0p, INC Ransomware, Akira, Play, Dark Angels, Hunters International, Medusa, BlackSuit, BianLian |
+| Cybercriminal | FIN7, FIN11, TA505, Scattered Spider |
+| Hacktivist | KillNet, Anonymous Sudan, NoName057(16) |
 
-Industries covered: manufacturing, finance, energy, healthcare, defense, technology, logistics, government, education.
+Industries covered: manufacturing, finance, energy, healthcare, defense, technology, logistics, government, education, pharmaceutical, telecom, retail, automotive, aerospace.
 
-Update threat taxonomy from MITRE ATT&CK:
+Geographies covered: Japan, Southeast Asia, USA, Europe, South Korea, Taiwan, UK, Germany, Australia, Canada, India, Middle East.
+
+Update `mitre_groups` and `priority_ttps` automatically from MITRE ATT&CK STIX:
 
 ```bash
 uv run python cmd/update_taxonomy.py [--dry-run]
 ```
+
+To update the LLM fallback whitelist (`threat_tag_completion.md`), see the manual update instructions in [`docs/setup.md`](setup.md#updating-the-threat-taxonomy).

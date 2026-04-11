@@ -33,6 +33,22 @@ class CrownJewelDetail:
 
 
 @dataclass
+class CriticalAssetDetail:
+    """Per-CriticalAsset structured data for asset mapping and prompt building."""
+
+    id: str
+    name: str
+    type: str
+    function: str
+    network_zone: str
+    criticality: str
+    data_types: list[str]
+    managing_vendor: str
+    supply_chain_role: str
+    exposure_risk: str
+
+
+@dataclass
 class ExtractedElements:
     """Flat list of business elements relevant for threat mapping."""
 
@@ -40,6 +56,7 @@ class ExtractedElements:
     org_unit_name: str  # department / team name, empty string if company-level
     org_unit_type: str  # "company" | "division" | "department" | "team"
     org_geographies: list[str]
+    org_regulatory_context: list[str]  # regulatory frameworks (APPI, ISO27001, GDPR, etc.)
     strategic_sensitivity: list[str]  # sensitivity levels from strategic objectives
     project_data_types: list[str]  # deduplicated data types across projects
     project_cloud_providers: list[str]
@@ -47,9 +64,11 @@ class ExtractedElements:
     crown_jewel_systems: list[str]
     crown_jewel_impacts: list[str]  # business_impact values (deduped)
     crown_jewel_details: list[CrownJewelDetail]  # per-CJ structured data
+    critical_asset_ids: list[str]
+    critical_asset_details: list[CriticalAssetDetail]  # per-CA structured data for mapping
     has_ot_connectivity: bool
     has_stock_listing: bool
-    active_vendors: list[str]  # vendors from in_progress projects
+    active_vendors: list[str]  # vendors from in_progress projects + critical asset vendors
     active_triggers: list[str]  # detected business triggers
     source_element_ids: list[str]  # IDs of all contributing elements
 
@@ -91,12 +110,34 @@ def extract(ctx: BusinessContext) -> ExtractedElements:
         for cj in ctx.crown_jewels
     ]
 
+    # Critical assets — surface vendors and supply-chain roles into active_vendors
+    critical_asset_ids = [ca.id for ca in ctx.critical_assets]
+    critical_asset_details = [
+        CriticalAssetDetail(
+            id=ca.id,
+            name=ca.name,
+            type=ca.type,
+            function=ca.function,
+            network_zone=ca.network_zone,
+            criticality=ca.criticality,
+            data_types=list(ca.data_types),
+            managing_vendor=ca.managing_vendor,
+            supply_chain_role=ca.supply_chain_role,
+            exposure_risk=ca.exposure_risk,
+        )
+        for ca in ctx.critical_assets
+    ]
+    for ca in ctx.critical_assets:
+        if ca.managing_vendor and ca.managing_vendor not in active_vendors:
+            active_vendors.append(ca.managing_vendor)
+
     active_triggers = _detect_triggers(ctx, project_cloud_providers)
 
     source_ids = (
         [obj.id for obj in ctx.strategic_objectives]
         + [p.id for p in ctx.projects]
         + crown_jewel_ids
+        + critical_asset_ids
     )
 
     logger.info(
@@ -106,6 +147,7 @@ def extract(ctx: BusinessContext) -> ExtractedElements:
         unit_type=ctx.organization.unit_type,
         triggers=active_triggers,
         crown_jewels=len(crown_jewel_ids),
+        critical_assets=len(critical_asset_ids),
     )
 
     return ExtractedElements(
@@ -113,6 +155,7 @@ def extract(ctx: BusinessContext) -> ExtractedElements:
         org_unit_name=ctx.organization.unit_name,
         org_unit_type=ctx.organization.unit_type,
         org_geographies=list(ctx.organization.geography),
+        org_regulatory_context=list(ctx.organization.regulatory_context),
         strategic_sensitivity=_dedup([o.sensitivity for o in ctx.strategic_objectives]),
         project_data_types=project_data_types,
         project_cloud_providers=project_cloud_providers,
@@ -120,7 +163,10 @@ def extract(ctx: BusinessContext) -> ExtractedElements:
         crown_jewel_systems=crown_jewel_systems,
         crown_jewel_impacts=crown_jewel_impacts,
         crown_jewel_details=crown_jewel_details,
-        has_ot_connectivity=ctx.supply_chain.ot_connectivity,
+        critical_asset_ids=critical_asset_ids,
+        critical_asset_details=critical_asset_details,
+        has_ot_connectivity=ctx.supply_chain.ot_connectivity
+        or any(ca.network_zone == "ot" for ca in ctx.critical_assets),
         has_stock_listing=ctx.organization.stock_listed,
         active_vendors=active_vendors,
         active_triggers=active_triggers,

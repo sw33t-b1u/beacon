@@ -4,67 +4,155 @@
       "sage_tags": ["plm"],
       "description": "Product Lifecycle Management system (CAD, design data)",
       "criticality_multiplier": 2.5,
-      "keywords": ["plm", "cad", "product design", "catia", "siemens nx", "ptc windchill"]
+      "keywords": ["plm", "cad", "product design", "catia", "siemens nx", "ptc windchill", "3d model", "design data", "engineering data"]
     },
     "erp": {
       "sage_tags": ["erp"],
-      "description": "Enterprise Resource Planning system (SAP, Oracle)",
+      "description": "Enterprise Resource Planning system (SAP, Oracle ERP)",
       "criticality_multiplier": 2.5,
-      "keywords": ["erp", "sap", "oracle", "s/4hana", "dynamics", "financial system"]
+      "keywords": ["erp", "sap", "oracle", "s/4hana", "dynamics", "financial system", "s4", "hana", "sap erp", "oracle erp", "infor", "netsuite"]
     },
     "ot": {
       "sage_tags": ["ot"],
       "description": "Operational Technology / Industrial Control System",
       "criticality_multiplier": 2.0,
-      "keywords": ["ot", "ics", "scada", "plc", "dcs", "historian", "operational technology"]
+      "keywords": ["ot", "ics", "scada", "plc", "dcs", "historian", "operational technology", "industrial control", "factory", "plant network", "hmi", "rtus", "programmable logic"]
     },
     "cloud": {
       "sage_tags": ["cloud"],
       "description": "Cloud infrastructure (GCP, AWS, Azure)",
       "criticality_multiplier": 1.8,
-      "keywords": ["cloud", "gcp", "aws", "azure", "kubernetes", "gke", "eks", "aks"]
+      "keywords": ["cloud", "gcp", "aws", "azure", "kubernetes", "gke", "eks", "aks", "s3", "bigquery", "cloud storage", "iaas", "paas", "cloud tenant"]
     },
     "external-facing": {
       "sage_tags": ["external-facing"],
-      "description": "Internet-facing systems (web, API, VPN gateway)",
+      "description": "Internet-facing systems (web, API, VPN gateway, public portal)",
       "criticality_multiplier": 1.8,
-      "keywords": ["web", "api", "vpn", "gateway", "dmz", "public", "external", "internet-facing"]
+      "keywords": ["web", "api", "vpn", "gateway", "dmz", "public", "external", "internet-facing", "customer portal", "b2b portal", "partner portal", "public endpoint"]
     },
     "backup": {
       "sage_tags": ["backup"],
-      "description": "Backup and recovery systems",
+      "description": "Backup and disaster recovery systems",
       "criticality_multiplier": 1.5,
-      "keywords": ["backup", "recovery", "restore", "snapshot", "dr", "disaster recovery"]
+      "keywords": ["backup", "recovery", "restore", "snapshot", "dr", "disaster recovery", "veeam", "commvault", "veritas", "tape", "offsite backup"]
     },
     "identity": {
       "sage_tags": ["identity"],
-      "description": "Identity and access management (AD, IAM)",
+      "description": "Identity and access management (AD, IAM, SSO)",
       "criticality_multiplier": 2.0,
-      "keywords": ["ad", "active directory", "iam", "identity", "sso", "ldap", "okta", "entra"]
+      "keywords": ["ad", "active directory", "iam", "identity", "sso", "ldap", "okta", "entra", "azure ad", "ping identity", "cyberark", "privileged access", "pam"]
+    },
+    "domain_controller": {
+      "sage_tags": ["domain_controller", "identity"],
+      "description": "Active Directory Domain Controller — highest-value lateral movement target",
+      "criticality_multiplier": 2.5,
+      "keywords": ["domain controller", "dc", "active directory dc", "kdc", "kerberos", "ntds", "forest root", "global catalog"]
     },
     "financial": {
       "sage_tags": ["financial"],
-      "description": "Financial data processing systems",
+      "description": "Financial data processing and treasury systems",
       "criticality_multiplier": 2.0,
-      "keywords": ["financial", "accounting", "treasury", "payment", "swift", "finance"]
+      "keywords": ["financial", "accounting", "treasury", "payment", "swift", "finance", "gl", "general ledger", "accounts payable", "accounts receivable", "settlement"]
     },
     "hr": {
       "sage_tags": ["hr"],
-      "description": "Human resources data systems",
+      "description": "Human resources and payroll systems",
       "criticality_multiplier": 1.5,
-      "keywords": ["hr", "human resources", "payroll", "personnel", "workday", "successfactors"]
+      "keywords": ["hr", "human resources", "payroll", "personnel", "workday", "successfactors", "hris", "people", "employee data"]
     },
     "r_and_d": {
       "sage_tags": ["r_and_d"],
-      "description": "Research and development systems",
+      "description": "Research and development systems and intellectual property stores",
       "criticality_multiplier": 2.0,
-      "keywords": ["r&d", "research", "lab", "prototype", "experiment", "ip"]
+      "keywords": ["r&d", "research", "lab", "prototype", "experiment", "ip", "intellectual property", "trade secret", "patent", "innovation"]
     },
     "supply_chain": {
       "sage_tags": ["supply_chain"],
-      "description": "Supply chain management and procurement systems",
+      "description": "Supply chain management, procurement, and EDI systems",
       "criticality_multiplier": 1.5,
-      "keywords": ["supply chain", "procurement", "vendor", "supplier", "scm", "logistics"]
+      "keywords": ["supply chain", "procurement", "vendor", "supplier", "scm", "logistics", "edi", "ariba", "coupa", "b2b integration", "tier1", "tier-1"]
+    },
+    "email_gateway": {
+      "sage_tags": ["email_gateway"],
+      "description": "Email gateway, mail server, and collaboration platform",
+      "criticality_multiplier": 2.0,
+      "keywords": [
+        "email", "mail", "exchange", "outlook", "office365", "o365", "google workspace",
+        "smtp", "proofpoint", "mimecast", "mail server", "mail relay", "teams", "collaboration"
+      ]
+    },
+    "vpn_remote_access": {
+      "sage_tags": ["vpn_remote_access", "external-facing"],
+      "description": "VPN gateway and remote access infrastructure",
+      "criticality_multiplier": 2.0,
+      "keywords": [
+        "vpn", "remote access", "citrix", "pulse secure", "ivanti", "globalprotect",
+        "anyconnect", "fortivpn", "ssl vpn", "zero trust", "zscaler", "netscaler"
+      ]
+    },
+    "firewall_ngfw": {
+      "sage_tags": ["firewall_ngfw"],
+      "description": "Firewall, next-generation firewall, and network security appliance",
+      "criticality_multiplier": 1.8,
+      "keywords": [
+        "firewall", "ngfw", "palo alto", "fortinet", "checkpoint", "cisco asa",
+        "juniper srx", "network perimeter", "utm", "web application firewall", "waf"
+      ]
+    },
+    "siem": {
+      "sage_tags": ["siem"],
+      "description": "SIEM, SOAR, and security monitoring platform",
+      "criticality_multiplier": 1.5,
+      "keywords": [
+        "siem", "splunk", "sentinel", "qradar", "elastic siem", "chronicle",
+        "log management", "soar", "security monitoring", "xdr", "edr"
+      ]
+    },
+    "pki": {
+      "sage_tags": ["pki"],
+      "description": "PKI, certificate authority, and cryptographic key management",
+      "criticality_multiplier": 2.0,
+      "keywords": [
+        "pki", "certificate authority", "ca", "hsm", "key management", "ssl certificate",
+        "tls certificate", "digicert", "entrust", "vault", "kms", "code signing"
+      ]
+    },
+    "database": {
+      "sage_tags": ["database"],
+      "description": "Database server (relational or NoSQL) storing sensitive data",
+      "criticality_multiplier": 2.0,
+      "keywords": [
+        "database", "sql server", "oracle db", "postgresql", "mysql", "mongodb",
+        "redis", "db server", "rdbms", "data warehouse", "data lake", "cosmos db", "aurora"
+      ]
+    },
+    "devops_cicd": {
+      "sage_tags": ["devops_cicd"],
+      "description": "CI/CD pipeline, code repository, and software build infrastructure",
+      "criticality_multiplier": 2.0,
+      "keywords": [
+        "github", "gitlab", "jenkins", "ci/cd", "devops", "pipeline", "artifactory",
+        "docker registry", "container registry", "gitops", "ansible", "terraform",
+        "build server", "source code", "repository", "sonarqube"
+      ]
+    },
+    "file_server": {
+      "sage_tags": ["file_server"],
+      "description": "File server, NAS, and document management system",
+      "criticality_multiplier": 1.5,
+      "keywords": [
+        "file server", "nas", "sharepoint", "confluence", "document management",
+        "dms", "network share", "smb", "cifs", "file share", "onedrive", "box", "dropbox"
+      ]
+    },
+    "api_gateway": {
+      "sage_tags": ["api_gateway", "external-facing"],
+      "description": "API gateway and integration middleware for internal/external services",
+      "criticality_multiplier": 1.8,
+      "keywords": [
+        "api gateway", "middleware", "esb", "integration", "apigee", "kong",
+        "mulesoft", "microservice", "service mesh", "istio", "api management"
+      ]
     }
   },
   "data_type_tag_map": {
@@ -72,11 +160,11 @@
     "hr": ["hr"],
     "manufacturing": ["erp", "ot", "plm"],
     "research": ["r_and_d"],
-    "customer": ["external-facing"],
+    "customer": ["external-facing", "database"],
     "intellectual_property": ["plm", "r_and_d"],
-    "source_code": ["r_and_d"],
-    "healthcare": ["external-facing"],
-    "personal": ["identity", "hr"]
+    "source_code": ["r_and_d", "devops_cicd"],
+    "healthcare": ["external-facing", "database"],
+    "personal": ["identity", "hr", "database"]
   },
   "cloud_provider_tag_map": {
     "GCP": ["cloud"],
@@ -84,5 +172,14 @@
     "Azure": ["cloud"],
     "Oracle Cloud": ["cloud"],
     "IBM Cloud": ["cloud"]
+  },
+  "network_zone_tag_map": {
+    "internet": ["external-facing"],
+    "dmz": ["external-facing"],
+    "ot": ["ot"],
+    "corporate": [],
+    "cloud": ["cloud"],
+    "restricted": [],
+    "unknown": []
   }
 }
