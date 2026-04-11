@@ -12,6 +12,7 @@
 | `uvicorn[standard]` | `>=0.30.0` | ASGI server for FastAPI (`cmd/web_app.py`); `[standard]` extras include WebSocket and HTTP/2 support | BSD-3-Clause |
 | `python-multipart` | `>=0.0.9` | Multipart form-data parsing for file uploads in FastAPI (`POST /generate`) | Apache-2.0 |
 | `jinja2` | `>=3.1.0` | HTML template rendering for the Web UI (`src/beacon/web/templates/`) | BSD-3-Clause |
+| `markitdown[pdf]` | `>=0.1.0` | Converts PDF and web articles to clean Markdown for `cmd/stix_from_report.py`; uses pdfminer.six for PDFs and article-aware HTML extraction for URLs | MIT |
 
 ## Development Dependencies
 
@@ -32,3 +33,4 @@
 - **uvicorn[standard]**: The de facto ASGI server for FastAPI; maintained by the same Encode team.
 - **python-multipart**: Required by FastAPI/Starlette to handle `multipart/form-data` file uploads.
 - **jinja2**: Minimal server-side templating for the Web UI. Chosen over a full JS framework to keep dependencies lean; the `/api/*` endpoints allow future React migration without server-side changes.
+- **markitdown[pdf]**: Microsoft's document-to-Markdown converter (2024). Chosen over `pypdf` + custom HTML stripping because Markdown output preserves article structure (headings, tables, lists), reduces noise (discards nav bars, footers, ads), and yields 3–5× fewer characters for the same CTI article — enabling a 10,000-character default prompt limit while covering full article content. The `[pdf]` extra adds pdfminer.six for PDF support.

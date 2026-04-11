@@ -84,7 +84,9 @@ make check
 
 ## PIR 生成ワークフロー
 
-戦略ドキュメントを `input/context.md` として配置してください（テンプレートは [`docs/ja/context_template.md`](context_template.md) を参照）。`input/` と `output/` ディレクトリは gitignore 対象です — 機密データを含むためコミットしないでください。
+戦略ドキュメントを `input/` ディレクトリに配置してください（テンプレートは [`docs/ja/context_template.md`](context_template.md) を参照）。`input/` と `output/` ディレクトリは gitignore 対象です — 機密データを含むためコミットしないでください。
+
+`--context` は必須引数です。パスを明示的に指定するため、ファイル名は自由に決められます（例: `input/acme.md`、`input/context_2026Q2.md`）。
 
 ### Option A: LLM なしモード（JSON 入力、GCP 不要）
 
@@ -98,34 +100,91 @@ uv run python cmd/generate_pir.py \
   --collection-plan output/collection_plan.md
 ```
 
-### Option B: LLM モード — Markdown 入力（デフォルト、GCP 必要）
-
-`input/context.md` に戦略ドキュメントを置いたら、引数なしで実行:
+### Option B: LLM モード — Markdown 入力（GCP 必要）
 
 ```bash
 # GCP_PROJECT_ID を設定し、ADC を構成済みであること（Step 4 参照）
-uv run python cmd/generate_pir.py
-# 読み込み: input/context.md
-# 出力:     output/pir_output.json, output/collection_plan.md
+uv run python cmd/generate_pir.py \
+  --context input/acme.md \
+  --output output/pir_output.json \
+  --collection-plan output/collection_plan.md
 ```
 
 中間生成物 `BusinessContext` JSON を確認・再利用したい場合は `--save-context` を追加:
 
 ```bash
-uv run python cmd/generate_pir.py --save-context
+uv run python cmd/generate_pir.py \
+  --context input/acme.md \
+  --save-context output/business_context.json
 # 出力: output/pir_output.json, output/collection_plan.md, output/business_context.json
 ```
 
-### Option C: LLM モード — JSON 入力
+---
 
-JSON コンテキストファイルがあり、LLM による説明・収集フォーカスの拡充を使いたい場合。
+## SAGE assets.json の生成
+
+コンテキストドキュメントの `Critical Assets` セクションを SAGE 互換の `assets.json` に変換し、Spanner へのロードに使用します。
 
 ```bash
-uv run python cmd/generate_pir.py \
-  --context your_context.json \
-  --output output/pir_output.json \
-  --collection-plan output/collection_plan.md
+# Markdown から生成（LLM / Vertex AI が必要）
+uv run python cmd/generate_assets.py --context input/context.md
+
+# JSON から生成（LLM 不要）
+uv run python cmd/generate_assets.py \
+  --context input/context.json \
+  --no-llm \
+  --output output/assets.json
 ```
+
+生成ファイルは `output/assets.json` に書き出されます。以下のフィールドを手動で補完してください:
+
+| フィールド | 作業内容 |
+|-----------|---------|
+| `owner` | アセットごとのチームメールアドレスや担当名 |
+| `security_controls` | EDR/SIEM/ファイアウォールのエントリを定義 |
+| `security_control_ids` | アセットとセキュリティコントロールを紐付け |
+| `asset_vulnerabilities` | STIX ETL 実行後に設定 |
+| `actor_targets` | STIX ETL 実行後に設定 |
+
+SAGE Spanner へのロード:
+
+```bash
+uv run python cmd/load_assets.py --file output/assets.json
+```
+
+---
+
+## CTI レポートからの STIX バンドル生成
+
+PDF レポートや Web 記事を STIX 2.1 バンドルに変換して SAGE ETL へ投入できます。
+
+```bash
+# PDF から生成
+uv run python cmd/stix_from_report.py --input report.pdf
+
+# Web 記事 URL から生成（zsh/bash では ? & = が特殊文字のためシングルクォートで囲む）
+uv run python cmd/stix_from_report.py --input 'https://example.com/apt-analysis?id=1'
+
+# 出力先を指定
+uv run python cmd/stix_from_report.py --input report.pdf --output output/apt29_bundle.json
+
+# 高精度モデルを使用（遅い: 2〜5分）
+uv run python cmd/stix_from_report.py --input report.pdf --task complex
+
+# 長いレポート向けに入力サイズを増やす（デフォルト: 20000文字）
+uv run python cmd/stix_from_report.py --input report.pdf --max-chars 30000
+```
+
+デフォルト出力先は `output/stix_bundle.json`。SAGE ETL への投入:
+
+```bash
+uv run python cmd/run_etl.py --manual-bundle output/stix_bundle.json
+```
+
+抽出する STIX タイプ: `intrusion-set`、`attack-pattern`、`malware`、`tool`、
+`vulnerability`、`indicator`、`relationship`
+
+> **Note:** `markitdown[pdf]` が必要ですが、標準依存関係に含まれています（`uv sync`）。PDF と Web 記事の両方をクリーンな Markdown に変換し、ナビゲーションやフッターを除去してプロンプトサイズを削減します。
 
 ---
 

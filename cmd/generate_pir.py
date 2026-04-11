@@ -18,9 +18,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--context",
-        default="input/context.md",
+        required=True,
         metavar="FILE",
-        help="Path to context.md or business_context.json (default: input/context.md)",
+        help="Path to strategy document (.md) or business_context.json",
     )
     parser.add_argument(
         "--taxonomy",

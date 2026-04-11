@@ -1,6 +1,6 @@
 [project]
 name = "beacon"
-version = "0.6.0"
+version = "0.7.0"
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.0",
@@ -12,6 +12,7 @@ dependencies = [
     "python-multipart>=0.0.9",
     "jinja2>=3.1.0",
     "cryptography>=46.0.7",  # CVE-2026-39892 fix; transitive via google-genai/uvicorn
+    "markitdown[pdf]>=0.1.0",  # PDF/URL → clean Markdown for stix_from_report.py
 ]
 
 [project.optional-dependencies]

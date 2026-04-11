@@ -2,7 +2,7 @@
 
 **Business Environment Assessment for CTI Organizational Needs**
 
-Converts organizational business context (JSON or Markdown strategy documents) into [SAGE](../SAGE)-compatible **Priority Intelligence Requirements (PIR) JSON** using a dictionary-based pipeline augmented by Google Gen AI (Gemini).
+Converts organizational business context (JSON or Markdown strategy documents) into [SAGE](https://github.com/sw33t-b1u/sage)-compatible **Priority Intelligence Requirements (PIR) JSON** using a dictionary-based pipeline augmented by Google Gen AI (Gemini).
 
 [日本語版 README はこちら](README.ja.md)
 
@@ -10,29 +10,44 @@ Converts organizational business context (JSON or Markdown strategy documents) i
 
 ## Overview
 
+BEACON provides three output pipelines, all driven from the same context document:
+
 ```
-[business_context.json / strategy.md]
-            │
-            ▼
-     BEACON PIPELINE
-  ┌──────────────────────┐
-  │ Step 1: Element Ext. │  strategic objectives, projects, crown jewels
-  │ Step 2: Asset Map    │  → SAGE asset tags (plm, ot, cloud, erp …)
-  │ Step 3: Threat Map   │  industry × geography → threat actor tags
-  │ Step 4: Risk Score   │  Likelihood × Impact (1–5 scale)
-  │ Step 5: PIR Build    │  SAGE-compatible PIR JSON
-  └──────────────────────┘
-            │
-            ▼
-    [pir_output.json]  →  SAGE ETL  →  pir_adjusted_criticality
+  input/context.md  (or .json)
+         │
+         ├─── cmd/generate_pir.py ──────────────────────────────────────────┐
+         │                                                                   │
+         │    ┌──────────────────────┐                                       │
+         │    │ Step 1: Element Ext. │  objectives, crown jewels, assets     │
+         │    │ Step 2: Asset Map    │  → SAGE tags (plm, ot, erp …)        │
+         │    │ Step 3: Threat Map   │  industry × geography → actor tags    │
+         │    │ Step 4: Risk Score   │  Likelihood × Impact (1–5)            │
+         │    │ Step 5: PIR Build    │  SAGE-compatible PIR JSON             │
+         │    └──────────────────────┘                                       │
+         │                        output/pir_output.json ────────────────────┘
+         │                                  │                        │
+         │                                  ▼                        ▼
+         │                           SAGE ETL             pir_adjusted_criticality
+         │
+         └─── cmd/generate_assets.py ─── output/assets.json ─── SAGE load_assets
+                  CriticalAsset → network segments,
+                  asset tags, connections, criticality
+
+
+  PDF / web article
+         │
+         └─── cmd/stix_from_report.py ── output/stix_bundle.json ─── SAGE ETL
+                  markitdown → clean Markdown → Gemini → STIX 2.1
+                  (intrusion-set, attack-pattern, malware, vulnerability …)
 ```
 
-**Two modes:**
+**Modes:**
 
 | Mode | Input | LLM | Use case |
 |------|-------|-----|----------|
 | `--no-llm` | JSON only | None | Air-gapped / cost-constrained |
-| Default | JSON or Markdown | Google Gen AI (Gemini) | Full quality |
+| Default | JSON or Markdown | Gemini (Vertex AI) | Full quality PIR + assets |
+| `stix_from_report` | PDF or URL | Gemini (Vertex AI) | CTI report → STIX bundle |
 
 ## Documentation
 
@@ -66,8 +81,8 @@ BEACON/
 ├── output/             # Generated files: pir_output.json, collection_plan.md (gitignored)
 ├── src/beacon/
 │   ├── config.py
-│   ├── ingest/{schema,context_parser}.py
-│   ├── analysis/{element_extractor,asset_mapper,threat_mapper,risk_scorer}.py
+│   ├── ingest/{schema,context_parser,report_reader,stix_extractor}.py
+│   ├── analysis/{element_extractor,asset_mapper,assets_generator,threat_mapper,risk_scorer}.py
 │   ├── generator/{pir_builder,report_builder}.py
 │   ├── llm/{client,prompts/}
 │   ├── review/github.py
@@ -75,6 +90,8 @@ BEACON/
 │   └── web/{app,session,templates/}
 ├── cmd/
 │   ├── generate_pir.py
+│   ├── generate_assets.py
+│   ├── stix_from_report.py
 │   ├── validate_pir.py
 │   ├── generate_schemas.py
 │   ├── update_taxonomy.py

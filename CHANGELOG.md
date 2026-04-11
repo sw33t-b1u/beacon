@@ -6,6 +6,37 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [0.7.0] — 2026-04-11
+
+### Added — Phase 6: SAGE Assets Generation and CTI Report STIX Extraction
+
+**SAGE Assets Generation (`cmd/generate_assets.py`)**
+- `src/beacon/analysis/assets_generator.py` — `generate_assets_json(ctx)` converts `BusinessContext.critical_assets` to SAGE-compatible `assets.json`; `_derive_asset_tags()` applies three-pass logic (network_zone_tag_map, data_type_tag_map, keyword matching) identical to `asset_mapper.py`; stable network segment IDs derived from `network_zone`; criticality mapped `critical→10.0 / high→8.0 / medium→5.0 / low→3.0`; `CriticalAsset.dependencies` converted to `asset_connections[]`
+- `cmd/generate_assets.py` — CLI: `--context` (required), `--output` (default: `output/assets.json`), `--no-llm`; prints next-step instructions
+
+**CTI Report STIX Extraction (`cmd/stix_from_report.py`)**
+- `src/beacon/ingest/report_reader.py` — `read_report(source, max_chars=10_000)` auto-detects source type: PDF/URL via `markitdown` (converts to clean Markdown, strips nav/footer/ads); plain text/Markdown files read directly; all output truncated to `max_chars`; `_markitdown_convert()` lazily imports `MarkItDown` for testability
+- `src/beacon/ingest/stix_extractor.py` — `extract_stix_objects()` calls Gemini via `call_llm_json("medium", ...)` with stix_extraction prompt; validates and filters to 8 known STIX types; handles bare array or wrapped `{"objects": [...]}` response; `build_stix_bundle()` wraps objects in STIX 2.1 bundle with unique `bundle--<uuid4>` ID; accepts `task` parameter override
+- `src/beacon/llm/prompts/stix_extraction.md` — extraction prompt with full STIX 2.1 schemas for 7 object types and relationship guidance
+- `cmd/stix_from_report.py` — CLI: `--input` (PDF path or URL, required; wrap URLs containing `?` in single quotes), `--output` (default: `output/stix_bundle.json`), `--task` (simple/medium/complex, default: medium), `--max-chars` (default: 10000); prints SAGE ETL follow-up command
+
+**Dependency**
+- `pyproject.toml` — added `markitdown[pdf]>=0.1.0`; converts PDFs and web articles to clean Markdown via pdfminer.six; 3–5× fewer characters than plain-text extraction, enabling 10,000-char default
+
+**Tests**
+- `tests/test_report_reader.py` — 13 tests: URL/HTTP conversion, PDF conversion, text/Markdown files, missing files, truncation (default + custom), markitdown import error
+- `tests/test_stix_extractor.py` — 13 tests: ExtractStixObjects (9), BuildStixBundle (4)
+- `tests/test_assets_generator.py` — 28 tests: NormalizeAssetId (3), CriticalityMap (4), InternetExposedZones (4), GenerateAssetsJson (17)
+- 249 tests total (247 passed, 2 skipped) / lint clean
+
+**Documentation**
+- `docs/setup.md`, `docs/ja/setup.md` — new sections: "Generating SAGE assets.json" and "Extracting STIX bundles from CTI reports"; URL quoting note for zsh/bash; `--task` and `--max-chars` options documented
+- `docs/dependencies.md` — `markitdown[pdf]` entry with rationale
+- `high-level-design.md` — updated Section 3 to include new modules and commands
+- `README.md`, `README.ja.md` — Overview updated to show all three output pipelines
+
+---
+
 ## [0.6.0] — 2026-04-11
 
 ### Added — Phase 5: CriticalAsset Model, Input/Output Structure, Taxonomy Enrichment

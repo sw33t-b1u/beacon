@@ -16,6 +16,7 @@
 | `uvicorn[standard]` | `>=0.30.0` | FastAPI 用 ASGI サーバー（`cmd/web_app.py`）。`[standard]` extras に WebSocket・HTTP/2 サポートを含む | BSD-3-Clause |
 | `python-multipart` | `>=0.0.9` | FastAPI でのファイルアップロード（`POST /generate`）における multipart/form-data 解析 | Apache-2.0 |
 | `jinja2` | `>=3.1.0` | Web UI 向け HTML テンプレートレンダリング（`src/beacon/web/templates/`） | BSD-3-Clause |
+| `markitdown[pdf]` | `>=0.1.0` | PDF・Web 記事を Markdown に変換（`cmd/stix_from_report.py`）。pdfminer.six で PDF をサポート。ナビゲーション・フッター・広告を除去し、記事本文のみ抽出 | MIT |
 
 ---
 
@@ -40,3 +41,4 @@
 - **uvicorn[standard]**: FastAPI の事実上の標準 ASGI サーバー。同じ Encode チームが開発・保守。
 - **python-multipart**: FastAPI/Starlette が `multipart/form-data` ファイルアップロードを処理するために必要。
 - **jinja2**: Web UI 向けの最小構成サーバーサイドテンプレート。フルスタック JS フレームワークを避け依存を軽量に保つために採用。`/api/*` エンドポイントにより将来の React 移行はサーバーサイドを変更せず実施可能。
+- **markitdown[pdf]**: Microsoft のドキュメント→ Markdown 変換ツール（2024年）。pypdf + カスタム HTML ストリッパーより優れている理由：Markdown 出力は記事構造（見出し・表・リスト）を保持し、ナビゲーションバー・フッター・広告を除去するため、同じ CTI 記事でも文字数が 3〜5 倍少ない。これにより 10,000 文字のデフォルト上限でも全記事内容をカバーできる。`[pdf]` extra が pdfminer.six による PDF サポートを追加。

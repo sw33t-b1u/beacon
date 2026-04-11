@@ -84,7 +84,9 @@ make check
 
 ## PIR Generation Workflow
 
-Place your strategy document as `input/context.md` (see [`docs/context_template.md`](context_template.md) for the template). The `input/` and `output/` directories are gitignored — they contain sensitive data and must not be committed.
+Place your strategy document in `input/` (see [`docs/context_template.md`](context_template.md) for the template). The `input/` and `output/` directories are gitignored — they contain sensitive data and must not be committed.
+
+`--context` is required. You specify the path explicitly, so any filename is accepted (e.g. `input/acme.md`, `input/context_2026Q2.md`).
 
 ### Option A: No-LLM mode (JSON input, no GCP required)
 
@@ -98,34 +100,92 @@ uv run python cmd/generate_pir.py \
   --collection-plan output/collection_plan.md
 ```
 
-### Option B: LLM mode — Markdown input (default, requires GCP)
-
-Drop your strategy document as `input/context.md`, then run without arguments:
+### Option B: LLM mode — Markdown input (requires GCP)
 
 ```bash
 # Ensure GCP_PROJECT_ID is set and ADC is configured (see Step 4)
-uv run python cmd/generate_pir.py
-# Reads:  input/context.md
-# Writes: output/pir_output.json, output/collection_plan.md
+uv run python cmd/generate_pir.py \
+  --context input/acme.md \
+  --output output/pir_output.json \
+  --collection-plan output/collection_plan.md
 ```
 
 To also save the intermediate `BusinessContext` JSON for inspection or reuse:
 
 ```bash
-uv run python cmd/generate_pir.py --save-context
+uv run python cmd/generate_pir.py \
+  --context input/acme.md \
+  --save-context output/business_context.json
 # Writes: output/pir_output.json, output/collection_plan.md, output/business_context.json
 ```
 
-### Option C: LLM mode — JSON input
+---
 
-Use when you have a JSON context file and want LLM-enriched descriptions and collection focus.
+## Generating SAGE assets.json
+
+Convert the `Critical Assets` section of your context document into a SAGE-compatible
+`assets.json` for loading into Spanner.
 
 ```bash
-uv run python cmd/generate_pir.py \
-  --context your_context.json \
-  --output output/pir_output.json \
-  --collection-plan output/collection_plan.md
+# From Markdown (requires LLM / Vertex AI)
+uv run python cmd/generate_assets.py --context input/context.md
+
+# From JSON (no LLM required)
+uv run python cmd/generate_assets.py \
+  --context input/context.json \
+  --no-llm \
+  --output output/assets.json
 ```
+
+The generated file is written to `output/assets.json`. Open it and fill in:
+
+| Field | Action |
+|-------|--------|
+| `owner` | Team email or name per asset |
+| `security_controls` | Define your EDR/SIEM/firewall entries |
+| `security_control_ids` | Link assets to the controls above |
+| `asset_vulnerabilities` | Populate after running STIX ETL |
+| `actor_targets` | Populate after running STIX ETL |
+
+Then load into SAGE Spanner:
+
+```bash
+uv run python cmd/load_assets.py --file output/assets.json
+```
+
+---
+
+## Extracting STIX bundles from CTI reports
+
+Convert a PDF report or web article into a STIX 2.1 bundle for SAGE ETL.
+
+```bash
+# From a PDF
+uv run python cmd/stix_from_report.py --input report.pdf
+
+# From a web article URL (wrap in single quotes — zsh/bash treat ? & = as special characters)
+uv run python cmd/stix_from_report.py --input 'https://example.com/apt-analysis?id=1'
+
+# Specify output path
+uv run python cmd/stix_from_report.py --input report.pdf --output output/apt29_bundle.json
+
+# Use the more powerful model for dense reports (slower: 2–5 min)
+uv run python cmd/stix_from_report.py --input report.pdf --task complex
+
+# Increase input size for very long reports (default: 20000 chars)
+uv run python cmd/stix_from_report.py --input report.pdf --max-chars 30000
+```
+
+The bundle is written to `output/stix_bundle.json` by default. Feed it to SAGE ETL:
+
+```bash
+uv run python cmd/run_etl.py --manual-bundle output/stix_bundle.json
+```
+
+Extracted STIX types: `intrusion-set`, `attack-pattern`, `malware`, `tool`,
+`vulnerability`, `indicator`, `relationship`.
+
+> **Note:** `markitdown[pdf]` is required and is included in the standard dependency set (`uv sync`). It converts both PDFs and web articles to clean Markdown, discarding navigation bars and footers to reduce prompt size.
 
 ---
 
