@@ -45,7 +45,13 @@ structlog.configure(
 )
 logger = structlog.get_logger(__name__)
 
-_DEFAULT_OUTPUT = Path(__file__).parent.parent / "output" / "stix_bundle.json"
+_OUTPUT_DIR = Path(__file__).parent.parent / "output"
+
+
+def _default_output(bundle_id: str) -> Path:
+    """Return output/stix_bundle_<last-12-chars-of-bundle-id>.json."""
+    suffix = bundle_id.replace("bundle--", "")[-12:]
+    return _OUTPUT_DIR / f"stix_bundle_{suffix}.json"
 
 
 def main() -> None:
@@ -64,8 +70,11 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=_DEFAULT_OUTPUT,
-        help=f"Output path for the STIX bundle JSON (default: {_DEFAULT_OUTPUT})",
+        default=None,
+        help=(
+            "Output path for the STIX bundle JSON "
+            "(default: output/stix_bundle_<bundle-id-last-12>.json)"
+        ),
     )
     parser.add_argument(
         "--task",
@@ -99,17 +108,18 @@ def main() -> None:
     objects = extract_stix_objects(text, task=args.task)
     bundle = build_stix_bundle(objects)
 
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(
+    out = args.output if args.output is not None else _default_output(bundle["id"])
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(
         json.dumps(bundle, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
 
-    logger.info("stix_bundle_written", path=str(args.output), object_count=len(objects))
+    logger.info("stix_bundle_written", path=str(out), object_count=len(objects))
     print(
-        f"STIX bundle written: {args.output} ({len(objects)} objects)\n"
+        f"STIX bundle written: {out} ({len(objects)} objects)\n"
         f"Feed to SAGE ETL:\n"
-        f"  uv run python cmd/run_etl.py --manual-bundle {args.output}"
+        f"  uv run python cmd/run_etl.py --manual-bundle {out}"
     )
 
 

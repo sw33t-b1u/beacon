@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import structlog
@@ -36,9 +37,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--output",
-        default="output/pir_output.json",
+        default=None,
         metavar="FILE",
-        help="Output path for PIR JSON (default: output/pir_output.json)",
+        help=("Output path for PIR JSON (default: output/pir_output_<YYYYMMDD_HHMMSS>.json)"),
     )
     parser.add_argument(
         "--collection-plan",
@@ -126,7 +127,11 @@ def main(argv: list[str] | None = None) -> int:
     risk = score(elements, threat, use_llm=use_llm, use_sage=use_sage, sage_client=sage_client)
     pirs = build_pirs(elements, threat, risk, asset_tag_list, asset_tags_dict, use_llm=use_llm)
 
-    output_path = Path(args.output)
+    if args.output is None:
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_path = Path("output") / f"pir_output_{ts}.json"
+    else:
+        output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     if not pirs:

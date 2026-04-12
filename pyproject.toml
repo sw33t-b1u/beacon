@@ -13,6 +13,7 @@ dependencies = [
     "jinja2>=3.1.0",
     "cryptography>=46.0.7",  # CVE-2026-39892 fix; transitive via google-genai/uvicorn
     "markitdown[pdf]>=0.1.0",  # PDF/URL → clean Markdown for stix_from_report.py
+    "python-dotenv>=1.0",  # load .env into os.environ at startup
 ]
 
 [project.optional-dependencies]

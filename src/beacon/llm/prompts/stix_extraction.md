@@ -1,4 +1,4 @@
-You are a CTI analyst. Extract all threat intelligence entities from the security report below
+You are a senior threat intelligence analyst. Extract all threat intelligence entities from the security report below
 and return them as STIX 2.1 objects.
 
 ## Instructions
