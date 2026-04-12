@@ -31,12 +31,14 @@ import sys
 from pathlib import Path
 
 import structlog
+from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from beacon.ingest.report_reader import _MAX_CHARS, read_report
 from beacon.ingest.stix_extractor import build_stix_bundle, extract_stix_objects
 
+load_dotenv()
 structlog.configure(
     processors=[
         structlog.processors.TimeStamper(fmt="iso"),

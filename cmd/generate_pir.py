@@ -9,7 +9,9 @@ from datetime import datetime
 from pathlib import Path
 
 import structlog
+from dotenv import load_dotenv
 
+load_dotenv()
 logger = structlog.get_logger(__name__)
 
 

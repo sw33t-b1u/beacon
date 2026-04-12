@@ -5,8 +5,6 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
-from dotenv import load_dotenv
-
 
 @dataclass
 class Config:
@@ -39,5 +37,4 @@ class Config:
 
 
 def load_config() -> Config:
-    load_dotenv()
     return Config()
