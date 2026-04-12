@@ -14,6 +14,7 @@ Supported sources:
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import structlog
@@ -42,6 +43,24 @@ def _markitdown_convert(source: str) -> str:
     return result.text_content or ""
 
 
+def _find_article_start(text: str) -> int:
+    """Return the character offset where the article body likely begins.
+
+    Blog pages converted by markitdown typically start with navigation links,
+    menus, and cookie banners before the actual article.  This function skips
+    that boilerplate by finding the first H1 or H2 heading after the opening
+    navigation section (heuristically the first 500 characters).
+
+    Returns 0 if no heading is found (fall back to full text).
+    """
+    # Skip the very first chars that are almost always nav/skip-links
+    search_from = min(500, len(text))
+    match = re.search(r"\n#{1,2} .+", text[search_from:])
+    if match:
+        return search_from + match.start() + 1  # +1 to skip the leading \n
+    return 0
+
+
 def read_report(source: str | Path, max_chars: int = _MAX_CHARS) -> str:
     """Convert a CTI report to Markdown text and truncate to max_chars.
 
@@ -66,8 +85,10 @@ def read_report(source: str | Path, max_chars: int = _MAX_CHARS) -> str:
 
     if s.lower().startswith(("http://", "https://")):
         text = _markitdown_convert(s)
-        logger.info("url_converted", url=s, chars=len(text))
-        return text[:max_chars]
+        start = _find_article_start(text)
+        body = text[start:]
+        logger.info("url_converted", url=s, chars=len(text), body_start=start, body_chars=len(body))
+        return body[:max_chars]
 
     path = Path(source)
     if not path.exists():

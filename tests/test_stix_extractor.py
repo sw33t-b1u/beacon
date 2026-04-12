@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from unittest.mock import patch
 
 from beacon.ingest.stix_extractor import _VALID_STIX_TYPES, build_stix_bundle, extract_stix_objects
@@ -18,9 +19,15 @@ def _make_stix_obj(type_: str, name: str = "Test") -> dict:
     }
 
 
+def _as_json(value) -> str:
+    """Serialize a Python value as JSON string (simulates LLM plain-text output)."""
+    return json.dumps(value)
+
+
 class TestExtractStixObjects:
     def _patch_llm(self, return_value):
-        return patch("beacon.ingest.stix_extractor.call_llm_json", return_value=return_value)
+        # call_llm now returns a plain-text string; serialize the value as JSON
+        return patch("beacon.ingest.stix_extractor.call_llm", return_value=_as_json(return_value))
 
     def test_returns_list_from_bare_array(self):
         objects = [_make_stix_obj("intrusion-set", "APT1")]
@@ -46,7 +53,8 @@ class TestExtractStixObjects:
         assert result[0]["type"] == "intrusion-set"
 
     def test_handles_unexpected_response_format(self):
-        with self._patch_llm("not a list or dict"):
+        # plain string that is not JSON → _extract_json_from_text returns None
+        with patch("beacon.ingest.stix_extractor.call_llm", return_value="not json at all"):
             result = extract_stix_objects("text")
         assert result == []
 
@@ -68,19 +76,19 @@ class TestExtractStixObjects:
         assert len(result) == 1
 
     def test_prompt_contains_report_text(self):
-        with patch("beacon.ingest.stix_extractor.call_llm_json", return_value=[]) as mock_call:
+        with patch("beacon.ingest.stix_extractor.call_llm", return_value="[]") as mock_call:
             extract_stix_objects("CVE-2023-3519 exploitation report")
         prompt_arg = mock_call.call_args[0][1]  # positional arg: prompt
         assert "CVE-2023-3519" in prompt_arg
 
     def test_uses_medium_task_type_by_default(self):
-        with patch("beacon.ingest.stix_extractor.call_llm_json", return_value=[]) as mock_call:
+        with patch("beacon.ingest.stix_extractor.call_llm", return_value="[]") as mock_call:
             extract_stix_objects("text")
         task_arg = mock_call.call_args[0][0]
         assert task_arg == "medium"
 
     def test_accepts_complex_task_override(self):
-        with patch("beacon.ingest.stix_extractor.call_llm_json", return_value=[]) as mock_call:
+        with patch("beacon.ingest.stix_extractor.call_llm", return_value="[]") as mock_call:
             extract_stix_objects("text", task="complex")
         task_arg = mock_call.call_args[0][0]
         assert task_arg == "complex"

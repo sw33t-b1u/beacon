@@ -76,6 +76,7 @@ def call_llm(
     generation_config = genai_types.GenerateContentConfig(
         response_mime_type="application/json" if json_mode else "text/plain",
         temperature=0.2,
+        max_output_tokens=8192,
     )
 
     logger.info("llm_call_start", task=task, model=model_name)
@@ -104,7 +105,7 @@ def call_llm_json(
     try:
         return json.loads(raw)
     except json.JSONDecodeError as exc:
-        raise ValueError(f"LLM returned non-JSON response: {raw[:200]}") from exc
+        raise ValueError(f"LLM returned non-JSON response: {raw}") from exc
 
 
 def _model_for_task(task: TaskType, config: Config) -> str:
