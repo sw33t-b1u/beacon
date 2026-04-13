@@ -12,7 +12,9 @@
 | `uvicorn[standard]` | `>=0.30.0` | ASGI server for FastAPI (`cmd/web_app.py`); `[standard]` extras include WebSocket and HTTP/2 support | BSD-3-Clause |
 | `python-multipart` | `>=0.0.9` | Multipart form-data parsing for file uploads in FastAPI (`POST /generate`) | Apache-2.0 |
 | `jinja2` | `>=3.1.0` | HTML template rendering for the Web UI (`src/beacon/web/templates/`) | BSD-3-Clause |
+| `cryptography` | `>=46.0.7` | Transitive dependency of `google-genai` / `uvicorn`. Pinned to `>=46.0.7` to resolve CVE-2026-39892 in 46.0.6. No direct usage in BEACON code. | Apache-2.0 / BSD |
 | `markitdown[pdf]` | `>=0.1.0` | Converts PDF and web articles to clean Markdown for `cmd/stix_from_report.py`; uses pdfminer.six for PDFs and article-aware HTML extraction for URLs | MIT |
+| `python-dotenv` | `>=1.0` | Loads `.env` file into `os.environ` at startup, keeping secrets out of source code | BSD-3-Clause |
 
 ## Development Dependencies
 
@@ -33,4 +35,6 @@
 - **uvicorn[standard]**: The de facto ASGI server for FastAPI; maintained by the same Encode team.
 - **python-multipart**: Required by FastAPI/Starlette to handle `multipart/form-data` file uploads.
 - **jinja2**: Minimal server-side templating for the Web UI. Chosen over a full JS framework to keep dependencies lean; the `/api/*` endpoints allow future React migration without server-side changes.
+- **cryptography**: Not used directly by BEACON. Pinned to `>=46.0.7` to fix CVE-2026-39892 in the transitive dependency chain (`google-genai` → `httpcore` → `h11` → `cryptography`).
 - **markitdown[pdf]**: Microsoft's document-to-Markdown converter (2024). Chosen over `pypdf` + custom HTML stripping because Markdown output preserves article structure (headings, tables, lists), reduces noise (discards nav bars, footers, ads), and yields 3–5× fewer characters for the same CTI article — enabling a 10,000-character default prompt limit while covering full article content. The `[pdf]` extra adds pdfminer.six for PDF support.
+- **python-dotenv**: Loads `.env` files into `os.environ` at process startup. Keeps credentials and project-specific settings out of source code and shell profiles. Chosen over a custom `.env` parser to avoid reimplementing quoting, comment handling, and variable expansion.

@@ -6,6 +6,7 @@
 <div class="card">
   <h2 style="margin-top:0;">Business Context から生成</h2>
   <form action="/generate" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <div style="margin-bottom:1rem;">
       <label for="context_file">Business Context File (.json or .md)</label>
       <input type="file" id="context_file" name="context_file" accept=".json,.md" required>
@@ -61,6 +62,7 @@
     生成済みの <code>pir_output.json</code> を読み込んで確認・編集・エクスポートできます。
   </p>
   <form action="/load" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <div style="margin-bottom:1rem;">
       <label for="pir_file">pir_output.json</label>
       <input type="file" id="pir_file" name="pir_file" accept=".json" required>

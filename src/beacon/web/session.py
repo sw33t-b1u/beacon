@@ -4,16 +4,30 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 import uuid
 from pathlib import Path
 
 _SESSION_PREFIX = "beacon_session_"
 _SESSION_TTL = 86400  # 24 hours in seconds
+_SESSION_ID_RE = re.compile(r"^[0-9a-f]{32}$")
 
 
 def _session_dir() -> Path:
     return Path(os.environ.get("TMPDIR", "/tmp"))
+
+
+def _validate_session_id(session_id: str) -> bool:
+    """Return True if session_id is a valid uuid4 hex string (alphanumeric, 32 chars)."""
+    return bool(_SESSION_ID_RE.match(session_id))
+
+
+def _session_path(session_id: str) -> Path | None:
+    """Return the session file path, or None if the session_id is invalid."""
+    if not _validate_session_id(session_id):
+        return None
+    return _session_dir() / f"{_SESSION_PREFIX}{session_id}.json"
 
 
 def create_session(data: dict) -> str:
@@ -25,9 +39,9 @@ def create_session(data: dict) -> str:
 
 
 def load_session(session_id: str) -> dict | None:
-    """Load session data by ID. Returns None if not found or expired."""
-    path = _session_dir() / f"{_SESSION_PREFIX}{session_id}.json"
-    if not path.exists():
+    """Load session data by ID. Returns None if invalid, not found, or expired."""
+    path = _session_path(session_id)
+    if path is None or not path.exists():
         return None
     # Check TTL
     age = time.time() - path.stat().st_mtime
@@ -38,8 +52,10 @@ def load_session(session_id: str) -> dict | None:
 
 
 def save_session(session_id: str, data: dict) -> None:
-    """Overwrite session data."""
-    path = _session_dir() / f"{_SESSION_PREFIX}{session_id}.json"
+    """Overwrite session data. No-op if session_id is invalid."""
+    path = _session_path(session_id)
+    if path is None:
+        return
     path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
 
 

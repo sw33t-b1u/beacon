@@ -9,6 +9,7 @@
 
 <div style="display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap;">
   <form action="/review/approve" method="post" style="display:inline;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <button type="submit" class="btn btn-primary">Approve &amp; Submit to GHE</button>
   </form>
   <a href="/review/export" class="btn btn-secondary">Export pir_output.json</a>
@@ -32,6 +33,7 @@
   </div>
 
   <form action="/review/save" method="post" style="margin-top:1rem;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <input type="hidden" name="pir_index" value="{{ loop.index0 }}">
 
     <div style="margin-bottom:0.75rem;">

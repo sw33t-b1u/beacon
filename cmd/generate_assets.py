@@ -31,12 +31,14 @@ import sys
 from pathlib import Path
 
 import structlog
+from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from beacon.analysis.assets_generator import generate_assets_json
 from beacon.ingest.context_parser import parse
 
+load_dotenv()
 structlog.configure(
     processors=[
         structlog.processors.TimeStamper(fmt="iso"),

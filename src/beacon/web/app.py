@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import secrets
 import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -19,6 +20,9 @@ logger = structlog.get_logger(__name__)
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
+# Maximum upload size: 10 MB
+_MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
@@ -30,13 +34,65 @@ app = FastAPI(title="BEACON PIR Generator", lifespan=_lifespan)
 
 
 # ---------------------------------------------------------------------------
+# CSRF protection
+# ---------------------------------------------------------------------------
+
+_CSRF_COOKIE = "beacon_csrf"
+_CSRF_FIELD = "csrf_token"
+
+
+def _generate_csrf_token() -> str:
+    return secrets.token_hex(32)
+
+
+def _set_csrf_cookie(response: Response, token: str) -> None:
+    response.set_cookie(
+        _CSRF_COOKIE,
+        token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=86400,
+    )
+
+
+def _verify_csrf(request_cookie: str, form_token: str) -> None:
+    """Raise HTTPException if CSRF tokens do not match."""
+    if not request_cookie or not form_token:
+        raise HTTPException(status_code=403, detail="Missing CSRF token")
+    if not secrets.compare_digest(request_cookie, form_token):
+        raise HTTPException(status_code=403, detail="CSRF token mismatch")
+
+
+# ---------------------------------------------------------------------------
+# Upload size guard
+# ---------------------------------------------------------------------------
+
+
+async def _read_upload(file: UploadFile, max_bytes: int = _MAX_UPLOAD_BYTES) -> bytes:
+    """Read upload content with size limit."""
+    content = await file.read()
+    if len(content) > max_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large (max {max_bytes // 1024 // 1024} MB)",
+        )
+    return content
+
+
+# ---------------------------------------------------------------------------
 # HTML routes (Jinja2)
 # ---------------------------------------------------------------------------
 
 
 @app.get("/")
 async def index(request: Request):
-    return templates.TemplateResponse(request=request, name="index.html")
+    csrf_token = _generate_csrf_token()
+    response = templates.TemplateResponse(
+        request=request, name="index.html", context={"csrf_token": csrf_token}
+    )
+    _set_csrf_cookie(response, csrf_token)
+    return response
 
 
 @app.post("/generate")
@@ -47,14 +103,19 @@ async def generate(
     model_simple: str = Form(default=""),
     model_medium: str = Form(default=""),
     model_complex: str = Form(default=""),
+    csrf_token: str = Form(default=""),
+    beacon_csrf: str = Cookie(default=""),
 ):
     """Run PIR pipeline on uploaded business context file, store results in session."""
+    _verify_csrf(beacon_csrf, csrf_token)
+
     no_llm_bool = no_llm.lower() not in {"false", "0", "no"}
     cfg = _build_config(model_simple, model_medium, model_complex)
 
+    content = await _read_upload(context_file)
     suffix = Path(context_file.filename or "ctx.json").suffix
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(await context_file.read())
+        tmp.write(content)
         tmp_path = Path(tmp.name)
 
     try:
@@ -68,8 +129,12 @@ async def generate(
     }
     session_id = create_session(session_data)
 
+    new_csrf = _generate_csrf_token()
     response = RedirectResponse(url="/review", status_code=303)
-    response.set_cookie("beacon_session", session_id, httponly=True, max_age=86400)
+    response.set_cookie(
+        "beacon_session", session_id, httponly=True, secure=True, samesite="lax", max_age=86400
+    )
+    _set_csrf_cookie(response, new_csrf)
     return response
 
 
@@ -77,11 +142,15 @@ async def generate(
 async def load_pir(
     request: Request,
     pir_file: UploadFile = File(...),
+    csrf_token: str = Form(default=""),
+    beacon_csrf: str = Cookie(default=""),
 ):
     """Load an existing pir_output.json into a session for review."""
-    raw = await pir_file.read()
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    content = await _read_upload(pir_file)
     try:
-        data = json.loads(raw)
+        data = json.loads(content)
     except json.JSONDecodeError as exc:
         raise HTTPException(status_code=400, detail=f"Invalid JSON: {exc}") from exc
 
@@ -98,8 +167,12 @@ async def load_pir(
     session_data = {"pirs": pirs, "collection_plan": ""}
     session_id = create_session(session_data)
 
+    new_csrf = _generate_csrf_token()
     response = RedirectResponse(url="/review", status_code=303)
-    response.set_cookie("beacon_session", session_id, httponly=True, max_age=86400)
+    response.set_cookie(
+        "beacon_session", session_id, httponly=True, secure=True, samesite="lax", max_age=86400
+    )
+    _set_csrf_cookie(response, new_csrf)
     return response
 
 
@@ -108,23 +181,30 @@ async def review(request: Request, beacon_session: str = Cookie(default="")):
     session = load_session(beacon_session) if beacon_session else None
     pirs = session["pirs"] if session else []
     collection_plan = session.get("collection_plan", "") if session else ""
-    return templates.TemplateResponse(
+    csrf_token = _generate_csrf_token()
+    response = templates.TemplateResponse(
         request=request,
         name="review.html",
-        context={"pirs": pirs, "collection_plan": collection_plan},
+        context={"pirs": pirs, "collection_plan": collection_plan, "csrf_token": csrf_token},
     )
+    _set_csrf_cookie(response, csrf_token)
+    return response
 
 
 @app.post("/review/save")
 async def review_save(
     request: Request,
     beacon_session: str = Cookie(default=""),
+    beacon_csrf: str = Cookie(default=""),
     pir_index: int = Form(...),
     description: str = Form(default=""),
     rationale: str = Form(default=""),
     collection_focus: str = Form(default=""),
+    csrf_token: str = Form(default=""),
 ):
     """Update editable fields for a PIR in the session."""
+    _verify_csrf(beacon_csrf, csrf_token)
+
     if not beacon_session:
         return JSONResponse({"error": "No session"}, status_code=400)
     session = load_session(beacon_session)
@@ -151,8 +231,12 @@ async def review_save(
 async def review_approve(
     request: Request,
     beacon_session: str = Cookie(default=""),
+    beacon_csrf: str = Cookie(default=""),
+    csrf_token: str = Form(default=""),
 ):
     """Create GHE Issues for all PIRs in the current session."""
+    _verify_csrf(beacon_csrf, csrf_token)
+
     if not beacon_session:
         return JSONResponse({"error": "No session"}, status_code=400)
     session = load_session(beacon_session)
@@ -224,9 +308,10 @@ async def api_generate(
     no_llm_bool = no_llm.lower() not in {"false", "0", "no"}
     cfg = _build_config(model_simple, model_medium, model_complex)
 
+    content = await _read_upload(context_file)
     suffix = Path(context_file.filename or "ctx.json").suffix
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(await context_file.read())
+        tmp.write(content)
         tmp_path = Path(tmp.name)
 
     try:

@@ -134,12 +134,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ### Changed — Separate repository preparation (Option B)
 
-- `tests/test_sage_compatibility.py` — `TestSAGEPIRFilterIntegration` を SAGE 非依存の `TestSAGEContractValidation` に置き換え。SAGE パッケージ不要でフィールド契約を検証（7テスト）
-- `tests/conftest.py` を削除（SAGE src の sys.path 追加が不要に）
-- `BEACON/README.md` — テスト一覧表・`SAGE required?` 列・Project Structure 更新
-- `SAGE/README.md` — PIR-Based Asset Weighting セクションに BEACON へのリンクを追加
-- `BEACON/high-level-design.md` — ディレクトリツリーから `conftest.py` を削除
-- 119テスト all pass / lint clean
+- `tests/test_sage_compatibility.py` — Replaced SAGE-dependent `TestSAGEPIRFilterIntegration` with standalone `TestSAGEContractValidation`; validates field contracts without requiring the SAGE package (7 tests)
+- Removed `tests/conftest.py` (no longer needed — SAGE src `sys.path` addition removed)
+- `BEACON/README.md` — Updated test list table, added `SAGE required?` column, refreshed Project Structure
+- `SAGE/README.md` — Added link to BEACON in PIR-Based Asset Weighting section
+- `BEACON/high-level-design.md` — Removed `conftest.py` from directory tree
+- 119 tests all pass / lint clean
 
 ---
 
@@ -157,7 +157,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 **Tests**
 - `tests/test_report_builder.py` (13 tests) — covers: PIR-covered labelling, below-threshold messaging, trigger inclusion/exclusion, `write_collection_plan` file output
-- 合計 117テスト all pass / lint clean（統合テスト 2件 deselected）
+- 117 tests total, all pass / lint clean (2 integration tests deselected)
 
 **Documentation**
 - `docs/sage_integration.md` — manual ETL verification procedure: generate → validate → deploy → run ETL → verify `pir_adjusted_criticality` via Spanner CLI
