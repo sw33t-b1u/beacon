@@ -21,10 +21,10 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-# Target character limit for the LLM prompt (~2.5 k tokens).
+# Target character limit for the LLM prompt (~7.5 k tokens).
 # markitdown's clean Markdown output typically fits a full CTI blog post within
 # this limit.  Use read_report(source, max_chars=...) to override.
-_MAX_CHARS = 10_000
+_MAX_CHARS = 30_000
 
 
 def _markitdown_convert(source: str) -> str:

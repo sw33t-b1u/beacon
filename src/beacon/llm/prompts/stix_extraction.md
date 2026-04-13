@@ -13,6 +13,23 @@ and return them as STIX 2.1 objects.
 
 ## Object Types and Schemas
 
+### threat-actor
+```json
+{
+  "type": "threat-actor",
+  "id": "threat-actor--<uuid4>",
+  "spec_version": "2.1",
+  "created": "<timestamp>",
+  "modified": "<timestamp>",
+  "name": "LockBit",
+  "description": "Prolific RaaS operation offering ransomware-as-a-service",
+  "aliases": ["LockBit 3.0", "LockBit Black"],
+  "labels": ["ransomware", "raas", "financially-motivated", "double-extortion"],
+  "primary_motivation": "personal-gain",
+  "sophistication": "advanced"
+}
+```
+
 ### intrusion-set (preferred over threat-actor for APT groups)
 ```json
 {
@@ -24,9 +41,19 @@ and return them as STIX 2.1 objects.
   "name": "MirrorFace",
   "description": "Chinese state-sponsored group targeting Japanese organizations",
   "aliases": ["Earth Kasha", "APT10-affiliated"],
+  "labels": ["apt-china", "state-sponsored"],
   "primary_motivation": "espionage"
 }
 ```
+
+### labels vocabulary (use for threat-actor and intrusion-set)
+Assign one or more labels from the following vocabulary based on the report content:
+- **Motivation**: `financially-motivated`, `state-sponsored`
+- **Technique**: `ransomware`, `raas`, `double-extortion`, `supply-chain-attack`, `bec`, `fraud`, `cloud-targeting`, `swift-targeting`
+- **Role**: `initial-access-broker`, `cybercriminal`
+- **Attribution**: `apt-china`, `apt-russia`, `apt-north-korea`, `apt-iran`
+
+Always include at least one motivation label and any applicable technique labels.
 
 ### attack-pattern (TTP — include ATT&CK ID when identifiable)
 ```json

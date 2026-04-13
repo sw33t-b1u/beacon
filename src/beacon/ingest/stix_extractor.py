@@ -120,7 +120,7 @@ def extract_stix_objects(
     prompt = template.replace("{{REPORT_TEXT}}", text)
 
     logger.info("extracting_stix_objects", chars=len(text), task=task)
-    raw = call_llm(task, prompt, config=config, json_mode=False)
+    raw = call_llm(task, prompt, config=config, json_mode=False, max_output_tokens=65536)
 
     parsed = _extract_json_from_text(raw)
     if parsed is None:

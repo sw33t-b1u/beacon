@@ -56,6 +56,7 @@ def call_llm(
     *,
     config: Config | None = None,
     json_mode: bool = True,
+    max_output_tokens: int = 8192,
 ) -> str:
     """Call Vertex AI Gemini via Google Gen AI SDK and return the text response.
 
@@ -64,6 +65,7 @@ def call_llm(
         prompt: Full prompt text to send to the model.
         config: Config instance. Uses load_config() if None.
         json_mode: If True, sets response_mime_type="application/json".
+        max_output_tokens: Maximum output tokens (default: 8192).
 
     Returns:
         The model's text response (JSON string if json_mode=True).
@@ -76,7 +78,7 @@ def call_llm(
     generation_config = genai_types.GenerateContentConfig(
         response_mime_type="application/json" if json_mode else "text/plain",
         temperature=0.2,
-        max_output_tokens=8192,
+        max_output_tokens=max_output_tokens,
     )
 
     logger.info("llm_call_start", task=task, model=model_name)

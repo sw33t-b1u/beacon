@@ -92,5 +92,5 @@ class TestReadReport:
             with pytest.raises(RuntimeError, match="markitdown is required"):
                 _markitdown_convert(str(pdf))
 
-    def test_default_max_chars_is_10000(self):
-        assert _MAX_CHARS == 10_000
+    def test_default_max_chars_is_30000(self):
+        assert _MAX_CHARS == 30_000
