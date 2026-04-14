@@ -1,6 +1,6 @@
 # BEACON — 依存パッケージ一覧
 
-英語版（正本）: [`docs/dependencies.md`](../dependencies.md)
+英語版（正本）: [`docs/dependencies.md`](dependencies.md)
 
 ---
 

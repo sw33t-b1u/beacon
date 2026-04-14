@@ -1,10 +1,10 @@
 # BEACON — データモデル
 
-英語版（正本）: [`docs/data-model.md`](../data-model.md)
+英語版（正本）: [`docs/data-model.md`](data-model.md)
 
 ## 入力: BusinessContext JSON
 
-戦略ドキュメントを `input/context.md` として配置してください（[`docs/ja/context_template.md`](context_template.md) 参照）。
+戦略ドキュメントを `input/context.md` として配置してください（[`docs/context_template.ja.md`](context_template.ja.md) 参照）。
 LLM が Markdown を構造化 `BusinessContext` JSON に変換します。`--save-context` で中間 JSON を確認できます。
 
 ```json
@@ -187,4 +187,4 @@ MITRE ATT&CK STIX から `mitre_groups` と `priority_ttps` を自動更新:
 uv run python cmd/update_taxonomy.py [--dry-run]
 ```
 
-LLM フォールバックホワイトリスト（`threat_tag_completion.md`）の更新手順は [`docs/ja/setup.md`](setup.md#脅威タクソノミーの更新) を参照。
+LLM フォールバックホワイトリスト（`threat_tag_completion.md`）の更新手順は [`docs/setup.ja.md`](setup.ja.md#脅威タクソノミーの更新) を参照。

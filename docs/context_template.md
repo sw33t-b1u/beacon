@@ -3,7 +3,7 @@
 > **Usage**: Copy this template to `input/context.md` and fill in each section with
 > your organization's actual information.
 > `input/context.md` is listed in `.gitignore` and will never be committed.
-> Japanese version: `docs/ja/context_template.md`
+> Japanese version: `docs/context_template.ja.md`
 
 ---
 

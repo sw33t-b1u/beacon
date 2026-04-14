@@ -65,7 +65,7 @@ BEACON/
 │   ├── dependencies.md          # Third-party dependency rationale and licenses
 │   ├── sage_integration.md      # PIR deployment to SAGE and ETL verification
 │   ├── structure.md             # This file — directory layout reference
-│   └── ja/                      # Japanese translations (kept in sync with English)
+│   └── *.ja.md                  # Japanese translations alongside each English doc
 │
 ├── .githooks/                   # Git hooks (install with: make setup)
 │   ├── pre-commit               # Runs make vet lint before every commit
@@ -84,6 +84,6 @@ BEACON/
 - **`src/beacon/`** contains all reusable library code. Each sub-package has a single responsibility.
 - **`cmd/`** contains thin CLI scripts that parse arguments and delegate to `src/beacon/` modules. No business logic lives here.
 - **`schema/`** holds the dictionary files and JSONSchemas that drive the pipeline. These are data, not code.
-- **`docs/`** holds user-facing documentation in English; `docs/ja/` holds Japanese translations kept in sync.
+- **`docs/`** holds user-facing documentation. English files use the base name (e.g. `setup.md`); Japanese translations are siblings with the `.ja.md` suffix (e.g. `setup.ja.md`).
 - **`high-level-design.md`** must be updated before any architectural change is implemented (Rule 27).
 - **`input/`** and **`output/`** are runtime directories gitignored by default — they contain sensitive operational data and must not be committed.

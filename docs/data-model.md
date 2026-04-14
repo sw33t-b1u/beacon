@@ -1,6 +1,6 @@
 # BEACON — Data Model
 
-Japanese translation: [`docs/ja/data-model.md`](ja/data-model.md)
+Japanese translation: [`docs/data-model.ja.md`](data-model.ja.md)
 
 ## Input: BusinessContext JSON
 

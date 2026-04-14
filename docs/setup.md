@@ -1,6 +1,6 @@
 # BEACON — Setup Guide
 
-Japanese translation: [`docs/ja/setup.md`](ja/setup.md)
+Japanese translation: [`docs/setup.ja.md`](setup.ja.md)
 
 ## Prerequisites
 
