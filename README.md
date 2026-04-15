@@ -86,6 +86,15 @@ make test      # pytest (unit tests)
 make audit     # pip-audit
 ```
 
+## PIR Methodology References
+
+BEACON's PIR generation follows published CTI methodology:
+
+- [FIRST CTI-SIG — Priority Intelligence Requirements curriculum](https://www.first.org/global/sigs/cti/curriculum/pir)
+- [SANS — Bridging Gaps in CTI: A Practical Guide to Threat-Informed Security PIRs](https://www.sans.org/blog/bridging-gaps-cti-practical-guide-threat-informed-security-pirs)
+
+Key guidance applied: one PIR = one decision point; "less is more" (≤5 per run); cascade Strategic PIR → Operational TAP → Tactical PTTP. See `src/beacon/analysis/pir_clusterer.py`.
+
 ## License
 
 Apache-2.0 — see [LICENSE](LICENSE)

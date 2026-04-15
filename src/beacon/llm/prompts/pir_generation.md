@@ -1,11 +1,15 @@
-You are a senior threat intelligence analyst. Improve the Priority Intelligence Requirement (PIR) text fields based on the provided business context and threat analysis results.
+You are a senior threat intelligence analyst. Sharpen ONE narrow Priority Intelligence Requirement (PIR) for the cluster described below.
+
+A PIR is ONE focused decision point, answerable in 3–5 sentences (Who / What / When / Why + recommended action). **Do NOT broaden scope** beyond the cluster's threat family and asset focus. Do NOT aggregate across families.
 
 ## Task
 
-Given the structured analysis results below, generate improved versions of three PIR fields:
-1. `description` — a concise, actionable PIR statement (1–2 sentences, Japanese OK)
-2. `rationale` — explains WHY this PIR is important for this specific organization (2–3 sentences, Japanese OK)
-3. `collection_focus` — a list of 3–5 specific intelligence collection priorities (Japanese OK)
+Given the cluster context below, produce improved versions of four PIR fields:
+
+1. `description` — phrased as a **question** (1–2 sentences, Japanese OK) that the leader needs answered. Must reference the specific threat family and asset focus; must not list unrelated threats.
+2. `rationale` — WHY this specific unit is a worthwhile target for this threat family (2–3 sentences, Japanese OK). Reference the relevant crown jewel or critical asset when possible.
+3. `collection_focus` — 3–5 concrete, actionable collection priorities scoped to this cluster (Japanese OK).
+4. `recommended_action` — 1 sentence (Japanese OK): what the leader must decide or do.
 
 ## Output Format
 
@@ -15,13 +19,21 @@ Return ONLY valid JSON (no markdown, no explanation):
 {
   "description": "string",
   "rationale": "string",
-  "collection_focus": ["string", "string", "string"]
+  "collection_focus": ["string", "string", "string"],
+  "recommended_action": "string"
 }
 ```
 
-## Analysis Results
+## Cluster (this PIR's narrow scope — DO NOT broaden)
 
-### Organization
+- Decision point: {{DECISION_POINT}}
+- Threat family: {{CLUSTER_THREAT_FAMILY}}
+- Threat actor tags (scoped): {{CLUSTER_THREAT_TAGS}}
+- Notable groups (scoped): {{CLUSTER_NOTABLE_GROUPS}}
+- Asset focus (scoped): {{CLUSTER_ASSET_TAGS}}
+
+## Organization
+
 - Industry: {{INDUSTRY}}
 - Organizational scope: {{ORG_UNIT}}
 - Geography: {{GEOGRAPHY}}
@@ -37,11 +49,6 @@ Return ONLY valid JSON (no markdown, no explanation):
 - Data types handled: {{DATA_TYPES}}
 - Critical vendors / supply chain: {{ACTIVE_VENDORS}}
 
-### Matched Threat Actors
-- Categories: {{MATCHED_CATEGORIES}}
-- Notable groups: {{NOTABLE_GROUPS}}
-- Threat tags: {{THREAT_TAGS}}
-
 ### Risk Score
 - Likelihood: {{LIKELIHOOD}} / 5
 - Impact: {{IMPACT}} / 5
@@ -51,17 +58,19 @@ Return ONLY valid JSON (no markdown, no explanation):
 ### Active Business Triggers
 {{TRIGGERS}}
 
-### Draft PIR (dictionary-based, to be improved)
+### Draft PIR (dictionary-based — improve, do not reduce specificity)
 - description: "{{DRAFT_DESCRIPTION}}"
 - rationale: "{{DRAFT_RATIONALE}}"
 - collection_focus: {{DRAFT_COLLECTION_FOCUS}}
+- recommended_action: "{{DRAFT_RECOMMENDED_ACTION}}"
 
 ## Instructions
 
-- **Scope**: The PIR is for the organizational unit specified in "Organizational scope". If it is a department or team (not "entire company"), all fields must reflect that unit's context — do NOT broaden scope to the whole company.
-- Make the description specific to this unit's context (mention industry + organizational scope + geography + key asset type or system).
-- The rationale should explain the threat actor motivation and why this specific unit is a target (e.g., the data it holds, critical systems it operates, supply chain role, decisions it makes).
-- If Critical Assets include supply-chain-connected systems (supply_chain field non-empty), reference the supply chain risk in the rationale.
-- Collection focus items should be concrete and actionable (specific group names, CVEs, campaigns, system names from Critical Assets, data types).
-- Do NOT fabricate group names or TTPs not present in the analysis results.
-- Preserve or improve the draft — do not reduce specificity.
+- **Scope is fixed.** Use only the cluster's threat family, scoped tags, and asset focus. If you mention threats outside that scope, you are wrong.
+- The `description` must be a question — not a statement. Include the threat family + the asset focus + the org unit.
+- The `rationale` must explain why THIS unit holding THESE assets is targeted by THIS family — not a generic industry rationale.
+- Reference only crown jewels / critical assets whose nature fits the cluster's asset focus. Do not list every CJ/CA.
+- `collection_focus` items should be concrete (group names, CVEs, system names, campaigns). 3–5 items, each one line.
+- `recommended_action` is one sentence — a decision the leader can act on.
+- Do NOT fabricate group names, TTPs, or CVEs not present in the provided data.
+- Preserve or improve the drafts; do not reduce specificity.

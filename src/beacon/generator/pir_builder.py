@@ -1,4 +1,9 @@
-"""Step 5: PIR Generation — build SAGE-compatible PIR JSON."""
+"""Step 5: PIR Generation — build SAGE-compatible PIR JSON.
+
+Emits one PIR per cluster returned by `pir_clusterer.build_clusters`, matching
+CTI methodology (one PIR = one focused decision point). See README.md
+references.
+"""
 
 from __future__ import annotations
 
@@ -10,6 +15,7 @@ from pydantic import BaseModel, Field
 
 from beacon.analysis.asset_mapper import get_criticality_multipliers
 from beacon.analysis.element_extractor import ExtractedElements
+from beacon.analysis.pir_clusterer import PIRCluster, build_clusters
 from beacon.analysis.risk_scorer import RiskScore
 from beacon.analysis.threat_mapper import ThreatProfile
 
@@ -33,14 +39,17 @@ class RiskScoreModel(BaseModel):
 class PIROutput(BaseModel):
     pir_id: str
     intelligence_level: IntelligenceLevel
-    organizational_scope: str  # e.g. "Financial Crime Team (department)" or "entire company"
+    organizational_scope: str
+    decision_point: str
     description: str
     rationale: str
+    recommended_action: str
     threat_actor_tags: list[str]
+    notable_groups: list[str] = Field(default_factory=list)
     asset_weight_rules: list[dict]
     collection_focus: list[str]
-    valid_from: str  # ISO date string
-    valid_until: str  # ISO date string
+    valid_from: str
+    valid_until: str
     risk_score: RiskScoreModel
     source_elements: list[str] = Field(default_factory=list)
 
@@ -57,13 +66,14 @@ def build_pirs(
     use_llm: bool = False,
     config=None,
 ) -> list[PIROutput]:
-    """Build PIR output list from pipeline results.
+    """Build a list of narrow, per-decision-point PIRs.
 
-    Only P1 (composite ≥ 20) and P2 (composite ≥ 12) are output as SAGE PIR JSON.
-    P3/P4 are tracked only in report/collection_plan (Phase 3).
+    One PIR is emitted per cluster from `pir_clusterer.build_clusters`. Each
+    PIR has its own scoped `threat_actor_tags` and `asset_weight_rules`
+    (intersection with the cluster's family focus) — never the full profile.
 
-    When use_llm=True, description/rationale/collection_focus are augmented
-    by Google Gen AI (gemini-2.5-flash) using the dictionary results as context.
+    Only P1 (composite ≥ 20) and P2 (composite ≥ 12) runs emit PIRs; below
+    that threshold the run is tracked only in the collection plan.
     """
     today = generated_on or date.today()
 
@@ -71,15 +81,8 @@ def build_pirs(
         logger.info("pir_skipped_low_score", composite=risk.composite)
         return []
 
-    pir_id = f"{pir_id_prefix}-{today.year}-001"
     level = risk.intelligence_level
     valid_until = today + timedelta(days=_VALIDITY_DAYS[level])
-    weight_rules = get_criticality_multipliers(asset_tags, asset_tags_dict)
-
-    # Build dictionary-based drafts first
-    description = _build_description(elements, threat)
-    collection_focus = _build_collection_focus(threat, elements)
-    rationale = risk.rationale
 
     org_scope = (
         f"{elements.org_unit_name} ({elements.org_unit_type})"
@@ -87,103 +90,133 @@ def build_pirs(
         else f"entire company ({elements.org_unit_type})"
     )
 
-    # LLM augmentation: improve text fields using dictionary results as context
-    if use_llm:
-        description, rationale, collection_focus = _llm_augment_text(
-            elements, threat, risk, description, rationale, collection_focus, org_scope, config
+    clusters = build_clusters(elements, threat, asset_tags)
+    pirs: list[PIROutput] = []
+
+    for idx, cluster in enumerate(clusters, start=1):
+        weight_rules = get_criticality_multipliers(cluster.asset_tag_focus, asset_tags_dict)
+
+        draft_description = _build_description(cluster, elements)
+        draft_collection_focus = _build_collection_focus(cluster, elements)
+        draft_rationale = risk.rationale
+        draft_recommended_action = _build_default_action(cluster)
+
+        if use_llm:
+            (
+                description,
+                rationale,
+                collection_focus,
+                recommended_action,
+            ) = _llm_augment_text(
+                cluster,
+                elements,
+                threat,
+                risk,
+                draft_description,
+                draft_rationale,
+                draft_collection_focus,
+                draft_recommended_action,
+                org_scope,
+                config,
+            )
+        else:
+            description = draft_description
+            rationale = draft_rationale
+            collection_focus = draft_collection_focus
+            recommended_action = draft_recommended_action
+
+        pir_id = f"{pir_id_prefix}-{today.year}-{idx:03d}"
+
+        pirs.append(
+            PIROutput(
+                pir_id=pir_id,
+                intelligence_level=level,
+                organizational_scope=org_scope,
+                decision_point=cluster.decision_point,
+                description=description,
+                rationale=rationale,
+                recommended_action=recommended_action,
+                threat_actor_tags=cluster.threat_actor_tags,
+                notable_groups=cluster.notable_groups,
+                asset_weight_rules=weight_rules,
+                collection_focus=collection_focus,
+                valid_from=today.isoformat(),
+                valid_until=valid_until.isoformat(),
+                risk_score=RiskScoreModel(
+                    likelihood=risk.likelihood,
+                    impact=risk.impact,
+                    composite=risk.composite,
+                ),
+                source_elements=cluster.source_element_ids,
+            )
+        )
+        logger.info(
+            "pir_built",
+            pir_id=pir_id,
+            family=cluster.threat_family,
+            level=level,
         )
 
-    pir = PIROutput(
-        pir_id=pir_id,
-        intelligence_level=level,
-        organizational_scope=org_scope,
-        description=description,
-        rationale=rationale,
-        threat_actor_tags=threat.threat_actor_tags,
-        asset_weight_rules=weight_rules,
-        collection_focus=collection_focus,
-        valid_from=today.isoformat(),
-        valid_until=valid_until.isoformat(),
-        risk_score=RiskScoreModel(
-            likelihood=risk.likelihood,
-            impact=risk.impact,
-            composite=risk.composite,
-        ),
-        source_elements=elements.source_element_ids,
-    )
-
-    logger.info(
-        "pir_built",
-        pir_id=pir_id,
-        level=level,
-        composite=risk.composite,
-        valid_until=valid_until.isoformat(),
-    )
-
-    return [pir]
+    logger.info("pir_batch_built", count=len(pirs))
+    return pirs
 
 
-def _build_description(elements: ExtractedElements, threat: ThreatProfile) -> str:
-    cj_count = len(elements.crown_jewel_ids)
+def _build_description(cluster: PIRCluster, elements: ExtractedElements) -> str:
     industry = elements.org_industry
     geos = ", ".join(elements.org_geographies[:2]) if elements.org_geographies else "global"
-
-    if cj_count > 0:
-        systems = (
-            ", ".join(elements.crown_jewel_systems[:2]) if elements.crown_jewel_systems else ""
-        )
-        system_part = f" ({systems})" if systems else ""
-        return (
-            f"Strengthen defenses against threat actors targeting"
-            f" {industry}\u00d7{geos} crown jewels{system_part}"
-        )
-
-    tags_summary = (
-        ", ".join(threat.threat_actor_tags[:3]) if threat.threat_actor_tags else "unknown"
+    assets = ", ".join(cluster.asset_tag_focus[:3]) or "in-scope assets"
+    tags = ", ".join(cluster.threat_actor_tags[:3]) or cluster.threat_family
+    return (
+        f"How will {tags} threats against {industry}\u00d7{geos} {assets} "
+        f"impact this unit's ability to operate, and what mitigations are required?"
     )
-    return f"Monitor threats ({tags_summary}) in {industry}\u00d7{geos} environment"
 
 
-def _build_collection_focus(threat: ThreatProfile, elements: ExtractedElements) -> list[str]:
+def _build_collection_focus(cluster: PIRCluster, elements: ExtractedElements) -> list[str]:
     focus: list[str] = []
-
-    if threat.notable_groups:
-        groups = " / ".join(threat.notable_groups[:3])
-        focus.append(f"Monitor new TTPs and infrastructure changes: {groups}")
-
-    if "ip-theft" in threat.threat_actor_tags or "espionage" in threat.threat_actor_tags:
-        focus.append("Track spear-phishing and supply-chain intrusion attempts")
-
-    if "ransomware" in threat.threat_actor_tags:
-        focus.append("Ransomware group campaigns targeting this industry")
-
-    if elements.has_ot_connectivity:
-        focus.append("Vulnerability exploitation targeting OT/ICS environments")
-
-    if elements.project_cloud_providers:
+    if cluster.notable_groups:
+        groups = " / ".join(cluster.notable_groups[:3])
+        focus.append(f"Monitor new TTPs and infrastructure for: {groups}")
+    if cluster.asset_tag_focus:
+        focus.append(
+            "Vulnerability and exploitation reports targeting: "
+            + ", ".join(cluster.asset_tag_focus[:4])
+        )
+    if cluster.threat_family == "supply_chain":
+        focus.append("Initial-access-broker listings mentioning this unit's vendors")
+    if cluster.threat_family == "cloud" and elements.project_cloud_providers:
         providers = ", ".join(elements.project_cloud_providers[:2])
-        focus.append(f"Cloud misconfiguration and compromise cases targeting {providers}")
-
+        focus.append(f"Cloud misconfiguration and compromise cases on: {providers}")
+    if cluster.threat_family == "ot_ics" and elements.has_ot_connectivity:
+        focus.append("OT/ICS protocol-level advisories and ICS-CERT bulletins")
     if not focus:
-        focus.append("Continuous threat intelligence collection for this industry")
-
+        focus.append(f"Continuous collection on {cluster.threat_family} threats for this unit")
     return focus
 
 
+def _build_default_action(cluster: PIRCluster) -> str:
+    assets = ", ".join(cluster.asset_tag_focus[:3]) or "in-scope assets"
+    return (
+        f"Decide whether current controls on {assets} are sufficient against"
+        f" {cluster.threat_family} threats; escalate gaps to the security lead."
+    )
+
+
 def _llm_augment_text(
+    cluster: PIRCluster,
     elements: ExtractedElements,
     threat: ThreatProfile,
     risk: RiskScore,
     draft_description: str,
     draft_rationale: str,
     draft_collection_focus: list[str],
+    draft_recommended_action: str,
     org_scope: str,
     config=None,
-) -> tuple[str, str, list[str]]:
-    """Augment PIR text fields using Google Gen AI (gemini-2.5-flash).
+) -> tuple[str, str, list[str], str]:
+    """Ask the LLM to sharpen one narrow PIR.
 
-    The dictionary-based drafts are passed as context so the LLM improves
-    rather than invents content.
+    The cluster scope is passed verbatim — the LLM must not broaden it.
     """
     import json as _json  # noqa: PLC0415
 
@@ -220,9 +253,11 @@ def _llm_augment_text(
         .replace("{{ACTIVE_VENDORS}}", vendors_text)
         .replace("{{CROWN_JEWELS}}", crown_jewels_text)
         .replace("{{CRITICAL_ASSETS}}", critical_assets_text)
-        .replace("{{MATCHED_CATEGORIES}}", ", ".join(threat.matched_categories) or "none")
-        .replace("{{NOTABLE_GROUPS}}", ", ".join(threat.notable_groups[:6]) or "none")
-        .replace("{{THREAT_TAGS}}", ", ".join(threat.threat_actor_tags[:8]) or "none")
+        .replace("{{DECISION_POINT}}", cluster.decision_point)
+        .replace("{{CLUSTER_THREAT_FAMILY}}", cluster.threat_family)
+        .replace("{{CLUSTER_THREAT_TAGS}}", ", ".join(cluster.threat_actor_tags) or "none")
+        .replace("{{CLUSTER_NOTABLE_GROUPS}}", ", ".join(cluster.notable_groups[:6]) or "none")
+        .replace("{{CLUSTER_ASSET_TAGS}}", ", ".join(cluster.asset_tag_focus) or "none")
         .replace("{{LIKELIHOOD}}", str(risk.likelihood))
         .replace("{{IMPACT}}", str(risk.impact))
         .replace("{{COMPOSITE}}", str(risk.composite))
@@ -234,17 +269,18 @@ def _llm_augment_text(
             "{{DRAFT_COLLECTION_FOCUS}}",
             _json.dumps(draft_collection_focus, ensure_ascii=False),
         )
+        .replace("{{DRAFT_RECOMMENDED_ACTION}}", draft_recommended_action)
     )
 
-    logger.info("pir_text_llm_augment")
+    logger.info("pir_text_llm_augment", family=cluster.threat_family)
     result = call_llm_json("medium", prompt, config=config)
 
     description = result.get("description") or draft_description
     rationale = result.get("rationale") or draft_rationale
     collection_focus = result.get("collection_focus") or draft_collection_focus
+    recommended_action = result.get("recommended_action") or draft_recommended_action
 
     if not isinstance(collection_focus, list):
         collection_focus = draft_collection_focus
 
-    logger.info("pir_text_augmented")
-    return description, rationale, collection_focus
+    return description, rationale, collection_focus, recommended_action

@@ -86,6 +86,15 @@ make test      # pytest（ユニットテスト）
 make audit     # pip-audit
 ```
 
+## PIR 方法論の参考資料
+
+BEACON の PIR 生成は以下の CTI 方法論に準拠しています:
+
+- [FIRST CTI-SIG — Priority Intelligence Requirements カリキュラム](https://www.first.org/global/sigs/cti/curriculum/pir)
+- [SANS — Bridging Gaps in CTI: A Practical Guide to Threat-Informed Security PIRs](https://www.sans.org/blog/bridging-gaps-cti-practical-guide-threat-informed-security-pirs)
+
+採用している主な指針: 1 つの PIR = 1 つの意思決定ポイント、"Less is more"（1 回の実行で最大 5 件）、Strategic PIR → Operational TAP → Tactical PTTP のカスケード。詳細は `src/beacon/analysis/pir_clusterer.py` を参照。
+
 ## ライセンス
 
 Apache-2.0 — [LICENSE](LICENSE) を参照
