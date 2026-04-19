@@ -28,17 +28,16 @@ class TestClustering:
     def test_manufacturing_splits_into_multiple_clusters(self):
         elements, threat, asset_tag_list = _load("sample_context_manufacturing.json")
         clusters = build_clusters(elements, threat, asset_tag_list)
-        # Manufacturing × Japan × OT should produce > 1 cluster (state_sponsored,
-        # ransomware, ot_ics, cloud, etc.)
+        # Manufacturing × Japan must yield at least one cluster from the
+        # MISP-derived taxonomy families.
         assert len(clusters) >= 1
         families = {c.threat_family for c in clusters}
-        # At least one of the expected families should appear
         assert families & {
-            "ransomware",
             "state_sponsored",
-            "ot_ics",
-            "cloud",
-            "supply_chain",
+            "espionage",
+            "financial_crime",
+            "sabotage",
+            "subversion",
         }
 
     def test_cluster_tags_are_strict_subset_of_profile(self):

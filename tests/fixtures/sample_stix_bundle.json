@@ -145,6 +145,41 @@
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1574.002"}
       ]
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--r1",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--test-apt10",
+      "target_ref": "attack-pattern--T1566"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--r2",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--test-apt10",
+      "target_ref": "attack-pattern--T1078"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--r3",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--test-apt41",
+      "target_ref": "attack-pattern--T1190"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--r4",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--test-lazarus",
+      "target_ref": "attack-pattern--T1486"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--r5",
+      "relationship_type": "attributed-to",
+      "source_ref": "intrusion-set--test-apt10",
+      "target_ref": "attack-pattern--T1083"
     }
   ]
 }

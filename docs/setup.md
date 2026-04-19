@@ -221,9 +221,7 @@ Extracted STIX types: `intrusion-set`, `attack-pattern`, `malware`, `tool`,
 
 ## Updating the Threat Taxonomy
 
-`schema/threat_taxonomy.json` maps industries, geographies, and business triggers to threat actor tags. It is maintained in two ways:
-
-**Automatic update** — syncs `mitre_groups` and `priority_ttps` from the MITRE ATT&CK STIX bundle:
+`schema/threat_taxonomy.json` is fully auto-generated from MITRE ATT&CK Enterprise and MISP Galaxy. Run the updater to rebuild the file end-to-end:
 
 ```bash
 # Preview changes without writing to disk
@@ -233,22 +231,12 @@ uv run python -m cmd.update_taxonomy --dry-run
 uv run python -m cmd.update_taxonomy
 ```
 
-**Manual update** — edit `schema/threat_taxonomy.json` directly for:
-- Adding new actor categories or nations
-- Tuning `target_industries` / `target_geographies`
-- Updating `geography_threat_map`, `industry_threat_map`, `business_trigger_map`
+Options:
 
-> The automatic update does **not** touch manually managed sections. Run it periodically (e.g. quarterly) to keep MITRE group names and TTP IDs current.
+- `--mitre-url` / `--misp-url` — override the upstream URLs (defaults point at the canonical GitHub raw endpoints recorded in `_metadata.sources`).
+- `--mitre-cache` / `--misp-cache` — read from a local copy instead of fetching (useful for air-gapped runs); the canonical URLs are still written to `_metadata.sources`.
 
-**Updating the `threat_tag_completion.md` whitelist** — when the LLM fallback path is active (dictionary finds zero matches), `src/beacon/llm/prompts/threat_tag_completion.md` constrains the group names the LLM may suggest. The whitelist in that file is maintained manually using these reference sources:
-
-| Source | What to update |
-|--------|---------------|
-| [MITRE ATT&CK Groups](https://attack.mitre.org/groups/) | Nation-state and criminal group canonical names |
-| [MISP Galaxy threat-actor cluster](https://github.com/MISP/misp-galaxy) | Aliases, new emerging actors |
-| [BushidoUK Ransomware Tool Matrix](https://github.com/BushidoUK/Ransomware-Tool-Matrix) | Active RaaS and ransomware group names |
-
-Edit the `## Notable Group Reference` section in `threat_tag_completion.md` to add or retire groups. Keep it in sync with the actor categories in `threat_taxonomy.json`.
+> Any hand-edits to the JSON will be overwritten on the next run. If a new actor or tag vocabulary is needed, submit it upstream to MITRE/MISP or extend the updater logic, not the JSON.
 
 ---
 

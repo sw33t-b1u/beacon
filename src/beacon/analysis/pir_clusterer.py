@@ -23,44 +23,33 @@ logger = structlog.get_logger(__name__)
 # Keys intentionally mirror the first segment of `matched_categories` paths
 # (e.g. "state_sponsored.China" → family "state_sponsored").
 _FAMILY_TAGS: dict[str, set[str]] = {
-    "ransomware": {
-        "ransomware",
-        "raas",
-        "double-extortion",
-        "ransom",
-    },
-    "financial_crime": {
-        "bec",
-        "fraud",
-        "financially-motivated",
-        "swift-targeting",
-        "card-skimming",
-    },
-    "supply_chain": {
-        "supply-chain-attack",
-        "initial-access-broker",
-        "vendor-compromise",
-    },
-    "cloud": {
-        "cloud-targeting",
-        "saas-targeting",
-    },
+    "financial_crime": {"financial-crime"},
     "state_sponsored": {
-        "apt",
-        "espionage",
-        "ip-theft",
-        "state-sponsored",
-        "targets-japan",
+        "apt-china",
+        "apt-russia",
+        "apt-north-korea",
+        "apt-iran",
+        "apt-india",
+        "apt-south-korea",
+        "apt-vietnam",
+        "apt-pakistan",
+        "apt-belarus",
+        "apt-israel",
+        "apt-palestine",
+        "apt-lebanon",
+        "apt-spain",
+        "apt-france",
+        "apt-united-states",
+        "apt-united-kingdom",
+        "apt-united-arab-emirates",
+        "apt-turkey",
+        "apt-ukraine",
+        "apt-tunisia",
+        "apt-syria",
     },
-    "ot_ics": {
-        "ot-targeting",
-        "ics",
-        "sabotage",
-    },
-    "hacktivism": {
-        "hacktivism",
-        "ideological",
-    },
+    "espionage": {"espionage"},
+    "sabotage": {"sabotage"},
+    "subversion": {"subversion"},
     "cybercriminal": {  # fallback bucket — only used if nothing else matched
         "cybercriminal",
     },
@@ -68,25 +57,21 @@ _FAMILY_TAGS: dict[str, set[str]] = {
 
 # Asset tags each family cares about. Used to scope asset_weight_rules per PIR.
 _FAMILY_ASSET_TAGS: dict[str, set[str]] = {
-    "ransomware": {"database", "erp", "backup", "file_server", "endpoint", "hr"},
     "financial_crime": {"financial", "identity", "database", "payment"},
-    "supply_chain": {"supply_chain", "external-facing", "cloud"},
-    "cloud": {"cloud", "saas", "external-facing"},
-    "state_sponsored": {"identity", "source_code", "pki", "database"},
-    "ot_ics": {"ot"},
-    "hacktivism": {"external-facing", "web"},
+    "state_sponsored": {"identity", "source_code", "pki", "database", "plm", "erp"},
+    "espionage": {"identity", "source_code", "database", "plm"},
+    "sabotage": {"ot", "external-facing"},
+    "subversion": {"external-facing", "web", "identity"},
     "cybercriminal": set(),  # unscoped fallback
 }
 
 # Human-readable short labels for the decision point.
 _FAMILY_LABELS: dict[str, str] = {
-    "ransomware": "Ransomware impact on core operational systems",
-    "financial_crime": "Financial fraud and BEC against in-scope services",
-    "supply_chain": "Supply-chain and initial-access-broker intrusion paths",
-    "cloud": "Cloud and SaaS platform compromise",
-    "state_sponsored": "State-sponsored espionage and IP theft",
-    "ot_ics": "OT/ICS disruption risk",
-    "hacktivism": "Hacktivist defacement / DDoS / data leak",
+    "financial_crime": "Financial fraud and cybercrime against in-scope services",
+    "state_sponsored": "State-sponsored actor activity targeting this unit",
+    "espionage": "Generic espionage-motivated intrusion",
+    "sabotage": "Destructive / sabotage-motivated intrusion",
+    "subversion": "Influence operation / subversion activity",
     "cybercriminal": "General cybercriminal threat to this unit",
 }
 
@@ -209,22 +194,7 @@ def _scope_notable_groups(all_groups: set[str], family: str) -> list[str]:
 # Lightweight keyword hints per family for `_scope_notable_groups`. Not
 # authoritative — intentionally biased toward recall.
 _FAMILY_GROUP_KEYWORDS: dict[str, set[str]] = {
-    "ransomware": {
-        "lockbit",
-        "alphv",
-        "blackcat",
-        "akira",
-        "blacksuit",
-        "bianlian",
-        "cl0p",
-        "clop",
-        "dark angels",
-        "play",
-        "ransom",
-        "inc ransom",
-    },
     "financial_crime": {"fin", "carbanak", "anunak", "evil corp"},
-    "supply_chain": {"iab"},
     "state_sponsored": {
         "apt",
         "lazarus",
@@ -233,8 +203,10 @@ _FAMILY_GROUP_KEYWORDS: dict[str, set[str]] = {
         "turla",
         "mirrorface",
         "earth",
-        "forest blizzard",
+        "typhoon",
+        "blizzard",
     },
-    "ot_ics": {"xenotime", "sandworm"},
-    "hacktivism": {"anonymous", "killnet"},
+    "espionage": {"apt", "earth", "mirrorface", "turla"},
+    "sabotage": {"sandworm", "xenotime", "shamoon"},
+    "subversion": {"killnet", "noname", "anonymous"},
 }

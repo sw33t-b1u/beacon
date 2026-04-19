@@ -164,27 +164,41 @@ Authentication uses Application Default Credentials (ADC). No API key management
 
 ## Threat Taxonomy Coverage
 
-`schema/threat_taxonomy.json` (sources: MITRE ATT&CK Groups, MISP Galaxy, BushidoUK Ransomware Tool Matrix):
+`schema/threat_taxonomy.json` is fully auto-generated from two sources:
 
-| Category | Notable Groups |
-|----------|---------------|
-| China (state) | APT10, APT41, APT40, APT27, MirrorFace, Earth Kasha, Mustang Panda, Salt Typhoon, Volt Typhoon |
-| Russia (state) | APT28, APT29, Sandworm, Turla, TEMP.Veles |
-| North Korea (state) | Lazarus, Kimsuky, APT38, BlueNoroff, TraderTraitor, Andariel |
-| Iran (state) | APT33, APT34, Charming Kitten, MuddyWater, OilRig |
-| India (state) | SideWinder, Patchwork |
-| Ransomware / RaaS | LockBit, RansomHub, BlackCat, Cl0p, INC Ransomware, Akira, Play, Dark Angels, Hunters International, Medusa, BlackSuit, BianLian |
-| Cybercriminal | FIN7, FIN11, TA505, Scattered Spider |
-| Hacktivist | KillNet, Anonymous Sudan, NoName057(16) |
+- **MITRE ATT&CK Enterprise** (`intrusion-set`, `attack-pattern`, `uses` relationships) — canonical group names and priority TTPs.
+- **MISP Galaxy `threat-actor` cluster** (`cfr-suspected-state-sponsor`, `cfr-type-of-incident`, `cfr-suspected-victims`, `country`) — state-sponsor attribution, non-state motivation, target industries/geographies.
 
-Industries covered: manufacturing, finance, energy, healthcare, defense, technology, logistics, government, education, pharmaceutical, telecom, retail, automotive, aerospace.
+Category axes:
 
-Geographies covered: Japan, Southeast Asia, USA, Europe, South Korea, Taiwan, UK, Germany, Australia, Canada, India, Middle East.
+| Axis | Buckets |
+|------|---------|
+| `state_sponsored.<Country>` | Canonical country names from MISP `cfr-suspected-state-sponsor` (e.g., China, Russia, North Korea, Iran, India, South Korea, Vietnam, United States). Aliases normalized (e.g., `USA` → `United States`). |
+| Non-state | `espionage`, `financial_crime`, `sabotage`, `subversion` — derived from MISP `cfr-type-of-incident`. |
 
-Update `mitre_groups` and `priority_ttps` automatically from MITRE ATT&CK STIX:
+Each bucket carries:
+
+- `tags` — short labels like `apt-china`, `financial-crime` (state buckets get `apt-<country-slug>`).
+- `mitre_groups` — canonical names from MITRE ATT&CK.
+- `priority_ttps` — MITRE technique IDs linked via `uses` relationships.
+- `target_industries` — MISP coarse vocabulary (`Private sector`, `Government`, `Military`, `Civil society`).
+- `target_geographies` — MISP `cfr-suspected-victims` country list.
+
+**Industry matching** uses a BEACON-to-MISP coarse mapping (`threat_mapper._BEACON_TO_MISP_INDUSTRY`):
+
+| BEACON industry | MISP category |
+|-----------------|--------------|
+| defense | Military |
+| government | Government |
+| education | Civil society |
+| manufacturing, finance, energy, healthcare, technology, logistics, other | Private sector |
+
+**Geography matching** treats empty `target_geographies` and `Global` as "accept all"; otherwise the organization's geography must overlap.
+
+Regenerate the taxonomy from the authoritative feeds:
 
 ```bash
 uv run python cmd/update_taxonomy.py [--dry-run]
 ```
 
-To update the LLM fallback whitelist (`threat_tag_completion.md`), see the manual update instructions in [`docs/setup.md`](setup.md#updating-the-threat-taxonomy).
+`_metadata.sources` in the JSON records the canonical fetch URLs. No manual curation layer exists — all content comes from the two upstream feeds, which lets `update_taxonomy.py` rebuild the file deterministically.

@@ -164,27 +164,41 @@ uv run python cmd/generate_pir.py --context ... --output pir_output.json \
 
 ## 脅威タクソノミーカバレッジ
 
-`schema/threat_taxonomy.json`（ソース: MITRE ATT&CK Groups、MISP Galaxy、BushidoUK Ransomware Tool Matrix）:
+`schema/threat_taxonomy.json` は次の 2 つのソースから完全に自動生成されます:
 
-| カテゴリ | 主要グループ |
-|---------|------------|
-| 中国（国家） | APT10, APT41, APT40, APT27, MirrorFace, Earth Kasha, Mustang Panda, Salt Typhoon, Volt Typhoon |
-| ロシア（国家） | APT28, APT29, Sandworm, Turla, TEMP.Veles |
-| 北朝鮮（国家） | Lazarus, Kimsuky, APT38, BlueNoroff, TraderTraitor, Andariel |
-| イラン（国家） | APT33, APT34, Charming Kitten, MuddyWater, OilRig |
-| インド（国家） | SideWinder, Patchwork |
-| ランサムウェア / RaaS | LockBit, RansomHub, BlackCat, Cl0p, INC Ransomware, Akira, Play, Dark Angels, Hunters International, Medusa, BlackSuit, BianLian |
-| サイバー犯罪 | FIN7, FIN11, TA505, Scattered Spider |
-| ハクティビスト | KillNet, Anonymous Sudan, NoName057(16) |
+- **MITRE ATT&CK Enterprise**（`intrusion-set`、`attack-pattern`、`uses` リレーションシップ） — カノニカルなグループ名と priority TTP
+- **MISP Galaxy `threat-actor` クラスタ**（`cfr-suspected-state-sponsor`、`cfr-type-of-incident`、`cfr-suspected-victims`、`country`） — 国家帰属・非国家アクターの動機・標的業種/地域
 
-対応業種: 製造業、金融、エネルギー、医療、防衛、テクノロジー、物流、政府、教育、製薬、通信、小売、自動車、航空宇宙。
+カテゴリ軸:
 
-対応地域: 日本、東南アジア、米国、欧州、韓国、台湾、英国、ドイツ、オーストラリア、カナダ、インド、中東。
+| 軸 | バケット |
+|----|---------|
+| `state_sponsored.<Country>` | MISP `cfr-suspected-state-sponsor` のカノニカル国名（例: China、Russia、North Korea、Iran、India、South Korea、Vietnam、United States）。別名は正規化（例: `USA` → `United States`）。 |
+| 非国家 | `espionage`、`financial_crime`、`sabotage`、`subversion` — MISP `cfr-type-of-incident` から派生。 |
 
-MITRE ATT&CK STIX から `mitre_groups` と `priority_ttps` を自動更新:
+各バケットが保持する情報:
+
+- `tags` — `apt-china`、`financial-crime` 等の短いラベル（国家バケットは `apt-<country-slug>`）
+- `mitre_groups` — MITRE ATT&CK のカノニカルなグループ名
+- `priority_ttps` — `uses` リレーションでリンクされた MITRE technique ID
+- `target_industries` — MISP の粗粒度業種（`Private sector`、`Government`、`Military`、`Civil society`）
+- `target_geographies` — MISP `cfr-suspected-victims` の国名リスト
+
+**業種マッチング**は BEACON ⇄ MISP の粗写像（`threat_mapper._BEACON_TO_MISP_INDUSTRY`）で実施:
+
+| BEACON 業種 | MISP 区分 |
+|-----------|----------|
+| defense | Military |
+| government | Government |
+| education | Civil society |
+| manufacturing, finance, energy, healthcare, technology, logistics, other | Private sector |
+
+**地域マッチング**は `target_geographies` が空または `Global` の場合「すべて受理」、それ以外は組織の地域と重なり必須。
+
+正規の feed から再生成:
 
 ```bash
 uv run python cmd/update_taxonomy.py [--dry-run]
 ```
 
-LLM フォールバックホワイトリスト（`threat_tag_completion.md`）の更新手順は [`docs/setup.ja.md`](setup.ja.md#脅威タクソノミーの更新) を参照。
+JSON 内の `_metadata.sources` にカノニカルな fetch URL が記録されます。手動 curated レイヤーは存在せず、全内容が上流 feed 由来のため、`update_taxonomy.py` は決定論的に再構築できます。

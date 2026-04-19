@@ -359,7 +359,7 @@ def _run_pipeline(context_path: Path, *, no_llm: bool, config=None) -> tuple[lis
 
     elements = extract(ctx)
     asset_tag_list = map_asset_tags(elements, asset_tags_dict)
-    threat = map_threats(elements, taxonomy, use_llm=use_llm, config=config)
+    threat = map_threats(elements, taxonomy)
     risk = score(elements, threat, use_llm=use_llm, config=config)
     pirs = build_pirs(
         elements, threat, risk, asset_tag_list, asset_tags_dict, use_llm=use_llm, config=config

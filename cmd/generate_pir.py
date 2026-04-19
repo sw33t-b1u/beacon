@@ -125,7 +125,7 @@ def main(argv: list[str] | None = None) -> int:
 
     elements = extract(ctx)
     asset_tag_list = map_asset_tags(elements, asset_tags_dict)
-    threat = map_threats(elements, taxonomy, use_llm=use_llm)
+    threat = map_threats(elements, taxonomy)
     risk = score(elements, threat, use_llm=use_llm, use_sage=use_sage, sage_client=sage_client)
     pirs = build_pirs(elements, threat, risk, asset_tag_list, asset_tags_dict, use_llm=use_llm)
 

@@ -25,7 +25,6 @@ BEACON/
 │   │   └── prompts/             # Markdown prompt templates
 │   │       ├── context_structuring.md    # context.md → BusinessContext JSON
 │   │       ├── pir_generation.md         # PIR text augmentation
-│   │       ├── threat_tag_completion.md  # LLM fallback threat tag whitelist
 │   │       └── stix_extraction.md        # CTI report → STIX 2.1 objects
 │   ├── review/
 │   │   └── github.py            # GHE/GitHub Issue creation for PIR review

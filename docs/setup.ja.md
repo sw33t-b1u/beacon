@@ -220,9 +220,7 @@ uv run python cmd/run_etl.py --manual-bundle output/stix_bundle.json
 
 ## 脅威タクソノミーの更新
 
-`schema/threat_taxonomy.json` は、業種・地域・ビジネストリガーを脅威アクタータグに対応付けるファイルです。更新方法は2つあります。
-
-**自動更新** — MITRE ATT&CK STIX バンドルから `mitre_groups` と `priority_ttps` を同期:
+`schema/threat_taxonomy.json` は MITRE ATT&CK Enterprise と MISP Galaxy から完全に自動生成されます。アップデータを実行してファイル全体を再構築してください:
 
 ```bash
 # 変更内容をプレビュー（ファイル書き込みなし）
@@ -232,22 +230,12 @@ uv run python -m cmd.update_taxonomy --dry-run
 uv run python -m cmd.update_taxonomy
 ```
 
-**手動更新** — 以下の項目は `schema/threat_taxonomy.json` を直接編集:
-- 新しいアクターカテゴリや国の追加
-- `target_industries` / `target_geographies` の調整
-- `geography_threat_map`、`industry_threat_map`、`business_trigger_map` の更新
+オプション:
 
-> 自動更新は手動管理セクションを変更しません。MITRE のグループ名や TTP ID を最新化するために、定期的（例: 四半期ごと）に実行することを推奨します。
+- `--mitre-url` / `--misp-url` — 上流 URL を上書き（デフォルトは `_metadata.sources` に記録されている GitHub raw エンドポイント）
+- `--mitre-cache` / `--misp-cache` — fetch の代わりにローカルコピーを読む（エアギャップ環境向け）。`_metadata.sources` にはカノニカル URL が引き続き記録される
 
-**`threat_tag_completion.md` ホワイトリストの更新** — LLM フォールバックパスが有効になると（辞書でマッチ 0 件）、`src/beacon/llm/prompts/threat_tag_completion.md` が LLM の出力グループ名を制約します。このホワイトリストは以下のリファレンスを参考に手動で管理します。
-
-| ソース | 更新対象 |
-|--------|---------|
-| [MITRE ATT&CK Groups](https://attack.mitre.org/groups/) | 国家支援・犯罪グループの正式名称 |
-| [MISP Galaxy threat-actor cluster](https://github.com/MISP/misp-galaxy) | エイリアス、新興アクター |
-| [BushidoUK Ransomware Tool Matrix](https://github.com/BushidoUK/Ransomware-Tool-Matrix) | 活動中の RaaS・ランサムウェアグループ名 |
-
-`threat_tag_completion.md` の `## Notable Group Reference` セクションを編集してグループを追加・削除してください。`threat_taxonomy.json` のアクターカテゴリとの整合性を保つこと。
+> JSON への手動編集は次回実行で上書きされます。新しいアクターやタグ語彙が必要な場合は MITRE/MISP 上流へ提出するか、アップデータ本体を拡張してください。JSON を直接編集してはいけません。
 
 ---
 

@@ -6,6 +6,104 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [0.8.0] — 2026-04-19
+
+### Changed — Phase 7: MITRE+MISP-Only Threat Taxonomy (Breaking)
+
+**Taxonomy is now fully auto-generated.** Hand-curated content removed; every
+field in `schema/threat_taxonomy.json` is rebuilt from two upstream feeds:
+MITRE ATT&CK Enterprise (STIX 2.1) and MISP Galaxy `threat-actor` cluster.
+
+**Breaking schema changes** (`schema/threat_taxonomy.json`)
+- Removed top-level fields: `industry_threat_map`, `business_trigger_map`,
+  `supply_chain_threat_map`
+- Removed per-category fields: `subgroups`, `additional_tags`
+- Removed metadata field: `_metadata.last_manual_review`
+- `actor_categories` restructured: `state_sponsored.<Country>` buckets
+  (canonical names from MISP `cfr-suspected-state-sponsor` with alias
+  normalization, e.g. `USA` → `United States`) + non-state buckets derived
+  from MISP `cfr-type-of-incident`: `espionage`, `financial_crime`,
+  `sabotage`, `subversion`
+- `target_industries` now uses MISP coarse vocabulary only: `Private sector`,
+  `Government`, `Military`, `Civil society` (previously 14 fine-grained
+  industries)
+
+**Breaking API changes**
+- `beacon.analysis.threat_mapper.map_threats(elements, taxonomy)` —
+  dropped `use_llm` and `config` parameters; LLM fallback path removed
+- New module constant `_BEACON_TO_MISP_INDUSTRY` maps BEACON's 10 industry
+  literals onto the 4 MISP coarse categories (defense→Military,
+  government→Government, education→Civil society, else→Private sector)
+- PIR tag vocabulary coarsened: emitted tags are now MISP-derived only
+  (`apt-<country-slug>`, `espionage`, `financial-crime`, `sabotage`,
+  `subversion`, `cybercriminal`). Removed: `ot-targeting`, `ip-theft`,
+  `ransomware`, `cloud-targeting`, `supply-chain-attack`, `erp-targeting`,
+  `targets-<country>`, `bec`, `fraud`, `double-extortion`, etc.
+
+**Updater rewrite** (`cmd/update_taxonomy.py`)
+- Rebuilds the entire JSON on every run; no incremental merge with prior
+  hand-curated state
+- New flags: `--mitre-url` / `--misp-url` (override upstream URLs),
+  `--mitre-cache` / `--misp-cache` (read from local file, useful for
+  air-gapped / test runs; canonical URLs are still written to
+  `_metadata.sources`)
+- STIX relationship-driven TTP extraction: iterates `relationship` objects
+  with `type=uses` from `intrusion-set` → `attack-pattern`, not the
+  deprecated `intrusion-set.x_mitre_techniques` field
+
+**Removed**
+- `src/beacon/llm/prompts/threat_tag_completion.md` — LLM fallback for
+  dictionary misses. Deleted entirely; MISP coverage is broad enough that
+  dictionary-miss cases are rare, and LLM-suggested tags cannot be traced
+  to a source citation
+
+**Trigger escalation relocation**
+- `{m_and_a, ot_connectivity, ipo_or_listing}` escalation set is no longer
+  driven by `business_trigger_map` (deleted). It now lives exclusively as
+  a hardcoded constant in `src/beacon/analysis/risk_scorer.py:_recommend_level`,
+  as a BEACON-internal operational rule separate from the MITRE/MISP feeds
+
+**PIR clusterer** (`src/beacon/analysis/pir_clusterer.py`)
+- `_FAMILY_TAGS`, `_FAMILY_ASSET_TAGS`, `_FAMILY_LABELS`,
+  `_FAMILY_GROUP_KEYWORDS` rewritten to the new tag vocabulary
+- Removed families: `ransomware`, `supply_chain`, `cloud`, `ot_ics`,
+  `hacktivism`. Remaining: `state_sponsored`, `espionage`,
+  `financial_crime`, `sabotage`, `subversion`, `cybercriminal`
+
+**Tests**
+- `tests/test_threat_mapper.py` — rewritten with synthetic MITRE+MISP-shaped
+  fixture; added `TestDefenseIndustryMapping` (verifies every BEACON
+  industry literal has a `_BEACON_TO_MISP_INDUSTRY` entry via
+  `Organization.model_fields["industry"].annotation.__args__`)
+- `tests/test_update_taxonomy.py` — rewritten around new builders
+  (`_extract_group_ttps`, `_build_actor_categories`,
+  `_build_geography_threat_map`); `TestMainCLI` covers `--mitre-cache` /
+  `--misp-cache` behavior
+- `tests/fixtures/sample_stix_bundle.json` — added `relationship` objects
+  (5 entries) exercising `uses` + non-`uses` type filtering
+- `tests/test_pir_clusterer.py` — expected family set updated to the new
+  six families
+
+**Documentation**
+- `high-level-design.md` §4.2 — rewritten taxonomy description; deleted
+  fields list; new matching logic (coarse industry + geography)
+- `high-level-design.md` §5.3 — replaced `business_trigger_map` rationale
+  pointer with a reference to the hardcoded trigger set in `risk_scorer.py`
+- `high-level-design.md` §5.2 — example PIR JSON updated to MISP-derived
+  tags
+- `high-level-design.md` §8 directory tree — removed
+  `threat_tag_completion.md` entry
+- `docs/data-model.md` / `.ja.md` — "Threat Taxonomy Coverage" section
+  rewritten: MITRE+MISP-only sources, new category axes, industry mapping
+  table, geography matching rules
+- `docs/setup.md` / `.ja.md` — "Updating the Threat Taxonomy" section
+  rewritten: hand-edits to the JSON are now overwritten on the next run;
+  document `--mitre-cache` / `--misp-cache` flags
+- `docs/structure.md` / `.ja.md` — removed `threat_tag_completion.md`
+  directory-tree entry
+
+---
+
 ## [0.7.0] — 2026-04-11
 
 ### Added — Phase 6: SAGE Assets Generation and CTI Report STIX Extraction

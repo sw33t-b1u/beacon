@@ -25,7 +25,6 @@ BEACON/
 │   │   └── prompts/             # Markdown プロンプトテンプレート
 │   │       ├── context_structuring.md    # context.md → BusinessContext JSON
 │   │       ├── pir_generation.md         # PIR テキスト拡張
-│   │       ├── threat_tag_completion.md  # LLM フォールバック脅威タグホワイトリスト
 │   │       └── stix_extraction.md        # CTI レポート → STIX 2.1 オブジェクト
 │   ├── review/
 │   │   └── github.py            # GHE/GitHub Issue 作成（PIR レビュー用）

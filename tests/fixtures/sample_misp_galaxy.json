@@ -1,0 +1,93 @@
+{
+  "authors": ["MISP Project"],
+  "category": "actor",
+  "description": "Test fixture for MISP threat-actor cluster",
+  "name": "Threat Actor",
+  "source": "test",
+  "type": "threat-actor",
+  "uuid": "test-uuid-root",
+  "values": [
+    {
+      "uuid": "misp-apt10",
+      "value": "APT 10",
+      "description": "Chinese state-sponsored actor.",
+      "meta": {
+        "country": "CN",
+        "cfr-suspected-state-sponsor": "China",
+        "cfr-suspected-victims": ["Japan", "United States"],
+        "cfr-target-category": ["Private sector", "Government"],
+        "cfr-type-of-incident": "Espionage",
+        "synonyms": ["menuPass", "Stone Panda", "APT10"]
+      }
+    },
+    {
+      "uuid": "misp-apt41",
+      "value": "APT41",
+      "description": "Dual espionage and cybercrime actor.",
+      "meta": {
+        "country": "CN",
+        "cfr-suspected-state-sponsor": "China",
+        "cfr-suspected-victims": ["United States", "Taiwan", "Japan"],
+        "cfr-target-category": ["Private sector"],
+        "cfr-type-of-incident": "Espionage",
+        "synonyms": ["Double Dragon"]
+      }
+    },
+    {
+      "uuid": "misp-lazarus",
+      "value": "Lazarus Group",
+      "description": "North Korean state actor.",
+      "meta": {
+        "country": "KP",
+        "cfr-suspected-state-sponsor": "North Korea",
+        "cfr-suspected-victims": ["South Korea", "United States", "Japan"],
+        "cfr-target-category": ["Private sector", "Government"],
+        "cfr-type-of-incident": "Espionage",
+        "synonyms": ["Lazarus", "HIDDEN COBRA", "Guardians of Peace"]
+      }
+    },
+    {
+      "uuid": "misp-fin7",
+      "value": "FIN7",
+      "description": "Financially motivated cybercrime group.",
+      "meta": {
+        "cfr-suspected-victims": ["United States", "United Kingdom"],
+        "cfr-target-category": ["Private sector"],
+        "cfr-type-of-incident": "Financial Crime",
+        "synonyms": ["Carbanak Group"]
+      }
+    },
+    {
+      "uuid": "misp-shamoon",
+      "value": "Shamoon Group",
+      "description": "Iranian destructive wiper group.",
+      "meta": {
+        "country": "IR",
+        "cfr-suspected-state-sponsor": "Iran",
+        "cfr-suspected-victims": ["Saudi Arabia"],
+        "cfr-target-category": ["Private sector"],
+        "cfr-type-of-incident": "Sabotage",
+        "synonyms": ["Cutting Sword of Justice"]
+      }
+    },
+    {
+      "uuid": "misp-rebel-jackal",
+      "value": "Rebel Jackal",
+      "description": "Hacktivist-defacement group with no state sponsor.",
+      "meta": {
+        "country": "TN",
+        "cfr-type-of-incident": "Defacement",
+        "motive": "Hacktivists-Nationalists",
+        "synonyms": ["FallagaTeam"]
+      }
+    },
+    {
+      "uuid": "misp-no-classification",
+      "value": "UnknownGroup",
+      "description": "Entry with no classifiable fields — should be skipped.",
+      "meta": {
+        "synonyms": []
+      }
+    }
+  ]
+}

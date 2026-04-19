@@ -135,13 +135,6 @@ class TestLoadPrompt:
         assert "{{INDUSTRY}}" in text
         assert "{{DRAFT_DESCRIPTION}}" in text
 
-    def test_threat_tag_completion_prompt_has_placeholders(self):
-        from beacon.llm.client import load_prompt
-
-        text = load_prompt("threat_tag_completion.md")
-        assert "{{INDUSTRY}}" in text
-        assert "{{EXISTING_TAGS}}" in text
-
 
 class TestEnsureClient:
     def setup_method(self):
