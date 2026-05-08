@@ -8,9 +8,7 @@ BEACON/
 │   ├── config.py                # 環境変数ベースの設定 (Config dataclass)
 │   ├── ingest/
 │   │   ├── schema.py            # BusinessContext / CriticalAsset Pydantic モデル
-│   │   ├── context_parser.py    # JSON/Markdown → BusinessContext 変換
-│   │   ├── report_reader.py     # PDF / URL / テキスト → Markdown (markitdown 経由)
-│   │   └── stix_extractor.py    # LLM による STIX 2.1 オブジェクト抽出
+│   │   └── context_parser.py    # JSON/Markdown → BusinessContext 変換
 │   ├── analysis/
 │   │   ├── element_extractor.py # Step 1: ビジネス要素抽出
 │   │   ├── asset_mapper.py      # Step 2: 要素 → SAGE 資産タグ
@@ -24,8 +22,7 @@ BEACON/
 │   │   ├── client.py            # Vertex AI Gemini クライアント (google-genai SDK)
 │   │   └── prompts/             # Markdown プロンプトテンプレート
 │   │       ├── context_structuring.md    # context.md → BusinessContext JSON
-│   │       ├── pir_generation.md         # PIR テキスト拡張
-│   │       └── stix_extraction.md        # CTI レポート → STIX 2.1 オブジェクト
+│   │       └── pir_generation.md         # PIR テキスト拡張
 │   ├── review/
 │   │   └── github.py            # GHE/GitHub Issue 作成（PIR レビュー用）
 │   ├── sage/
@@ -38,8 +35,8 @@ BEACON/
 ├── cmd/                         # CLI エントリポイント（コマンドごとに1スクリプト）
 │   ├── generate_pir.py          # メイン PIR パイプライン (context.md → pir_output.json)
 │   ├── generate_assets.py       # CriticalAsset → SAGE assets.json
-│   ├── stix_from_report.py      # PDF / URL → STIX 2.1 バンドル
-│   ├── validate_pir.py          # PIR JSON SAGE 互換性検証
+│   ├── stix_from_report.py      # 0.9.0: deprecation stub → TRACE/cmd/crawl_single.py
+│   ├── validate_pir.py          # 0.9.x: deprecation stub → TRACE/cmd/validate_pir.py
 │   ├── generate_schemas.py      # Pydantic モデルから JSONSchema 生成
 │   ├── update_taxonomy.py       # MITRE ATT&CK STIX から脅威タクソノミ同期
 │   ├── submit_for_review.py     # アナリスト承認用 GHE Issue 作成

@@ -32,14 +32,11 @@ BEACON は同一のコンテキストドキュメントから 3 つの出力パ�
          └─── cmd/generate_assets.py ─── output/assets.json ─── SAGE load_assets
                   CriticalAsset → ネットワークセグメント、
                   アセットタグ、接続、重要度
-
-
-  PDF / Web 記事
-         │
-         └─── cmd/stix_from_report.py ── output/stix_bundle.json ─── SAGE ETL
-                  markitdown → クリーン Markdown → Gemini → STIX 2.1
-                  （intrusion-set, attack-pattern, malware, vulnerability …）
 ```
+
+> **CTI レポート取り込み（PDF / URL → STIX 2.1）は BEACON 0.9.0 で姉妹プロジェクト
+> [TRACE](../TRACE/) に移管された。** 削除された `BEACON/cmd/stix_from_report.py` の
+> 代わりに `TRACE/cmd/crawl_single.py` を使うこと。
 
 **モード:**
 
@@ -47,7 +44,6 @@ BEACON は同一のコンテキストドキュメントから 3 つの出力パ�
 |--------|------|-----|------------|
 | `--no-llm` | JSON のみ | なし | エアギャップ環境 / コスト制限 |
 | デフォルト | JSON または Markdown | Gemini（Vertex AI） | フル品質 PIR + アセット |
-| `stix_from_report` | PDF または URL | Gemini（Vertex AI） | CTI レポート → STIX バンドル |
 
 ## ドキュメント
 

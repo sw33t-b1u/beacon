@@ -6,6 +6,43 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [0.9.0] — 2026-05-08
+
+### Security
+
+- Bumped `python-multipart` to `>=0.0.27` (CVE-2026-42561).
+- Pinned `pip>=26.1` in dev extras to address CVE-2026-6357 in the
+  transitive `pip-api` → `pip` chain pulled by `pip-audit`. CVE-2026-3219
+  (also in `pip`) has no fix release as of this version; tracked upstream.
+
+### Removed — URL/PDF → STIX extraction moved to TRACE
+
+The URL/PDF → STIX 2.1 extraction pipeline has been transferred to the new
+sibling project **TRACE** (Threat Report Analyzer & Crawling Engine) at
+`/Users/test/Projects/claude_pj/TRACE/`. BEACON now focuses on internal
+context (assets, PIR) generation only.
+
+- Removed `src/beacon/ingest/stix_extractor.py` (→ `TRACE/src/trace_engine/stix/extractor.py`)
+- Removed `src/beacon/ingest/report_reader.py` (→ `TRACE/src/trace_engine/ingest/report_reader.py`)
+- Removed `src/beacon/llm/prompts/stix_extraction.md` (→ `TRACE/src/trace_engine/llm/prompts/stix_extraction.md`)
+- Removed corresponding tests `tests/test_stix_extractor.py`, `tests/test_report_reader.py`
+- Removed `markitdown[pdf]` dependency (only used by the migrated code)
+- `cmd/stix_from_report.py` is now a deprecation stub directing users to
+  `TRACE/cmd/crawl_single.py`. The stub will be deleted in 0.10.0.
+- `cmd/validate_pir.py` is now a deprecation stub directing users to
+  `TRACE/cmd/validate_pir.py`, which adds referential checks (taxonomy
+  presence, asset-tag match, validity window) on top of the schema check
+  this command previously performed. The stub will be deleted in 0.10.0.
+
+Output artifact schemas (`assets.json`, `pir_output.json`) are unchanged;
+this is a minor bump because the public CLI surface that BEACON owns is
+unchanged. The removed CLI was an analyst-facing utility, not a stable
+contract — its replacement lives in TRACE.
+
+See `TRACE/docs/beacon_handoff.md` for the full migration note.
+
+---
+
 ## [0.8.0] — 2026-04-19
 
 ### Changed — Phase 7: MITRE+MISP-Only Threat Taxonomy (Breaking)

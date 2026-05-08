@@ -157,45 +157,27 @@ uv run python cmd/load_assets.py --file output/assets.json
 
 ## Extracting STIX bundles from CTI reports
 
-Convert a PDF report or web article into a STIX 2.1 bundle for SAGE ETL.
-
-```bash
-# From a PDF
-uv run python cmd/stix_from_report.py --input report.pdf
-
-# From a web article URL (wrap in single quotes — zsh/bash treat ? & = as special characters)
-uv run python cmd/stix_from_report.py --input 'https://example.com/apt-analysis?id=1'
-
-# Specify output path
-uv run python cmd/stix_from_report.py --input report.pdf --output output/apt29_bundle.json
-
-# Use the more powerful model for dense reports (slower: 2–5 min)
-uv run python cmd/stix_from_report.py --input report.pdf --task complex
-
-# Increase input size for very long reports (default: 20000 chars)
-uv run python cmd/stix_from_report.py --input report.pdf --max-chars 30000
-```
-
-The bundle is written to `output/stix_bundle.json` by default. Feed it to SAGE ETL:
-
-```bash
-uv run python cmd/run_etl.py --manual-bundle output/stix_bundle.json
-```
-
-Extracted STIX types: `intrusion-set`, `attack-pattern`, `malware`, `tool`,
-`vulnerability`, `indicator`, `relationship`.
-
-> **Note:** `markitdown[pdf]` is required and is included in the standard dependency set (`uv sync`). It converts both PDFs and web articles to clean Markdown, discarding navigation bars and footers to reduce prompt size.
+> **Moved to TRACE in 0.9.0.** PDF / URL → STIX 2.1 extraction now lives in
+> the sibling project [TRACE](../../TRACE/). Use `TRACE/cmd/crawl_single.py`
+> instead. See `TRACE/docs/setup.md` and `TRACE/docs/beacon_handoff.md` for
+> the new workflow. The BEACON `cmd/stix_from_report.py` script is a
+> short-lived deprecation stub that prints a redirect message and exits 2.
 
 ---
 
 ## After Generation: Review and Export
 
-1. **Validate** — check that the output conforms to the SAGE-compatible PIR schema:
+1. **Validate** — moved to TRACE. The richer validator runs schema +
+   referential checks (taxonomy presence, asset-tag match, validity window):
 
    ```bash
-   uv run python cmd/validate_pir.py --pir pir_output.json
+   cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json
+   # Optionally combine with assets.json so asset_weight_rules are checked too:
+   cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json --assets assets.json
    ```
+
+   `BEACON/cmd/validate_pir.py` is now a deprecation stub that prints this
+   redirect and exits 2; it will be deleted in BEACON 0.10.0.
 
 2. **Review** — inspect and edit `pir_output.json` manually, or use the Web UI:
 

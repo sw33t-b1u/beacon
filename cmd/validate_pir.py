@@ -1,55 +1,31 @@
-"""CLI: Validate a PIR JSON file against the output schema."""
+"""Deprecation stub — PIR validation has moved to TRACE.
+
+BEACON 0.9.0 retained a schema-only ``validate_pir.py``; from this release
+forward the canonical implementation is TRACE's richer validator, which adds
+referential checks (taxonomy presence, asset-tag matching, validity window).
+
+This stub remains for one BEACON release so muscle memory and any pinned
+documentation has time to redirect, then will be deleted entirely.
+"""
 
 from __future__ import annotations
 
-import argparse
-import json
 import sys
-from pathlib import Path
 
-import structlog
+_MESSAGE = (
+    "validate_pir has moved to TRACE/cmd/validate_pir.py.\n"
+    "Run instead:\n"
+    "    cd ../TRACE && uv run python cmd/validate_pir.py --pir <PATH> [--assets <PATH>]\n"
+    "TRACE's validator adds referential checks beyond schema (taxonomy "
+    "presence, asset-tag match, validity window).\n"
+    "See TRACE/docs/beacon_handoff.md for details."
+)
 
-logger = structlog.get_logger(__name__)
 
-
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Validate a PIR JSON file for SAGE compatibility.")
-    parser.add_argument(
-        "--pir",
-        required=True,
-        metavar="FILE",
-        help="Path to pir_output.json to validate",
-    )
-    args = parser.parse_args(argv)
-
-    from beacon.generator.pir_builder import PIROutput
-
-    pir_path = Path(args.pir)
-    if not pir_path.exists():
-        print(f"Error: file not found: {pir_path}", file=sys.stderr)
-        return 1
-
-    data = json.loads(pir_path.read_text(encoding="utf-8"))
-    if not isinstance(data, list):
-        print("Error: PIR JSON must be a list of PIR objects.", file=sys.stderr)
-        return 1
-
-    errors: list[str] = []
-    for i, item in enumerate(data):
-        try:
-            PIROutput.model_validate(item)
-        except Exception as exc:
-            errors.append(f"  PIR[{i}]: {exc}")
-
-    if errors:
-        print(f"Validation FAILED ({len(errors)} error(s)):", file=sys.stderr)
-        for e in errors:
-            print(e, file=sys.stderr)
-        return 1
-
-    print(f"Validation OK — {len(data)} PIR(s) are SAGE-compatible.")
-    return 0
+def main() -> None:
+    print(_MESSAGE, file=sys.stderr)
+    sys.exit(2)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

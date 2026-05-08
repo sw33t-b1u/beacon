@@ -80,3 +80,6 @@ TODO.md
 # User input and generated output (sensitive operational data — never commit)
 input/
 output/
+
+# Local-only design notes (kept out of VCS by maintainer policy)
+high-level-design.md

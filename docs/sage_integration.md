@@ -45,12 +45,19 @@ Expected fields in each PIR entry:
 
 ## Step 2: Validate PIR for SAGE Compatibility
 
+PIR validation has moved to TRACE. The richer validator covers schema
+plus referential checks (taxonomy presence, asset-tag match, validity
+window).
+
 ```bash
-uv run python cmd/validate_pir.py --pir pir_output.json
+cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json
+# Optionally pass --assets to verify every asset_weight_rules.tag matches
+# at least one tag in your assets.json:
+cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json --assets assets.json
 ```
 
-The validator checks all required fields and Pydantic model constraints.
-Fix any errors before deploying to SAGE.
+`BEACON/cmd/validate_pir.py` is a deprecation stub for one release; it
+prints this redirect and exits 2.
 
 ---
 
@@ -175,4 +182,4 @@ Each row represents a threat actor → asset targeting relationship inferred fro
 | Major threat actor campaign | Update `schema/threat_taxonomy.json`; re-generate PIR |
 | New regulatory requirement | Update `organization.regulatory_context`; re-generate PIR |
 
-After regenerating, always validate with `cmd/validate_pir.py` before deploying to SAGE.
+After regenerating, always validate with `TRACE/cmd/validate_pir.py` before deploying to SAGE.

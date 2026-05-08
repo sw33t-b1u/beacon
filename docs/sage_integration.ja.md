@@ -44,12 +44,17 @@ cat pir_output.json | python -m json.tool
 
 ## Step 2: SAGE 互換性を検証する
 
+PIR バリデーションは TRACE に移管されました。新バリデーターはスキーマ
+チェックに加えて、タクソノミー照合・資産タグ一致・有効期間も検証します。
+
 ```bash
-uv run python cmd/validate_pir.py --pir pir_output.json
+cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json
+# assets.json を併せて指定すると asset_weight_rules.tag の整合性も確認:
+cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json --assets assets.json
 ```
 
-バリデーターは必須フィールドと Pydantic モデルの制約をチェックします。
-エラーがある場合は SAGE へ配置する前に修正してください。
+`BEACON/cmd/validate_pir.py` は誘導メッセージのみ出力する deprecation stub
+で、exit 2 で終了します。
 
 ---
 
@@ -174,4 +179,4 @@ gcloud spanner databases execute-sql sage-db \
 | 主要な脅威アクターキャンペーン | `schema/threat_taxonomy.json` を更新して PIR を再生成 |
 | 新規規制要件 | `organization.regulatory_context` を更新して PIR を再生成 |
 
-再生成後は必ず `cmd/validate_pir.py` で検証してから SAGE に配置してください。
+再生成後は必ず `TRACE/cmd/validate_pir.py` で検証してから SAGE に配置してください。

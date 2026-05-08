@@ -4,7 +4,7 @@
       "mitre_attack": "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json",
       "misp_galaxy_threat_actor": "https://raw.githubusercontent.com/MISP/misp-galaxy/main/clusters/threat-actor.json"
     },
-    "last_auto_sync": "2026-04-19T08:20:57+00:00",
+    "last_auto_sync": "2026-04-19T13:23:27+00:00",
     "generator": "cmd/update_taxonomy.py"
   },
   "actor_categories": {

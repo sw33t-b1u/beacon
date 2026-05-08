@@ -32,14 +32,11 @@ BEACON provides three output pipelines, all driven from the same context documen
          └─── cmd/generate_assets.py ─── output/assets.json ─── SAGE load_assets
                   CriticalAsset → network segments,
                   asset tags, connections, criticality
-
-
-  PDF / web article
-         │
-         └─── cmd/stix_from_report.py ── output/stix_bundle.json ─── SAGE ETL
-                  markitdown → clean Markdown → Gemini → STIX 2.1
-                  (intrusion-set, attack-pattern, malware, vulnerability …)
 ```
+
+> **CTI report ingestion (PDF / URL → STIX 2.1) has moved to the sibling
+> project [TRACE](../TRACE/) as of BEACON 0.9.0.** Use `TRACE/cmd/crawl_single.py`
+> instead of the removed `BEACON/cmd/stix_from_report.py`.
 
 **Modes:**
 
@@ -47,7 +44,6 @@ BEACON provides three output pipelines, all driven from the same context documen
 |------|-------|-----|----------|
 | `--no-llm` | JSON only | None | Air-gapped / cost-constrained |
 | Default | JSON or Markdown | Gemini (Vertex AI) | Full quality PIR + assets |
-| `stix_from_report` | PDF or URL | Gemini (Vertex AI) | CTI report → STIX bundle |
 
 ## Documentation
 

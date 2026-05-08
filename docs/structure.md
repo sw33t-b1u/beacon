@@ -8,9 +8,7 @@ BEACON/
 │   ├── config.py                # Environment-based configuration (Config dataclass)
 │   ├── ingest/
 │   │   ├── schema.py            # BusinessContext / CriticalAsset Pydantic models
-│   │   ├── context_parser.py    # JSON/Markdown → BusinessContext conversion
-│   │   ├── report_reader.py     # PDF / URL / text → Markdown (via markitdown)
-│   │   └── stix_extractor.py    # LLM-driven STIX 2.1 object extraction
+│   │   └── context_parser.py    # JSON/Markdown → BusinessContext conversion
 │   ├── analysis/
 │   │   ├── element_extractor.py # Step 1: business element extraction
 │   │   ├── asset_mapper.py      # Step 2: element → SAGE asset tags
@@ -24,8 +22,7 @@ BEACON/
 │   │   ├── client.py            # Vertex AI Gemini client (google-genai SDK)
 │   │   └── prompts/             # Markdown prompt templates
 │   │       ├── context_structuring.md    # context.md → BusinessContext JSON
-│   │       ├── pir_generation.md         # PIR text augmentation
-│   │       └── stix_extraction.md        # CTI report → STIX 2.1 objects
+│   │       └── pir_generation.md         # PIR text augmentation
 │   ├── review/
 │   │   └── github.py            # GHE/GitHub Issue creation for PIR review
 │   ├── sage/
@@ -38,8 +35,8 @@ BEACON/
 ├── cmd/                         # CLI entry points (one script per command)
 │   ├── generate_pir.py          # Main PIR pipeline (context.md → pir_output.json)
 │   ├── generate_assets.py       # CriticalAsset → SAGE assets.json
-│   ├── stix_from_report.py      # PDF / URL → STIX 2.1 bundle
-│   ├── validate_pir.py          # PIR JSON SAGE compatibility validation
+│   ├── stix_from_report.py      # 0.9.0: deprecation stub → TRACE/cmd/crawl_single.py
+│   ├── validate_pir.py          # 0.9.x: deprecation stub → TRACE/cmd/validate_pir.py
 │   ├── generate_schemas.py      # Generate JSONSchema from Pydantic models
 │   ├── update_taxonomy.py       # Sync threat taxonomy from MITRE ATT&CK STIX
 │   ├── submit_for_review.py     # Create GHE Issues for analyst sign-off

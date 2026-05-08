@@ -156,45 +156,27 @@ uv run python cmd/load_assets.py --file output/assets.json
 
 ## CTI レポートからの STIX バンドル生成
 
-PDF レポートや Web 記事を STIX 2.1 バンドルに変換して SAGE ETL へ投入できます。
-
-```bash
-# PDF から生成
-uv run python cmd/stix_from_report.py --input report.pdf
-
-# Web 記事 URL から生成（zsh/bash では ? & = が特殊文字のためシングルクォートで囲む）
-uv run python cmd/stix_from_report.py --input 'https://example.com/apt-analysis?id=1'
-
-# 出力先を指定
-uv run python cmd/stix_from_report.py --input report.pdf --output output/apt29_bundle.json
-
-# 高精度モデルを使用（遅い: 2〜5分）
-uv run python cmd/stix_from_report.py --input report.pdf --task complex
-
-# 長いレポート向けに入力サイズを増やす（デフォルト: 20000文字）
-uv run python cmd/stix_from_report.py --input report.pdf --max-chars 30000
-```
-
-デフォルト出力先は `output/stix_bundle.json`。SAGE ETL への投入:
-
-```bash
-uv run python cmd/run_etl.py --manual-bundle output/stix_bundle.json
-```
-
-抽出する STIX タイプ: `intrusion-set`、`attack-pattern`、`malware`、`tool`、
-`vulnerability`、`indicator`、`relationship`
-
-> **Note:** `markitdown[pdf]` が必要ですが、標準依存関係に含まれています（`uv sync`）。PDF と Web 記事の両方をクリーンな Markdown に変換し、ナビゲーションやフッターを除去してプロンプトサイズを削減します。
+> **0.9.0 で TRACE に移管済み。** PDF / URL → STIX 2.1 抽出は姉妹プロジェクト
+> [TRACE](../../TRACE/) に移った。後継コマンドは `TRACE/cmd/crawl_single.py`。
+> 詳細は `TRACE/docs/setup.ja.md` と `TRACE/docs/beacon_handoff.md` を参照。
+> BEACON 側の `cmd/stix_from_report.py` は短期間の deprecation stub で、
+> 実行するとリダイレクトメッセージを表示して exit code 2 で終了する。
 
 ---
 
 ## 生成後のレビューとエクスポート
 
-1. **バリデーション** — SAGE 互換 PIR スキーマへの準拠を確認:
+1. **バリデーション** — TRACE に移管済み。新しい検証はスキーマに加えて
+   タクソノミー照合・資産タグ一致・有効期間も確認します:
 
    ```bash
-   uv run python cmd/validate_pir.py --pir pir_output.json
+   cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json
+   # assets.json を併せて渡すと asset_weight_rules のタグ整合性も確認可能:
+   cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json --assets assets.json
    ```
+
+   `BEACON/cmd/validate_pir.py` は誘導メッセージのみ出力して exit 2 で終了する
+   一時的な deprecation stub です。BEACON 0.10.0 で削除予定。
 
 2. **レビュー** — `pir_output.json` を手動で確認・編集するか、Web UI を使用:
 
