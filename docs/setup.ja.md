@@ -206,10 +206,10 @@ uv run python cmd/load_assets.py --file output/assets.json
 
 ```bash
 # 変更内容をプレビュー（ファイル書き込みなし）
-uv run python -m cmd.update_taxonomy --dry-run
+uv run python -m cmd/update_taxonomy --dry-run
 
 # 実際に更新
-uv run python -m cmd.update_taxonomy
+uv run python -m cmd/update_taxonomy
 ```
 
 オプション:

@@ -6,6 +6,30 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [0.10.1] — 2026-05-09
+
+### Removed — Deprecation stubs deleted
+
+`cmd/stix_from_report.py` and `cmd/validate_pir.py` were retained as
+deprecation stubs in 0.9.0 with the explicit promise that they would
+be removed in 0.10.0. The 0.10.0 trigger refactor missed that cleanup;
+0.10.1 finishes the migration.
+
+Both stubs simply printed a "moved to TRACE" message and pointed users
+at `TRACE/cmd/crawl_single.py` and `TRACE/cmd/validate_pir.py`
+respectively. There is no behavioural change for any caller — the
+stubs were already non-functional.
+
+### Migration
+
+Anyone who was still invoking the BEACON-side commands needs to switch
+to TRACE:
+
+- `BEACON/cmd/stix_from_report.py …` → `cd TRACE && uv run python cmd/crawl_single.py …`
+- `BEACON/cmd/validate_pir.py …` → `cd TRACE && uv run python cmd/validate_pir.py …`
+
+---
+
 ## [0.10.0] — 2026-05-09
 
 ### Changed (BREAKING) — Business trigger framework rebuilt around NIST SP 800-37 R2
