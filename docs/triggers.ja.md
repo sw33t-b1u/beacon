@@ -1,0 +1,278 @@
+# BEACON ビジネストリガー
+
+English version: [`docs/triggers.md`](triggers.md)
+
+本書は BEACON の 7 つのビジネストリガー、それぞれの定義・検出ロジック・
+外部出典を記録する canonical な文書である。トリガーの追加・削除・重み
+変更は本ファイルを同一 commit で更新すること。
+
+---
+
+## トリガーとは
+
+**トリガー**とは、`BusinessContext` から派生する組織の構造的状態シグナル
+であり、定常運用と比較してサイバー攻撃面または脅威曝露が実質的に上昇
+していることを示す。
+
+概念的 anchor は **NIST SP 800-37 Rev 2** §F *Event-Driven Triggers /
+Significant Changes to the Environment of Operation*:
+
+> "Organizations define event-driven triggers (i.e., indicators or prompts
+> that cause a predefined organizational reaction) for both ongoing
+> authorization and reauthorization."
+
+BEACON の 7 トリガーは、BusinessContext スキーマで検出可能な範囲における
+significant change の **business-level 列挙**である。各トリガーは以下の
+いずれかで裏付けられる:
+
+- 長期 standard（NIST / ISO / IEC / SEC / EU 規制）
+- 過去 12 ヶ月の独立 ≥2 件の incident-response 報告
+
+トリガーは **記述的**（組織がその状態にあると記録）かつ **規範的**
+（likelihood に +1、intelligence level を `tactical` → `operational` に
+昇格）である。NIST SP 800-37 R2 は trigger 間の重み差別化を規定して
+いないため、BEACON も 7 トリガーを **対称**に扱う。
+
+---
+
+## 7 つのトリガー
+
+### 1. `cloud_dependency`
+
+**定義:** 組織がパブリッククラウドに構造的依存している（移行中・運用中・
+クラウド管理サービス利用中いずれも該当）。
+
+**検出** (`element_extractor._detect_triggers`):
+
+```
+projects[*].cloud_providers が非空
+  OR supply_chain.cloud_providers が非空
+  OR critical_assets[*].network_zone == "cloud"
+```
+
+**出典**
+
+- *NIST SP 800-37 Rev 2* — environment of operation の significant change 概念。
+- *CISA Cloud Security Technical Reference Architecture v2* (2023) —
+  「クラウド資産の migration / moving / expansion における優先考慮事項」。
+- *CrowdStrike Global Threat Report 2025* — cloud intrusions YoY +26%、
+  valid account abuse 35%（cloud 系の最多侵入手法）。
+- *Mandiant M-Trends 2026* — IAM 設定ミス、cross-environment ラテラル
+  ムーブメントが繰り返し言及。
+- *IBM Cost of a Data Breach Report 2025* — multi-environment データ分散が
+  コスト増幅要因。
+
+**Limitations:** 移行中／運用成熟／撤退の各フェーズを区別しない。
+すべて等しく elevated risk として扱うが、案件別にアナリスト判断で
+調整する余地あり。
+
+---
+
+### 2. `it_ot_convergence`
+
+**定義:** 組織が IT/OT 統合点を持つ（コーポレート IT 網が産業制御 / OT
+系へ到達可能）。
+
+**検出:**
+
+```
+supply_chain.ot_connectivity == True
+  OR any(critical_assets[*].network_zone == "ot")
+```
+
+**出典**
+
+- *NIST SP 800-82 Rev 3 — Guide to Operational Technology (OT) Security*
+  (2023) §1.2 — "OT ネットワークと広域接続網の統合の加速… 新規サイバー
+  リスク"。
+- *ENISA Threat Landscape 2025* — OT 脅威は全脅威カテゴリの 18.2%。
+- *IEC 62443 — Industrial Communication Networks Security* — IT/OT ゾーン
+  分離の国際標準。
+
+---
+
+### 3. `third_party_dependency`
+
+**定義:** 組織が外部ベンダー / サプライヤ / マネージドサービス
+プロバイダに critical 依存している。
+
+**検出:**
+
+```
+supply_chain.critical_vendors が非空
+  OR any(critical_assets[*].managing_vendor が非空)
+```
+
+**出典**
+
+- *NIST SP 800-161 Rev 1 — Cybersecurity Supply Chain Risk Management
+  Practices* (2024) — 「サプライチェーンはグローバルで複雑かつ動的、
+  しばしば多層サプライヤを含む」。
+- *Verizon Data Breach Investigations Report 2025* — 第三者関与が breach
+  の 30%、前年の 15% から倍増。
+- *IBM Cost of a Data Breach Report 2025* — 第三者 / サプライチェーン侵害
+  約 15%、検出に最長（約 9 ヶ月）。
+- *Executive Order 14028 — Improving the Nation's Cybersecurity* — ソフト
+  ウェアサプライチェーンを連邦サイバー優先事項として正式化。
+
+---
+
+### 4. `external_facing_exposure`
+
+**定義:** 組織がインターネット直接到達可能な critical asset を運用、
+または high/critical exposure risk の crown jewel を保有。
+
+**検出:**
+
+```
+any(critical_assets[*].network_zone in {"internet", "dmz"})
+  OR any(crown_jewels[*].exposure_risk in {"high", "critical"})
+```
+
+**出典**
+
+- *Mandiant M-Trends 2026* — internet-facing system exploitation は 6 年
+  連続で初期侵入手法 #1（侵入経路特定可能ケースの 32%）。
+- *Verizon DBIR 2025* — 脆弱性 exploit が breach の 20%、edge デバイス
+  exploitation 8 倍、新規 edge CVE の mass-exploit 中央値はゼロ日。
+- *CISA Known Exploited Vulnerabilities (KEV) Catalog* — インター
+  ネット到達可能脆弱性の優先修復を連邦に義務付ける枠組み。
+
+---
+
+### 5. `regulated_disclosure_scope`
+
+**定義:** 組織が証券・業種・データ保護のいずれかの規制当局による
+material サイバー incident 開示義務の対象。
+
+**検出:**
+
+```
+organization.stock_listed == True
+  OR any(disclosure-regulation キーワード in organization.regulatory_context)
+```
+
+キーワードセットは `schema/trigger_keywords.json` →
+`disclosure_regulation_keywords` から取得。既定値: SEC / Form 10-K / 8-K /
+Item 106 / NIS2 / HIPAA Breach Notification / PCI-DSS / 金融商品取引法 /
+個人情報保護法 / 資金決済法 / APPI。
+
+**出典**
+
+- *SEC Final Rule 33-11216 — Cybersecurity Risk Management, Strategy,
+  Governance, and Incident Disclosure* (2023) — Item 106 で公開企業に
+  material cyber プロセスの開示を義務付け、material incident は 8-K で
+  4 営業日以内。
+- *EU NIS2 Directive (2022/2555) Article 23* — essential / important entity
+  の significant incident 通知義務。
+- *HIPAA Breach Notification Rule (45 CFR §§164.400-414)* — covered entity
+  と business associate に HHS / 個人 / メディア通知義務。
+
+**Limitations:** キーワード方式の規制検出。既定キーワードに含まれない
+業種別規制（NY DFS Part 500 等）はキーワード拡張が必要。
+
+---
+
+### 6. `sectoral_high_risk`
+
+**定義:** 過去 12 ヶ月の主要脅威報告で disproportionately に
+標的化されている業種。
+
+**検出:**
+
+```
+organization.industry in {finance, healthcare, energy, manufacturing,
+                          government, defense, logistics, technology}
+```
+
+定数 `_HIGH_RISK_SECTORS` は `src/beacon/analysis/element_extractor.py`。
+集合は以下の経験的交集合:
+
+- *ENISA Threat Landscape 2025* セクター分析（公共行政 38%、製造 59% は
+  サイバー犯罪由来）。
+- *Verizon DBIR 2025* 業種別 breakdown。
+- *CrowdStrike Global Threat Report 2025* — 技術 / 金融 / 製造 / 小売で
+  侵入 YoY +200〜300%。
+- *ENISA Sectoral Threat Landscapes*（公共行政・エネルギー・医療・運輸・
+  通信）。
+
+**更新頻度:** 年次。ENISA / Verizon / CrowdStrike の翌年版発行時に経験的
+交集合を再計算し、変動があれば本書と定数を同一 commit で更新。
+
+---
+
+### 7. `ai_adoption_exposure`
+
+**定義:** 組織が AI/ML 系（classical ML パイプライン・生成 AI・LLM
+エージェント・RAG 系）を導入または運用中であり、明示的な AI ガバナンス
+証跡が BusinessContext に存在しない。
+
+**検出:**
+
+```
+AI/ML キーワード（EN+JA）が以下のいずれかに出現:
+  strategic_objectives[*].{title, description, key_decisions}
+  OR projects[*].{name, data_types}
+```
+
+キーワードセットは `schema/trigger_keywords.json` →
+`ai_adoption_keywords`。日本語入力ドキュメント対応のため bilingual。
+
+**出典**
+
+- *IBM Cost of a Data Breach Report 2025* — shadow AI が breach コスト
+  平均に $670K 上乗せ、breach 組織の 63% が AI ガバナンスポリシー欠如、
+  AI 関連 breach の 97% でアクセス制御欠如。
+- *CrowdStrike Global Threat Report 2025* — vishing が H1→H2 2024 で
+  +442%、AI 駆動。AI 生成 phishing の量産。
+- *ENISA Threat Landscape 2025* — 2025 年初頭時点で AI 支援 phishing
+  キャンペーンが世界の社会的工学攻撃観測の 80% 超。
+
+**Limitations:** AI の存在を flag するが、ガバナンスの不在を
+直接検出するものではなく、score 上昇は予防的（opportunistic）。
+将来、AI シグナル AND `regulatory_context` に AI ガバナンス
+キーワード欠落、で AND 条件化する余地あり。
+
+---
+
+## 重み付け
+
+7 トリガーすべて対称に risk scoring に寄与する:
+
+| 効果 | 機構 |
+|------|------|
+| Likelihood boost | trigger 1 件以上で `+1`、5 で cap。実装は `risk_scorer._compute_likelihood`。 |
+| Intelligence-level escalation | trigger 1 件以上 + composite < 12 で `tactical → operational`。実装は `risk_scorer._recommend_level`。 |
+
+**根拠:** NIST SP 800-37 Rev 2 は event-driven trigger 間で重み差を
+付けない — 同質な再評価プロンプト集合として扱う。BEACON もこれを継承。
+
+旧 0.x 系の非対称サブセット
+（`{ot_connectivity, m_and_a, ipo_or_listing}`）は出典なき内部
+ヒューリスティックであったため、0.10.0 で削除。
+
+---
+
+## 更新手順
+
+1. **年次（Q1）に**最新の ENISA Threat Landscape / Verizon DBIR / IBM
+   Cost of a Data Breach / CrowdStrike GTR / Mandiant M-Trends を再読する。
+   trigger の primary citation が成立しなくなった、または独立 ≥2 報告
+   に新しい経験的支持を持つ trigger が出現した場合は、citation 付きで
+   改訂を提案する。
+2. **BusinessContext スキーマ変更時には**、各 trigger が依然として構造的
+   検出パスを持つかを確認する。参照フィールドが削除されると、trigger
+   は再配線または廃止のいずれかが必要。
+3. **trigger の変更はすべて本書と `docs/triggers.md` の両方を同一
+   commit で更新**し、`tests/test_element_extractor.py` の該当ケースも
+   併せて更新すること。
+
+---
+
+## 関連
+
+- `src/beacon/analysis/element_extractor.py:_detect_triggers` — 検出ロジック
+- `src/beacon/analysis/risk_scorer.py:_compute_likelihood` /
+  `_recommend_level` — 重み付け
+- `schema/trigger_keywords.json` — AI / 規制 trigger のキーワード集合
+- `BEACON/high-level-design.md` §5.3 — risk scoring の narrative

@@ -130,7 +130,7 @@ uv run python cmd/generate_pir.py --context ... --output pir_output.json \
 | Section | Description |
 |---------|-------------|
 | P3 watch items | Threats below the P2 threshold; monitor but do not act immediately |
-| Trigger-based actions | Collection actions triggered by business events (M&A, OT expansion, IPO) |
+| Trigger-based actions | Collection actions tied to detected business triggers (cloud dependency, IT/OT convergence, third-party dependency, external-facing exposure, regulated disclosure scope, sectoral high-risk, AI adoption — see [`docs/triggers.md`](triggers.md)) |
 | Collection frequency table | Monthly / weekly / daily schedule per feed type for the CTI team |
 
 `collection_plan.md` is listed in `.gitignore` (runtime output; not committed).
@@ -145,7 +145,7 @@ uv run python cmd/generate_pir.py --context ... --output pir_output.json \
 | `operational` | 12–19 | +6 months | Active ransomware campaign |
 | `tactical` | 1–11 | +1 month | Specific CVE exploitation |
 
-Business triggers (M&A, OT connectivity, IPO) can escalate `tactical` → `operational` regardless of score.
+Any active business trigger escalates `tactical` → `operational` regardless of score (NIST SP 800-37 R2 event-driven trigger framework). Triggers are detected from BusinessContext structural fields and corroborated by external citations — see [`docs/triggers.md`](triggers.md) for the seven-trigger contract.
 
 ---
 
