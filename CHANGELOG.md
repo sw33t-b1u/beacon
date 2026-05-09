@@ -6,6 +6,97 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [0.10.0] — 2026-05-09
+
+### Changed (BREAKING) — Business trigger framework rebuilt around NIST SP 800-37 R2
+
+The previous five triggers (`ot_connectivity`, `cloud_migration`, `m_and_a`,
+`ipo_or_listing`, `supply_chain_expansion`) and the asymmetric high-risk
+subset `{ot_connectivity, m_and_a, ipo_or_listing}` lacked external
+citation — they were BEACON-internal heuristics that could not be defended
+to a third-party auditor. The trigger set has been rebuilt around the NIST
+SP 800-37 Rev 2 *Event-Driven Triggers / Significant Changes to the
+Environment of Operation* framework, with each trigger corroborated by at
+least one long-standing standard (NIST/ISO/IEC/SEC/EU) **or** two or more
+independent past-12-month incident-response reports.
+
+**New trigger vocabulary** (replaces the five old strings — any consumer
+reading `active_triggers[*]` must update):
+
+| New trigger | Primary citation |
+|-------------|-----------------|
+| `cloud_dependency` | CISA Cloud Security TRA v2; CrowdStrike GTR 2025; M-Trends 2026 |
+| `it_ot_convergence` | NIST SP 800-82 R3; ENISA ETL 2025; IEC 62443 |
+| `third_party_dependency` | NIST SP 800-161 R1; Verizon DBIR 2025 (third-party 30%); IBM CoDB 2025 |
+| `external_facing_exposure` | Mandiant M-Trends 2026 (#1: 32%); Verizon DBIR 2025; CISA KEV |
+| `regulated_disclosure_scope` | SEC Final Rule 33-11216 Item 106; EU NIS2 Art. 23; HIPAA Breach Notification |
+| `sectoral_high_risk` | ENISA ETL 2025; Verizon DBIR 2025; CrowdStrike GTR 2025 |
+| `ai_adoption_exposure` | IBM CoDB 2025 ($670K shadow-AI premium, 63% no governance); CrowdStrike GTR 2025; ENISA ETL 2025 |
+
+**Removed trigger:** `m_and_a_integration` was considered but dropped because
+its empirical support in past-12-month reports was substantially weaker than
+the seven retained triggers; SEC Reg S-K Item 105 alone is insufficient to
+sustain the citation contract.
+
+### Removed — `high_risk_triggers` asymmetric subset
+
+`{ot_connectivity, m_and_a, ipo_or_listing}` was singled out for likelihood
+boost and operational-level escalation in `risk_scorer._compute_likelihood`
+and `_recommend_level`. NIST SP 800-37 R2 does not differentiate event-driven
+trigger weights, so the subset was indefensible as a scoring asymmetry.
+Replaced with symmetric handling: any active trigger contributes `+1` to
+likelihood (capped at 5) and lifts `tactical → operational`.
+
+### Changed — Detection prefers BusinessContext structural fields
+
+`element_extractor._detect_triggers` now derives most triggers from typed
+Pydantic fields — `network_zone`, `exposure_risk`, `managing_vendor`,
+`industry`, `regulatory_context` — rather than fragile keyword matching.
+Keyword matching is restricted to:
+
+- `ai_adoption_exposure` (AI/ML/LLM vocabulary)
+- `regulated_disclosure_scope` fallback (regulation names not captured by
+  `stock_listed`)
+
+The previous `m_and_a` keyword path and `expansion_keywords` set are
+removed from `schema/trigger_keywords.json`.
+
+### Added — `docs/triggers.md` and `docs/triggers.ja.md`
+
+Canonical per-trigger definition, detection logic, citation table, weighting
+rationale, and annual update procedure. The previous trigger framing was
+spread across `risk_scorer.py` comments, `high-level-design.md` §5.3, and
+`data-model.md`, with no single source of truth and no citation block.
+
+### Added — `_HIGH_RISK_SECTORS` constant in `element_extractor.py`
+
+Empirical intersection of sector-level targeting evidence from ENISA Threat
+Landscape 2025, Verizon DBIR 2025, and CrowdStrike Global Threat Report
+2025: `{finance, healthcare, energy, manufacturing, government, defense,
+logistics, technology}`. Drives the `sectoral_high_risk` trigger.
+Update cadence: annually when those reports' next editions publish.
+
+### Documentation
+
+- `high-level-design.md` §5.3 rewritten to reference the seven-trigger set
+  and `docs/triggers.md` rather than the deprecated subset.
+- `docs/data-model.md` and `.ja.md` updated to remove the M&A/OT/IPO
+  hardcoded enumeration and link to the new triggers document.
+- `schema/content_ja.json` `trigger_actions` keys remapped from the five
+  old strings to the seven new ones, with collection-action descriptions
+  citing the empirical sources.
+
+### Migration
+
+Any downstream system reading `pir_output.json[*].active_triggers` must
+update its vocabulary. Specifically: TRACE consumes
+`x_trace_matched_pir_ids` and the PIR list itself but does not currently
+gate on trigger string values. SAGE ingests PIR documents but does not
+filter on trigger strings either. No SAGE/TRACE schema change is required;
+the trigger value field is informational metadata in both consumers.
+
+---
+
 ## [0.9.0] — 2026-05-08
 
 ### Security
