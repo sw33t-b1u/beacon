@@ -31,8 +31,11 @@ class TestManufacturingRiskScore:
     def test_composite_in_valid_range(self):
         assert 1 <= self.risk.composite <= 25
 
-    def test_likelihood_boosted_by_trigger(self):
-        # ot_connectivity is a high-risk trigger → likelihood boosted
+    def test_likelihood_boosted_by_any_trigger(self):
+        # Manufacturing fixture activates multiple triggers (it_ot_convergence,
+        # cloud_dependency, third_party_dependency, sectoral_high_risk,
+        # regulated_disclosure_scope) — any one is enough for the +1 boost.
+        assert self.threat.active_triggers
         assert self.risk.likelihood >= 3
 
     def test_impact_reflects_critical_crown_jewel(self):
@@ -77,10 +80,20 @@ class TestIntelligenceLevelRecommendation:
         r = self._make_risk(2, 4, [])  # composite=8
         assert r.intelligence_level == "tactical"
 
-    def test_trigger_escalates_tactical_to_operational(self):
-        r = self._make_risk(2, 3, ["ot_connectivity"])  # composite=6, but trigger escalates
-        assert r.intelligence_level == "operational"
+    def test_any_trigger_escalates_tactical_to_operational(self):
+        # Symmetric escalation per NIST SP 800-37 R2 — any trigger lifts level.
+        for trigger in [
+            "cloud_dependency",
+            "it_ot_convergence",
+            "third_party_dependency",
+            "external_facing_exposure",
+            "regulated_disclosure_scope",
+            "sectoral_high_risk",
+            "ai_adoption_exposure",
+        ]:
+            r = self._make_risk(2, 3, [trigger])  # composite=6, trigger lifts to operational
+            assert r.intelligence_level == "operational", trigger
 
-    def test_no_escalation_without_high_risk_trigger(self):
-        r = self._make_risk(2, 3, ["cloud_migration"])  # composite=6, cloud_migration ≠ escalation
+    def test_no_escalation_when_no_triggers(self):
+        r = self._make_risk(2, 3, [])  # composite=6, no triggers → tactical
         assert r.intelligence_level == "tactical"

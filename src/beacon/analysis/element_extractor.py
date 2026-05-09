@@ -11,12 +11,32 @@ import structlog
 from beacon.ingest.schema import BusinessContext
 
 # Load trigger detection keywords from schema/trigger_keywords.json.
-# The file includes both English and Japanese keywords to match input documents
-# written in either language (Rule 11: source code in English; data in JSON).
+# Keywords are only used for ai_adoption_exposure and regulated_disclosure_scope —
+# every other trigger is detected from BusinessContext structural fields.
+# Bilingual (EN + JA) to match input documents written in either language.
 _KEYWORDS_PATH = Path(__file__).parents[3] / "schema" / "trigger_keywords.json"
 _TRIGGER_KEYWORDS: dict = json.loads(_KEYWORDS_PATH.read_text(encoding="utf-8"))
-_MA_KEYWORDS: frozenset[str] = frozenset(_TRIGGER_KEYWORDS["ma_keywords"])
-_EXPANSION_KEYWORDS: frozenset[str] = frozenset(_TRIGGER_KEYWORDS["expansion_keywords"])
+_AI_ADOPTION_KEYWORDS: frozenset[str] = frozenset(
+    kw.lower() for kw in _TRIGGER_KEYWORDS.get("ai_adoption_keywords", [])
+)
+_DISCLOSURE_REGULATION_KEYWORDS: frozenset[str] = frozenset(
+    kw.lower() for kw in _TRIGGER_KEYWORDS.get("disclosure_regulation_keywords", [])
+)
+
+# Sectors observed as disproportionately targeted across ENISA Threat Landscape 2025,
+# Verizon DBIR 2025, and CrowdStrike Global Threat Report 2025. See docs/triggers.md.
+_HIGH_RISK_SECTORS: frozenset[str] = frozenset(
+    {
+        "finance",
+        "healthcare",
+        "energy",
+        "manufacturing",
+        "government",
+        "defense",
+        "logistics",
+        "technology",
+    }
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -185,35 +205,91 @@ def _dedup(items: list[str]) -> list[str]:
 
 
 def _detect_triggers(ctx: BusinessContext, cloud_providers: list[str]) -> list[str]:
-    """Infer active business triggers from context fields."""
+    """Detect active business triggers from BusinessContext structural fields.
+
+    Each trigger is derived from a recognised external framework (NIST SP
+    800-37 R2 event-driven trigger concept) and corroborated by past-12-month
+    incident-response evidence. See ``BEACON/docs/triggers.md`` for the
+    per-trigger citation table.
+
+    Triggers are reported as a flat list of stable string identifiers; weights
+    are applied uniformly downstream (see ``risk_scorer.py``). Detection
+    favours structural Pydantic fields over keyword matching wherever
+    possible — keyword fallback is restricted to ``ai_adoption_exposure``
+    and ``regulated_disclosure_scope``.
+    """
     triggers: list[str] = []
 
-    # OT connectivity
-    if ctx.supply_chain.ot_connectivity:
-        triggers.append("ot_connectivity")
+    # 1. cloud_dependency — public cloud presence (migrating, operating, or
+    #    structurally dependent). NIST SP 800-37 R2 environment change;
+    #    CrowdStrike GTR 2025 +26% cloud intrusions; M-Trends 2026 IAM theme.
+    if (
+        cloud_providers
+        or any(p.cloud_providers for p in ctx.projects)
+        or any(ca.network_zone == "cloud" for ca in ctx.critical_assets)
+    ):
+        triggers.append("cloud_dependency")
 
-    # Cloud migration: any in-progress project using cloud providers
-    in_progress_cloud = any(p.cloud_providers and p.status == "in_progress" for p in ctx.projects)
-    if in_progress_cloud or cloud_providers:
-        triggers.append("cloud_migration")
+    # 2. it_ot_convergence — IT/OT integration point. NIST SP 800-82 R3 §1.2;
+    #    ENISA ETL 2025 (OT 18.2% of threat categories); IEC 62443.
+    if ctx.supply_chain.ot_connectivity or any(
+        ca.network_zone == "ot" for ca in ctx.critical_assets
+    ):
+        triggers.append("it_ot_convergence")
 
-    # M&A signal: key_decisions mention M&A / due diligence keywords
-    for obj in ctx.strategic_objectives:
-        text = " ".join(obj.key_decisions).lower() + " " + obj.description.lower()
-        if any(kw in text for kw in _MA_KEYWORDS):
-            triggers.append("m_and_a")
-            break
+    # 3. third_party_dependency — structural reliance on outside vendors.
+    #    NIST SP 800-161 R1; Verizon DBIR 2025 third-party 30%; IBM CoDB 2025
+    #    (9-month detection time for third-party breaches); EO 14028.
+    if ctx.supply_chain.critical_vendors or any(ca.managing_vendor for ca in ctx.critical_assets):
+        triggers.append("third_party_dependency")
 
-    # IPO signal: stock_listed + any high/critical objective sensitivity
-    if ctx.organization.stock_listed:
-        triggers.append("ipo_or_listing")
+    # 4. external_facing_exposure — internet-reachable critical assets.
+    #    M-Trends 2026 (#1 initial-access vector at 32%, sixth year running);
+    #    Verizon DBIR 2025 (edge exploitation 8x); CISA KEV catalog.
+    if any(ca.network_zone in {"internet", "dmz"} for ca in ctx.critical_assets) or any(
+        cj.exposure_risk in {"high", "critical"} for cj in ctx.crown_jewels
+    ):
+        triggers.append("external_facing_exposure")
 
-    # Supply chain expansion: critical vendors + active expansion objectives
-    if ctx.supply_chain.critical_vendors:
-        for obj in ctx.strategic_objectives:
-            text = obj.description.lower() + " " + obj.title.lower()
-            if any(kw in text for kw in _EXPANSION_KEYWORDS):
-                triggers.append("supply_chain_expansion")
-                break
+    # 5. regulated_disclosure_scope — subject to material cyber disclosure
+    #    obligations. SEC Final Rule 33-11216 Item 106 (US public companies);
+    #    EU NIS2 Directive Art. 23; HIPAA Breach Notification Rule.
+    if ctx.organization.stock_listed or _matches_any_keyword(
+        ctx.organization.regulatory_context, _DISCLOSURE_REGULATION_KEYWORDS
+    ):
+        triggers.append("regulated_disclosure_scope")
+
+    # 6. sectoral_high_risk — industry empirically targeted disproportionately.
+    #    ENISA Threat Landscape 2025 sectoral analysis; Verizon DBIR 2025;
+    #    CrowdStrike GTR 2025; ENISA Sectoral TLs.
+    if ctx.organization.industry in _HIGH_RISK_SECTORS:
+        triggers.append("sectoral_high_risk")
+
+    # 7. ai_adoption_exposure — AI/ML adoption signal in objectives, projects,
+    #    or data types. IBM CoDB 2025 ($670K shadow-AI cost premium, 63%
+    #    lacked governance); CrowdStrike GTR 2025 (AI-driven vishing +442%);
+    #    ENISA ETL 2025 (>80% of social engineering AI-supported).
+    if _detect_ai_adoption(ctx):
+        triggers.append("ai_adoption_exposure")
 
     return _dedup(triggers)
+
+
+def _matches_any_keyword(values: list[str], keywords: frozenset[str]) -> bool:
+    for v in values:
+        text = v.lower()
+        if any(kw in text for kw in keywords):
+            return True
+    return False
+
+
+def _detect_ai_adoption(ctx: BusinessContext) -> bool:
+    haystacks: list[str] = []
+    for obj in ctx.strategic_objectives:
+        haystacks.append(obj.title)
+        haystacks.append(obj.description)
+        haystacks.extend(obj.key_decisions)
+    for proj in ctx.projects:
+        haystacks.append(proj.name)
+        haystacks.extend(proj.data_types)
+    return _matches_any_keyword(haystacks, _AI_ADOPTION_KEYWORDS)

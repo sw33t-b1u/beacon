@@ -42,11 +42,13 @@
     "JPCERT/CC 注意喚起"
   ],
   "trigger_actions": {
-    "m_and_a": "M&A 先企業のサプライチェーンリスク・過去インシデント調査",
-    "ot_connectivity": "ICS-CERT / JPCERT OT 脆弱性情報・ICS脅威インテリジェンス",
-    "cloud_migration": "CSP セキュリティアドバイザリ (GCP/AWS/Azure) ・クラウド設定ミス事例",
-    "ipo_or_listing": "SEC / 金融庁 開示リスク・インサイダー脅威・財務データ漏洩事例",
-    "supply_chain_expansion": "サプライヤーセキュリティ評価レポート・SBOM リスク情報"
+    "cloud_dependency": "CSP セキュリティアドバイザリ (GCP/AWS/Azure)・cloud IAM 設定ミス事例・cloud-native 攻撃キャンペーン",
+    "it_ot_convergence": "ICS-CERT / JPCERT OT 脆弱性情報・ICS 脅威インテリジェンス・IT-OT 横断攻撃事例",
+    "third_party_dependency": "重要ベンダーのセキュリティ評価レポート・SBOM リスク情報・サードパーティ侵害事例 (Verizon DBIR 2025: 30%)",
+    "external_facing_exposure": "CISA KEV カタログ・edge 機器 0-day 情報・インターネット直接公開資産の脆弱性スキャン",
+    "regulated_disclosure_scope": "SEC 33-11216 / NIS2 / 金融庁 / 個人情報保護委員会 開示要件と過去インシデント事例",
+    "sectoral_high_risk": "業種 ISAC 情報共有・ENISA Sectoral Threat Landscape・業種固有の APT キャンペーン",
+    "ai_adoption_exposure": "AI ガバナンスポリシー策定状況確認・shadow AI 検出・LLM プロンプトインジェクション/データ漏洩事例 (IBM CoDB 2025)"
   },
   "level_frequency": {
     "strategic": "月次",

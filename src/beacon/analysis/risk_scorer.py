@@ -99,9 +99,10 @@ def _compute_likelihood(elements: ExtractedElements, threat: ThreatProfile) -> i
     n_categories = len(threat.matched_categories)
     base = _LIKELIHOOD_BASE.get(min(n_categories, 3), 4)
 
-    # Boost for active business triggers
-    high_risk_triggers = {"ot_connectivity", "m_and_a", "ipo_or_listing"}
-    trigger_boost = 1 if any(t in high_risk_triggers for t in threat.active_triggers) else 0
+    # All triggers contribute equally (NIST SP 800-37 R2 does not differentiate
+    # event-driven trigger weights). Any trigger present → +1, capped at 5.
+    # See docs/triggers.md for the rationale and per-trigger citations.
+    trigger_boost = 1 if threat.active_triggers else 0
 
     return min(base + trigger_boost, 5)
 
@@ -121,16 +122,15 @@ def _recommend_level(composite: int, active_triggers: list[str]) -> Intelligence
     composite 12–19 → operational
     composite  1–11 → tactical
 
-    Business triggers can escalate to operational or higher.
+    Any active trigger escalates `tactical` → `operational` (symmetric
+    treatment per NIST SP 800-37 R2 event-driven trigger framework; see
+    docs/triggers.md).
     """
-    trigger_escalation = {"m_and_a", "ot_connectivity", "ipo_or_listing"}
-
     if composite >= 20:
         return "strategic"
     if composite >= 12:
         return "operational"
-    # Below 12 but high-risk trigger → escalate to operational
-    if any(t in trigger_escalation for t in active_triggers):
+    if active_triggers:
         return "operational"
     return "tactical"
 

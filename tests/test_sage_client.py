@@ -196,7 +196,7 @@ class TestRiskScorerUseSage:
             matched_categories=["a", "b", "c"],
             notable_groups=[],
             priority_ttps=[],
-            active_triggers=["ot_connectivity"],
+            active_triggers=["it_ot_convergence"],
         )
 
         mock_client = MagicMock()

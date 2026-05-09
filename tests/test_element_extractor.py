@@ -57,25 +57,85 @@ class TestExtractManufacturing:
 
 
 class TestTriggerDetection:
+    """Each trigger is derived from a recognised external framework — see
+    BEACON/docs/triggers.md for the full citation table."""
+
     def setup_method(self):
         self.ctx = _load_ctx("sample_context_manufacturing.json")
 
-    def test_ot_trigger(self):
+    def test_it_ot_convergence_trigger(self):
+        # supply_chain.ot_connectivity=true OR critical_assets[].network_zone=="ot"
         elements = extract(self.ctx)
-        assert "ot_connectivity" in elements.active_triggers
+        assert "it_ot_convergence" in elements.active_triggers
 
-    def test_cloud_migration_trigger(self):
+    def test_cloud_dependency_trigger(self):
+        # Manufacturing fixture has projects with cloud_providers
         elements = extract(self.ctx)
-        assert "cloud_migration" in elements.active_triggers
+        assert "cloud_dependency" in elements.active_triggers
 
-    def test_ma_trigger_detected(self):
-        # OBJ-001 mentions "M&A候補デューデリジェンス"
+    def test_third_party_dependency_trigger(self):
+        # supply_chain.critical_vendors and/or critical_assets[].managing_vendor
         elements = extract(self.ctx)
-        assert "m_and_a" in elements.active_triggers
+        assert "third_party_dependency" in elements.active_triggers
 
-    def test_stock_listing_trigger(self):
+    def test_regulated_disclosure_scope_trigger_from_listing(self):
+        # stock_listed=true on this fixture triggers regulated disclosure scope
         elements = extract(self.ctx)
-        assert "ipo_or_listing" in elements.active_triggers
+        assert "regulated_disclosure_scope" in elements.active_triggers
+
+    def test_sectoral_high_risk_trigger(self):
+        # industry="manufacturing" is in the high-risk set per ENISA/Verizon/CrowdStrike
+        elements = extract(self.ctx)
+        assert "sectoral_high_risk" in elements.active_triggers
+
+    def test_external_facing_exposure_trigger(self):
+        # If any crown jewel has high/critical exposure_risk OR any critical
+        # asset is in internet/dmz zone, trigger fires.
+        from beacon.ingest.schema import CrownJewel
+
+        ctx = _load_ctx("sample_context_manufacturing.json")
+        ctx.crown_jewels.append(
+            CrownJewel(
+                id="CJ-X",
+                name="Public API",
+                business_impact="high",
+                exposure_risk="high",
+            )
+        )
+        elements = extract(ctx)
+        assert "external_facing_exposure" in elements.active_triggers
+
+    def test_ai_adoption_exposure_trigger(self):
+        # Add an AI-themed strategic objective; trigger should fire.
+        from beacon.ingest.schema import StrategicObjective
+
+        ctx = _load_ctx("sample_context_manufacturing.json")
+        ctx.strategic_objectives.append(
+            StrategicObjective(
+                id="OBJ-AI",
+                title="Generative AI rollout",
+                description="Deploy LLM-based copilots in manufacturing planning.",
+            )
+        )
+        elements = extract(ctx)
+        assert "ai_adoption_exposure" in elements.active_triggers
+
+    def test_ai_adoption_not_triggered_without_keywords(self):
+        # Manufacturing fixture has no AI/ML keywords — should not fire.
+        elements = extract(self.ctx)
+        assert "ai_adoption_exposure" not in elements.active_triggers
+
+    def test_old_trigger_strings_not_emitted(self):
+        # Regression: old vocabulary must never appear in output (BREAKING in 0.10.0).
+        elements = extract(self.ctx)
+        forbidden = {
+            "ot_connectivity",
+            "cloud_migration",
+            "m_and_a",
+            "ipo_or_listing",
+            "supply_chain_expansion",
+        }
+        assert not (forbidden & set(elements.active_triggers))
 
     def test_no_duplicate_triggers(self):
         elements = extract(self.ctx)

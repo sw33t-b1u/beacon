@@ -183,7 +183,7 @@ def build_collection_plan(
     freq = _LEVEL_FREQUENCY.get(risk.intelligence_level, _LEVEL_FREQUENCY["default"])
     lines.append(f"| {_TABLE['feed_collection_item']} | {freq} | {_TABLE['cti_team']} |")
 
-    if "ot_connectivity" in threat.active_triggers:
+    if "it_ot_convergence" in threat.active_triggers:
         lines.append(f"| {_TABLE['ot_vuln_item']} | {_TABLE['weekly']} | {_TABLE['ot_team']} |")
     if "ransomware" in threat.threat_actor_tags:
         lines.append(

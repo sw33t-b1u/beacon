@@ -119,9 +119,9 @@ class TestBuildCollectionPlanTriggers:
             self.elements, self.threat, self.risk, pirs, generated_on=_FIXED_DATE
         )
 
-    def test_ot_trigger_in_plan(self):
-        # Manufacturing fixture has ot_connectivity=true
-        assert "ot_connectivity" in self.plan
+    def test_it_ot_convergence_trigger_in_plan(self):
+        # Manufacturing fixture has supply_chain.ot_connectivity=true → it_ot_convergence
+        assert "it_ot_convergence" in self.plan
 
     def test_trigger_section_present(self):
         assert "Trigger-Based Collection" in self.plan

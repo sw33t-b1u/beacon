@@ -1,18 +1,42 @@
 {
-  "ma_keywords": [
-    "m&a",
-    "merger",
-    "acquisition",
-    "due diligence",
-    "デューデリジェンス",
-    "m&a候補"
+  "_metadata": {
+    "purpose": "Keyword sets for ai_adoption_exposure trigger detection. See docs/triggers.md for citations.",
+    "language_note": "Keywords are matched case-insensitively against strategic_objectives.description / projects.data_types / project names."
+  },
+  "ai_adoption_keywords": [
+    "ai",
+    "ml",
+    "llm",
+    "machine learning",
+    "deep learning",
+    "generative ai",
+    "genai",
+    "neural network",
+    "transformer",
+    "foundation model",
+    "rag",
+    "retrieval augmented",
+    "人工知能",
+    "機械学習",
+    "深層学習",
+    "生成ai",
+    "大規模言語モデル"
   ],
-  "expansion_keywords": [
-    "expand",
-    "拡大",
-    "新規",
-    "new",
-    "partner",
-    "パートナー"
+  "disclosure_regulation_keywords": [
+    "sec",
+    "securities and exchange commission",
+    "form 10-k",
+    "form 8-k",
+    "item 106",
+    "nis2",
+    "nis 2",
+    "hipaa breach notification",
+    "pci-dss",
+    "pci dss",
+    "金融商品取引法",
+    "個人情報保護法",
+    "資金決済に関する法律",
+    "資金決済法",
+    "appi"
   ]
 }
