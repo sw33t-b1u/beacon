@@ -6,6 +6,48 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [0.12.2] — 2026-05-10
+
+### Fixed — `identity_class` aligned to STIX 2.1 §6.7 ``identity-class-ov``
+
+Initiative A (BEACON 0.11.0) accepted ``"unspecified"`` as the
+"genuinely ambiguous" `identity_class` value, but the canonical
+STIX 2.1 §6.7 ``identity-class-ov`` value is ``"unknown"`` —
+verified against ``stix2-validator``'s
+``IDENTITY_CLASS_OV`` (and the same is true of STIX 2.0). The
+mistake propagated through Pydantic Literal, the
+``context_structuring`` LLM prompt, and the analyst-facing
+``context_template.{md,ja.md}`` since 0.11.0.
+
+The downstream STIX validator therefore issued one ``{213}``
+warning per ``identity_class: "unspecified"`` SDO at TRACE bundle
+emission time. TRACE 1.4.2 real-LLM crawl on the Trend Micro
+article surfaced exactly one such warning, which closed out the
+verification: identical structural class to ``{244}``, just on a
+different vocabulary.
+
+#### Changes
+
+- `UserAccount` is unaffected; this only touches `Identity`.
+- `Identity.identity_class` Pydantic Literal: `unspecified` → `unknown`.
+- `context_structuring.md` LLM prompt: same correction in both
+  the JSON schema block and the per-class guidance bullet
+  ("`unknown` when the document is genuinely ambiguous").
+- `docs/context_template.md` / `context_template.ja.md`: same.
+
+#### Migration
+
+User-managed `BEACON/input/context.md` should rename any
+`identity_class: unspecified` to `identity_class: unknown`. The
+楽天Edy fixture in this repo had no such occurrence (verified by
+grep).
+
+Pairs with TRACE 1.4.3. SAGE 0.7.0 schema unchanged (DDL comment
+updated to STIX-canonical wording — no functional change since
+`identity_class` is `STRING(32)`).
+
+---
+
 ## [0.12.1] — 2026-05-10
 
 ### Changed — `account_type` aligned to STIX 2.1 §6.4 ``account-type-ov`` strictly

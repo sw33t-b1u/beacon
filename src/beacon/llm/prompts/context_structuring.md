@@ -85,7 +85,7 @@ Return ONLY valid JSON (no markdown fences, no explanation) with this exact stru
     {
       "id": "string — short stable identifier (e.g. id-finance-team, id-cfo, id-erp-admin)",
       "name": "string — preserve original language",
-      "identity_class": "one of: individual | group | system | organization | class | unspecified",
+      "identity_class": "one of: individual | group | system | organization | class | unknown",
       "sectors": [],
       "roles": [],
       "description": ""
@@ -197,7 +197,8 @@ touch — into `identities[]` and `has_access[]`.
   - `system` for service accounts, automation, integration users
   - `organization` for external partner organizations
   - `class` for abstract role classes ("any administrator")
-  - `unspecified` when the document is genuinely ambiguous
+  - `unknown` when the document is genuinely ambiguous (STIX 2.1
+    §6.7 ``identity-class-ov`` value)
 - **id** — `id-` prefix + short slug (`id-finance-team`,
   `id-erp-admin`). Stable across regenerations.
 - **roles[]** — short job-function tags (`operations`, `dba`,

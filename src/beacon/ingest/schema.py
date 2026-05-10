@@ -123,7 +123,7 @@ class Identity(BaseModel):
         "system",
         "organization",
         "class",
-        "unspecified",
+        "unknown",
     ] = "group"
     sectors: list[str] = Field(default_factory=list)
     roles: list[str] = Field(default_factory=list)

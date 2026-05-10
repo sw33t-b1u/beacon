@@ -148,7 +148,7 @@
 ### 1. [Identity 名 — 原文の言語をそのまま]
 - **id**: [短く安定した slug、例: `id-finance-team`、`id-cfo`、
   `id-erp-admin`。再生成時にも変えないこと。]
-- **identity_class**: [individual | group | system | organization | class | unspecified]
+- **identity_class**: [individual | group | system | organization | class | unknown]
 - **sectors**: [任意の STIX 2.1 §6.6 業種値 — 例: `financial-services`]
 - **roles**: [短い職能タグ — 例: `operations`, `dba`, `executive`, `auditor`]
 - **description**: [任意 — このアイデンティティが何をしているか、スコープ等]

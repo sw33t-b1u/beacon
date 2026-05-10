@@ -155,7 +155,7 @@ listed `Critical Assets`, add an entry. Repeat for as many as apply.
 ### 1. [Identity Name — preserve original language]
 - **id**: [short stable slug, e.g. `id-finance-team`, `id-cfo`,
   `id-erp-admin`. Keep stable across regenerations.]
-- **identity_class**: [individual | group | system | organization | class | unspecified]
+- **identity_class**: [individual | group | system | organization | class | unknown]
 - **sectors**: [optional STIX 2.1 §6.6 industry sectors — e.g. `financial-services`]
 - **roles**: [short job-function tags — e.g. `operations`, `dba`, `executive`, `auditor`]
 - **description**: [optional — what this identity does, scope, etc.]
