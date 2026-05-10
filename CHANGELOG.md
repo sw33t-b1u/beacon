@@ -6,6 +6,115 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [0.11.0] — 2026-05-10
+
+### Added — Initiative A: Identity-Asset HasAccess artifact
+
+First slice of the 3-project Identity-Asset HasAccess initiative
+(see local design doc for the full plan). BEACON now emits a new
+`identity_assets.json` artifact that describes which roles, groups,
+or individuals have access to which `critical_assets` — the input
+SAGE 0.6.0 will ingest as `Identity` SDOs and `HasAccess` edges,
+with TRACE 1.1.0 as the validation gate.
+
+Motivation grounded in published frameworks:
+
+- **NIST SP 800-53 R5** AC-2 (Account Management), AC-3 (Access
+  Enforcement) — accounts and their resource rights must be
+  documented and reviewed.
+- **NIST SP 800-207** Zero Trust — explicit identity-to-resource
+  mapping is a precondition for dynamic policy.
+- **ISO/IEC 27001:2022** A.5.16, A.5.18 — full lifecycle of
+  role-based access rights to information assets.
+- **CIS Controls v8** Controls 5, 6 — inventory and manage accounts
+  and access rights to enterprise assets.
+
+Empirical reinforcement (past 12 months):
+
+- Verizon DBIR 2025: stolen credentials = #1 initial-access (22%)
+- CrowdStrike GTR 2025: valid-account abuse = #1 cloud vector (35%)
+
+Without an identity-asset edge SAGE cannot answer "which assets are
+exposed when role X is compromised" — the dominant analyst question
+after a credential theft.
+
+#### Schema additions
+
+`src/beacon/ingest/schema.py`:
+
+- `Identity` — `id`, `name`, `identity_class` (STIX 2.1 §6.7
+  open vocab: individual / group / system / organization / class /
+  unspecified), `sectors[]`, `roles[]`, `description`. Granularity
+  decision (2026-05-10): role / group primary, individuals optional.
+- `HasAccess` — `identity_id`, `asset_id`, `access_level`
+  (read / write / admin / deny), `role` (per-edge label),
+  `granted_at`, `revoked_at`.
+- `BusinessContext` extended with `identities[]` and `has_access[]`
+  (both default to empty list).
+
+#### `cmd/generate_identity_assets.py` (new CLI)
+
+Mirrors `generate_assets.py`. Reads context.md or context.json,
+emits `output/identity_assets.json`. Same `--no-llm` semantics
+(JSON-only). The output includes a `_comment` directing the user to
+TRACE's `validate_identity_assets.py` before SAGE ingest.
+
+#### LLM prompt extension
+
+`src/beacon/llm/prompts/context_structuring.md` updated:
+
+- Schema block adds `identities[]` and `has_access[]`.
+- "Section Recognition Guide" maps "Identities and Access / Roles /
+  Teams with Access / RBAC" → `identities[]` + `has_access[]`.
+- New "Identities and Access" mapping rules with `identity_class`
+  inference, `id` slug convention, `access_level` keyword mapping
+  (admin / write / read / deny), and the no-fabrication rule (return
+  empty arrays when the section is absent).
+
+The expanded output stays within the existing 32k token budget
+(0.10.2): the 楽天Edy context produces ~7k chars of structured JSON
+even before this addition; identity sections add a few hundred
+chars per identity at most.
+
+#### `_comment` field on output
+
+The generated `identity_assets.json` carries a `_comment` directing
+the user to validate via TRACE before loading into SAGE (matches
+the `assets.json` UX from BEACON 0.6.0).
+
+#### No cross-reference validation here
+
+The generator does **not** verify that `has_access[*].identity_id`
+points to an existing `identities[*].id`, or that
+`has_access[*].asset_id` points to an existing
+`critical_assets[*].id`. That responsibility belongs to TRACE's
+`validate_identity_assets.py` (Initiative A §6.1) which has the
+adjacent `assets.json` to cross-check against.
+
+### Tests
+
+9 new cases in `tests/test_identity_assets_generator.py`:
+
+- empty-context emits empty-array (not missing-key) artifact
+- single identity round-trip (Japanese name, identity_class,
+  sectors / roles)
+- single HasAccess edge with full optional fields
+- dangling `identity_id` passes through unraised (cross-ref is
+  TRACE's job, not the generator's)
+- optional-field defaults
+
+All 272 tests pass; 0 vulnerabilities.
+
+### Future scope (BEACON share of remaining Initiative A)
+
+- Phase 2 (post-production data review): surface identities tagged
+  `privileged` for PIR weighting in SAGE.
+- 楽天Edy `context.md` upgrade: add an "Identities and Access"
+  section so the next regeneration populates real edges (currently
+  the section is absent → empty arrays).
+
+---
+
 ## [0.10.2] — 2026-05-10
 
 ### Fixed — `context_structuring` JSON truncation on long ja-JP contexts

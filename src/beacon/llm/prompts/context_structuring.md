@@ -80,6 +80,26 @@ Return ONLY valid JSON (no markdown fences, no explanation) with this exact stru
       "type": "string — e.g. phishing | ransomware | data_breach | bec | insider_threat | supply_chain | ddos | other",
       "impact": "one of: low | medium | high | critical"
     }
+  ],
+  "identities": [
+    {
+      "id": "string — short stable identifier (e.g. id-finance-team, id-cfo, id-erp-admin)",
+      "name": "string — preserve original language",
+      "identity_class": "one of: individual | group | system | organization | class | unspecified",
+      "sectors": [],
+      "roles": [],
+      "description": ""
+    }
+  ],
+  "has_access": [
+    {
+      "identity_id": "string — must match an entry in identities[].id",
+      "asset_id": "string — must match an entry in critical_assets[].id",
+      "access_level": "one of: read | write | admin | deny",
+      "role": "string — free-form per-edge label (e.g. ERP admin)",
+      "granted_at": "ISO date or empty",
+      "revoked_at": "ISO date or empty"
+    }
   ]
 }
 ```
@@ -95,6 +115,7 @@ Return ONLY valid JSON (no markdown fences, no explanation) with this exact stru
 | Critical Assets / IT Assets / Key Systems / Infrastructure | `critical_assets[]` |
 | Supply Chain / Vendors / Third Parties / Partners | `supply_chain.*` AND relevant `critical_assets[]` entries |
 | Recent Incidents / Security History / Previous Breaches | `recent_incidents[]` |
+| Identities and Access / Roles / Teams with Access / RBAC | `identities[]` AND `has_access[]` |
 
 ## Mapping Rules
 
@@ -140,6 +161,43 @@ Sequential within each array: OBJ-001, OBJ-002 … / PROJ-001, PROJ-002 … / CJ
 - `high`: described as "confidential", "strategic", "M&A related"
 - `medium`: normal business data, limited internal distribution
 - `low`: publicly available, non-sensitive
+
+### Identities and Access (Initiative A)
+The "Identities and Access" section describes who (which roles, teams,
+or individuals) has access to which `critical_assets`. Extract every
+named role / team / group / individual mentioned in connection with
+asset operation, administration, or data access — and the assets they
+touch — into `identities[]` and `has_access[]`.
+
+- **identity_class** —
+  - `group` for teams, departments, named groups (the typical case)
+  - `individual` only when a specific person is named (rare in
+    organizational context docs)
+  - `system` for service accounts, automation, integration users
+  - `organization` for external partner organizations
+  - `class` for abstract role classes ("any administrator")
+  - `unspecified` when the document is genuinely ambiguous
+- **id** — `id-` prefix + short slug (`id-finance-team`,
+  `id-erp-admin`). Stable across regenerations.
+- **roles[]** — short job-function tags (`operations`, `dba`,
+  `executive`, `auditor`).
+- **has_access[*].asset_id** — must match an existing
+  `critical_assets[].id` (`CA-...`). If the document mentions access
+  to a system that is not in `critical_assets`, first add the system
+  to `critical_assets`, then reference its id here.
+- **access_level** — infer from the document language:
+  - `admin` — "operates", "maintains", "管理者", "運用保守", root /
+    superuser access
+  - `write` — "updates", "modifies", "登録", "編集"
+  - `read` — "reviews", "monitors", "閲覧", "参照"
+  - `deny` — explicit prohibition (rare in context docs)
+- **role** — free-form description of the per-edge job context
+  (preserve original language).
+- **granted_at / revoked_at** — leave empty unless an explicit date is
+  in the document.
+
+If the section is absent, return `identities: []` and `has_access: []`
+(do not invent entries from other sections).
 
 ## Document
 

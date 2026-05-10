@@ -99,6 +99,53 @@ class SupplyChain(BaseModel):
     ot_connectivity: bool = False
 
 
+# ---------------------------------------------------------------------------
+# Initiative A — Identity-Asset (BEACON 0.11.0)
+# ---------------------------------------------------------------------------
+# Identity granularity decision (2026-05-10): role / group primary, individuals
+# optional. STIX 2.1 §6.7 identity-class-ov vocabulary is honoured directly.
+# See docs/initiative_a_identity_asset.md §3 for the design rationale.
+
+
+class Identity(BaseModel):
+    """Person / role / group / organization granted access to assets.
+
+    Maps onto a STIX 2.1 §4.4 identity SDO when emitted to SAGE. ``id`` is
+    BEACON-internal (stable string the analyst chooses); SAGE assigns the
+    final ``identity--<uuid>`` STIX id at ingest.
+    """
+
+    id: str
+    name: str
+    identity_class: Literal[
+        "individual",
+        "group",
+        "system",
+        "organization",
+        "class",
+        "unspecified",
+    ] = "group"
+    sectors: list[str] = Field(default_factory=list)
+    roles: list[str] = Field(default_factory=list)
+    description: str = ""
+
+
+class HasAccess(BaseModel):
+    """Identity-to-asset access edge.
+
+    ``identity_id`` references an entry in ``BusinessContext.identities``;
+    ``asset_id`` references ``CriticalAsset.id`` (cross-file reference is
+    enforced by TRACE's validate_identity_assets, not here).
+    """
+
+    identity_id: str
+    asset_id: str
+    access_level: Literal["read", "write", "admin", "deny"] = "read"
+    role: str = ""  # free-form per-edge label (e.g. "ERP admin")
+    granted_at: str = ""  # ISO date; empty = unknown
+    revoked_at: str = ""  # ISO date; empty = active
+
+
 class RecentIncident(BaseModel):
     year: int
     type: str
@@ -118,3 +165,5 @@ class BusinessContext(BaseModel):
     critical_assets: list[CriticalAsset] = Field(default_factory=list)
     supply_chain: SupplyChain = Field(default_factory=SupplyChain)
     recent_incidents: list[RecentIncident] = Field(default_factory=list)
+    identities: list[Identity] = Field(default_factory=list)
+    has_access: list[HasAccess] = Field(default_factory=list)
