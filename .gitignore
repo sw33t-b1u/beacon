@@ -68,6 +68,8 @@ logs/
 # Temporary files
 tmp/
 temp/
+Thumbs.db
+TODO.md
 
 # Web session files (runtime-generated)
 /tmp/beacon_session_*.json
@@ -75,7 +77,6 @@ temp/
 # PIR output (runtime-generated, not source)
 pir_output.json
 collection_plan.md
-TODO.md
 
 # User input and generated output (sensitive operational data — never commit)
 input/
