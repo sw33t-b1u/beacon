@@ -6,6 +6,68 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [0.10.2] — 2026-05-10
+
+### Fixed — `context_structuring` JSON truncation on long ja-JP contexts
+
+`cmd/generate_assets.py` failed mid-pipeline against the 楽天Edy
+context.md (6619 chars input) with
+`json.JSONDecodeError: Unterminated string`. The LLM emitted ~6890
+chars of valid JSON before the response cut off in the middle of an
+asset's `data_types` array — i.e. the response hit the
+`max_output_tokens` ceiling.
+
+Root cause: `call_llm` had a hard-coded default
+`max_output_tokens=8192`, and `context_structuring` is the largest
+single-call output BEACON makes — input scales linearly into output
+size, and ja-JP characters cost more tokens than English. The 8192
+default was sized for early Phase 1/2 inputs and never re-tuned for
+the current detail level.
+
+#### Per-tier output token budgets in Config
+
+Three new Config fields (env-overridable):
+
+| Field | Env var | Default |
+|-------|---------|---------|
+| `llm_max_output_tokens_simple` | `BEACON_LLM_MAX_OUTPUT_SIMPLE` | 32768 |
+| `llm_max_output_tokens_medium` | `BEACON_LLM_MAX_OUTPUT_MEDIUM` | 32768 |
+| `llm_max_output_tokens_complex` | `BEACON_LLM_MAX_OUTPUT_COMPLEX` | 32768 |
+
+`call_llm` now resolves the budget through `_max_output_for_task`
+by default; passing `max_output_tokens=` explicitly still overrides
+it (used by tests). The `llm_call_start` log line now includes
+`max_output_tokens` for diagnostics.
+
+Why per-tier instead of a single dial: the three tiers do
+materially different work (markdown→JSON, threat tag enrichment,
+likelihood scoring), and we want to be able to expand or contract
+each independently without coupling them.
+
+Why default 32768: gemini-2.5-flash supports up to 65536 output
+tokens. context_structuring on the 楽天Edy context produces ~6k
+output tokens, so 32k gives ~5x headroom for context.md files that
+grow over time. We did not pick 65536 to keep latency / cost bounded
+on the common path.
+
+### Documented — `.env.example`
+
+Three new commented-out env vars added with usage notes ("bump if
+context.md is materially larger or truncation reappears").
+
+### Tests
+
+3 new cases in `tests/test_llm_client.py::TestMaxOutputTokens`:
+
+- per-tier budget read from Config (24k / 48k / 64k matrix)
+- explicit `max_output_tokens=` argument overrides Config
+- callers that omit the argument inherit the per-tier Config budget
+  (regression guard for `parse_markdown` / `threat_mapper` etc.)
+
+All 263 tests pass; 0 vulnerabilities.
+
+---
+
 ## [0.10.1] — 2026-05-09
 
 ### Removed — Deprecation stubs deleted

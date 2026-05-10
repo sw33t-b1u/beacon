@@ -17,6 +17,9 @@ def _make_config(**kwargs) -> Config:
         llm_model_simple="gemini-2.5-flash-lite",
         llm_model_medium="gemini-2.5-flash",
         llm_model_complex="gemini-2.5-pro",
+        llm_max_output_tokens_simple=32768,
+        llm_max_output_tokens_medium=32768,
+        llm_max_output_tokens_complex=32768,
     )
     defaults.update(kwargs)
     return Config(**defaults)
@@ -85,6 +88,58 @@ class TestCallLlm:
 
         call_kwargs = mock_client.models.generate_content.call_args.kwargs
         assert call_kwargs["model"] == "gemini-2.5-flash"
+
+
+class TestMaxOutputTokens:
+    def setup_method(self):
+        _reset_client()
+
+    def test_uses_per_tier_budget_from_config(self):
+        config = _make_config(
+            llm_max_output_tokens_simple=24000,
+            llm_max_output_tokens_medium=48000,
+            llm_max_output_tokens_complex=64000,
+        )
+        mock_genai, mock_client = _make_mock_genai("{}")
+
+        with patch("beacon.llm.client.genai", mock_genai):
+            from beacon.llm.client import call_llm
+
+            call_llm("simple", "test", config=config)
+            call_llm("medium", "test", config=config)
+            call_llm("complex", "test", config=config)
+
+        budgets = [
+            call.kwargs["config"].max_output_tokens
+            for call in mock_client.models.generate_content.call_args_list
+        ]
+        assert budgets == [24000, 48000, 64000]
+
+    def test_explicit_override_wins(self):
+        config = _make_config(llm_max_output_tokens_simple=8192)
+        mock_genai, mock_client = _make_mock_genai("{}")
+
+        with patch("beacon.llm.client.genai", mock_genai):
+            from beacon.llm.client import call_llm
+
+            call_llm("simple", "test", config=config, max_output_tokens=99999)
+
+        actual = mock_client.models.generate_content.call_args.kwargs["config"]
+        assert actual.max_output_tokens == 99999
+
+    def test_default_budget_unchanged_when_caller_omits(self):
+        # Regression: parse_markdown / threat_mapper / etc. still call call_llm
+        # without max_output_tokens. They must inherit the per-tier budget.
+        config = _make_config(llm_max_output_tokens_medium=12345)
+        mock_genai, mock_client = _make_mock_genai("{}")
+
+        with patch("beacon.llm.client.genai", mock_genai):
+            from beacon.llm.client import call_llm
+
+            call_llm("medium", "test", config=config)
+
+        actual = mock_client.models.generate_content.call_args.kwargs["config"]
+        assert actual.max_output_tokens == 12345
 
 
 class TestCallLlmJson:

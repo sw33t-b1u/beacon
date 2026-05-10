@@ -25,6 +25,21 @@ class Config:
         default_factory=lambda: os.environ.get("BEACON_LLM_COMPLEX", "gemini-2.5-pro")
     )
 
+    # LLM output token budgets per tier. Defaults sized for the largest single
+    # call we currently make: context_structuring on a long ja-JP context.md.
+    # ~7k chars of JP markdown emits ~6k tokens of structured JSON, comfortably
+    # below 32768 with headroom; medium / complex tiers retain a similar budget
+    # for STIX / PIR generation. Overridable via env vars.
+    llm_max_output_tokens_simple: int = field(
+        default_factory=lambda: int(os.environ.get("BEACON_LLM_MAX_OUTPUT_SIMPLE", "32768"))
+    )
+    llm_max_output_tokens_medium: int = field(
+        default_factory=lambda: int(os.environ.get("BEACON_LLM_MAX_OUTPUT_MEDIUM", "32768"))
+    )
+    llm_max_output_tokens_complex: int = field(
+        default_factory=lambda: int(os.environ.get("BEACON_LLM_MAX_OUTPUT_COMPLEX", "32768"))
+    )
+
     # GitHub / GHE review workflow
     ghe_token: str = field(default_factory=lambda: os.environ.get("GHE_TOKEN", ""))
     ghe_repo: str = field(default_factory=lambda: os.environ.get("GHE_REPO", ""))
