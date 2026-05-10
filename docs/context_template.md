@@ -231,3 +231,101 @@ list — `generate_identity_assets.py` will emit an empty
 - **access_level**: admin
 - **role**: 残高管理 DB DBA
 ```
+
+---
+
+## User Accounts
+
+> **Why this section matters** — SAGE 0.7.0+ (Initiative B) stores
+> individual login identifiers as a `UserAccount` graph node, with
+> edges to host `Asset` (`AccountOnAsset`) and optionally to
+> `Identity` (`UserAccountBelongsTo`). This drops one level deeper
+> than Initiative A's role-asset edge: when CTI reports
+> `alice@corp.example.com` was compromised, analysts can pivot to
+> the assets where that login is valid.
+>
+> Frameworks: **NIST SP 800-53 IA-2 / IA-4 / AC-2; NIST SP 800-63B;
+> ISO/IEC 27001:2022 A.5.16 / A.8.5; CIS Controls v8 #5**.
+> Empirical: Verizon DBIR 2025 (stolen credentials = #1 initial-
+> access at 22%); CrowdStrike GTR 2025 (valid-account abuse = #1
+> cloud vector at 35%).
+
+### Granularity guidance
+
+- **Individual account identifiers** — one entry per login
+  (`alice@corp.example.com`, `root`, `svc-jenkins`, domain SIDs).
+  Same login on multiple hosts produces multiple `account_on_asset`
+  entries.
+- **Service accounts** belong here too — `svc-*`, `_jenkins`,
+  `nt service\\*`, automation users. Set `is_service_account: true`.
+- **Privileged accounts** — root, Domain Admin, sudoers, highly-
+  privileged service accounts. Set `is_privileged: true` (CIS
+  Controls v8 #5.4 requires separate inventory).
+- **Optional Identity link** — when a human role/team in
+  `identities[]` owns the account, set `identity_id`. Leave empty
+  for shared / generic / unattributed accounts.
+
+### Account entries
+
+For each named login on `Critical Assets`, add an entry.
+
+### 1. [Account Login]
+- **id**: [short stable slug, e.g. `ua-alice-corp`, `ua-svc-jenkins`]
+- **account_login**: [exact login string used at authentication]
+- **display_name**: [optional human-readable name]
+- **account_type**: [unix-account | windows-local | windows-domain | ldap | kerberos | azure-ad | google-workspace | saas | service | other]
+- **is_privileged**: [true | false]
+- **is_service_account**: [true | false]
+- **identity_id**: [optional — must match an `id` from "Identities" above]
+- **description**: [optional]
+
+### Account-on-asset entries
+
+For each (account, host) pair, add an entry.
+
+### 1. [Account → Asset]
+- **user_account_id**: [must match an `id` from "User Accounts" above]
+- **asset_id**: [must match an `id` from "Critical Assets" above (e.g. `CA-005`; BEACON normalizes to `asset-CA-005`)]
+- **first_seen**: [optional ISO date]
+- **last_seen**: [optional ISO date — leave blank if still active]
+
+### When to leave the section empty
+
+If the document does not describe individual accounts, leave the
+section out entirely. Do **not** invent accounts from the asset
+list — `generate_user_accounts.py` will emit empty arrays, which
+TRACE accepts.
+
+### Example (excerpt)
+
+```markdown
+## User Accounts
+
+### 1. ua-payment-ops-admin
+- **id**: ua-payment-ops-admin
+- **account_login**: ops-admin
+- **account_type**: unix-account
+- **is_privileged**: true
+- **identity_id**: id-payment-ops
+- **description**: 決済処理サーバの運用保守用 root-equivalent
+
+### 2. ua-svc-edy-batch
+- **id**: ua-svc-edy-batch
+- **account_login**: svc-edy-batch
+- **account_type**: service
+- **is_privileged**: false
+- **is_service_account**: true
+- **description**: バッチ処理用サービスアカウント
+
+### 1. ua-payment-ops-admin → CA-001
+- **user_account_id**: ua-payment-ops-admin
+- **asset_id**: CA-001
+
+### 2. ua-svc-edy-batch → CA-001
+- **user_account_id**: ua-svc-edy-batch
+- **asset_id**: CA-001
+
+### 3. ua-svc-edy-batch → CA-002
+- **user_account_id**: ua-svc-edy-batch
+- **asset_id**: CA-002
+```

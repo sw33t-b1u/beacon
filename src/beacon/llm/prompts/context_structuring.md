@@ -100,6 +100,26 @@ Return ONLY valid JSON (no markdown fences, no explanation) with this exact stru
       "granted_at": "ISO date or empty",
       "revoked_at": "ISO date or empty"
     }
+  ],
+  "user_accounts": [
+    {
+      "id": "string — short stable identifier (e.g. ua-alice-corp, ua-svc-jenkins)",
+      "account_login": "string — full account login (alice@corp.example.com, root, svc-jenkins)",
+      "display_name": "string — preserve original language",
+      "account_type": "one of: unix-account | windows-local | windows-domain | ldap | kerberos | azure-ad | google-workspace | saas | service | other",
+      "is_privileged": false,
+      "is_service_account": false,
+      "identity_id": "string — optional, must match identities[].id when set",
+      "description": ""
+    }
+  ],
+  "account_on_asset": [
+    {
+      "user_account_id": "string — must match user_accounts[].id",
+      "asset_id": "string — must match critical_assets[].id",
+      "first_seen": "ISO date or empty",
+      "last_seen": "ISO date or empty"
+    }
   ]
 }
 ```
@@ -116,6 +136,7 @@ Return ONLY valid JSON (no markdown fences, no explanation) with this exact stru
 | Supply Chain / Vendors / Third Parties / Partners | `supply_chain.*` AND relevant `critical_assets[]` entries |
 | Recent Incidents / Security History / Previous Breaches | `recent_incidents[]` |
 | Identities and Access / Roles / Teams with Access / RBAC | `identities[]` AND `has_access[]` |
+| User Accounts / Login Accounts / Service Accounts | `user_accounts[]` AND `account_on_asset[]` |
 
 ## Mapping Rules
 
@@ -198,6 +219,38 @@ touch — into `identities[]` and `has_access[]`.
 
 If the section is absent, return `identities: []` and `has_access: []`
 (do not invent entries from other sections).
+
+### User Accounts and Asset Mapping (Initiative B)
+The "User Accounts" section enumerates individual login identifiers
+(`alice@corp.example.com`, `svc-jenkins`, domain SIDs, cloud
+principals) and the hosts each is valid on.
+
+- **id** — `ua-` prefix + short slug (`ua-alice-corp`,
+  `ua-svc-jenkins`). Stable across regenerations.
+- **account_login** — exact login string as it would appear at
+  authentication (`alice@corp.example.com`, `root`,
+  `S-1-5-21-…`).
+- **account_type** — infer from context:
+  - `unix-account` — root, daemon, named *nix logins
+  - `windows-local` — host-local Windows accounts
+  - `windows-domain` — `DOMAIN\\user` or `user@domain.local`
+  - `azure-ad` — `user@tenant.onmicrosoft.com` etc.
+  - `service` — automation / CI / pipeline accounts
+  - `other` — fallback when ambiguous
+- **is_privileged** — true for root/admin/Domain Admin/sudoers/
+  highly-privileged service accounts. Default false.
+- **is_service_account** — true when the account is non-human
+  (CI bot, integration user, daemon).
+- **identity_id** — optional. When the account is owned by a
+  named human role / team in `identities[]`, link via the
+  `id-...` slug. Leave empty for shared / generic accounts.
+
+`account_on_asset[*]` records every (account, host) pair the
+document describes. The same `account_login` valid on multiple
+hosts produces multiple entries.
+
+If the section is absent, return `user_accounts: []` and
+`account_on_asset: []` (do not invent accounts from prose).
 
 ## Document
 

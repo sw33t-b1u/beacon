@@ -6,6 +6,106 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [0.12.0] — 2026-05-10
+
+### Added — Initiative B: User-Account SCO artifact
+
+First slice of the User-Account SCO initiative (paired with TRACE
+1.3.0 + SAGE 0.7.0 to follow). BEACON emits a new
+`user_accounts.json` artifact: individual login identifiers
+(`alice@corp`, `svc-jenkins`, domain SIDs, cloud principals) plus
+their host-asset bindings.
+
+Motivation grounded in published frameworks (full citations in the
+local Initiative B design doc):
+
+- NIST SP 800-53 R5 IA-2 / IA-4 / AC-2 — per-account inventory
+- NIST SP 800-63B — authenticator binding to subscriber
+- ISO/IEC 27001:2022 A.5.16 / A.8.5 — identity / authentication lifecycle
+- CIS Controls v8 #5 — account inventory & privileged separation
+
+Empirical reinforcement (past 12 months):
+
+- Verizon DBIR 2025: stolen credentials = #1 initial-access (22%)
+- CrowdStrike GTR 2025: valid-account abuse = #1 cloud vector (35%)
+- Mandiant M-Trends 2026: privileged accounts in 60%+ of post-
+  compromise lateral movement
+
+Initiative A captured Identity ↔ Asset role-level access; Initiative
+B drops one level deeper to per-account granularity so analysts can
+trace specific credential theft impact.
+
+#### Schema additions
+
+`src/beacon/ingest/schema.py`:
+
+- `UserAccount` — `id`, `account_login`, `display_name`,
+  `account_type` (Literal of STIX 2.1 §6.4 `account-type-ov`:
+  unix-account / windows-local / windows-domain / ldap / kerberos /
+  azure-ad / google-workspace / saas / service / other),
+  `is_privileged`, `is_service_account`, `identity_id` (optional
+  FK), `description`.
+- `AccountOnAsset` — `user_account_id`, `asset_id`, `first_seen`,
+  `last_seen`. Composite key (account, host); same login on two
+  hosts produces two edges.
+- `BusinessContext` extended with `user_accounts[]` and
+  `account_on_asset[]` (both default to empty list).
+
+#### `cmd/generate_user_accounts.py` (new CLI)
+
+Mirrors `generate_identity_assets.py`. Reads context.md or
+context.json, emits `output/user_accounts.json`. Same `--no-llm`
+JSON-only path. Output `_comment` directs the user to TRACE's
+`validate_user_accounts.py` (TRACE 1.3.0).
+
+#### Asset id normalization (Initiative A 0.11.1 lesson applied)
+
+`account_on_asset[*].asset_id` runs through the same
+`_normalize_asset_id` (`asset-` prefix) used by
+`assets_generator.py` and `identity_assets_generator.py`. Without
+this, TRACE's cross-ref would reject every edge as dangling. Test
+explicitly guards the normalization (`test_asset_id_normalized_to_asset_prefix`).
+
+#### LLM prompt extension
+
+`src/beacon/llm/prompts/context_structuring.md` adds:
+
+- `user_accounts[]` and `account_on_asset[]` to the schema block
+- "User Accounts / Login Accounts / Service Accounts" entry in the
+  Section Recognition Guide
+- New "User Accounts and Asset Mapping" mapping rules with
+  `account_type` inference, `is_privileged` / `is_service_account`
+  guidance, and the no-fabrication rule
+
+#### `context_template.{md,ja.md}` extension
+
+New "User Accounts" section with granularity guide, account /
+account-on-asset entry templates, and a worked 楽天Edy-style
+example.
+
+### Tests
+
+11 new cases in `tests/test_user_accounts_generator.py`:
+
+- empty-context emits empty arrays
+- single account / service account / privileged flags
+- AccountOnAsset edge with first_seen
+- asset_id normalization (`CA-005` → `asset-CA-005`)
+- already-prefixed pass-through
+- same login on two hosts → two edges
+- dangling user_account_id passes through (cross-ref is TRACE's job)
+- defaults
+
+All 286 tests pass; 0 vulnerabilities.
+
+### Pairing
+
+Requires TRACE 1.3.0 (validator + extractor) + SAGE 0.7.0 (schema +
+ingest + mapper) for end-to-end value. BEACON 0.12.0 standalone
+emits a valid artifact but no consumer until those land.
+
+---
+
 ## [0.11.1] — 2026-05-10
 
 ### Fixed — `identity_assets.json` asset_id normalization mismatch

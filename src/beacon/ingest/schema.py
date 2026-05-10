@@ -146,6 +146,60 @@ class HasAccess(BaseModel):
     revoked_at: str = ""  # ISO date; empty = active
 
 
+# ---------------------------------------------------------------------------
+# Initiative B — User-Account SCO (BEACON 0.12.0)
+# ---------------------------------------------------------------------------
+# Account-level granularity: individual login identifiers (alice@corp,
+# svc-jenkins, S-1-5-21-...) tied to Identity (1:N optional) and to host
+# Assets (AccountOnAsset edge). Sources: BEACON authoritative
+# (`source=beacon`) + TRACE CTI extraction (`source=trace`).
+# See docs/initiative_b_user_account.md §3 for the design rationale.
+
+
+class UserAccount(BaseModel):
+    """An individual login account on internal hosts.
+
+    ``account_type`` follows STIX 2.1 §6.4 ``account-type-ov`` values
+    plus a TRACE-side ``other`` fallback. Out-of-vocab values are
+    demoted to ``labels`` at the STIX emission stage (mirrors Initiative
+    A's identity_class handling).
+    """
+
+    id: str
+    account_login: str
+    display_name: str = ""
+    account_type: Literal[
+        "unix-account",
+        "windows-local",
+        "windows-domain",
+        "ldap",
+        "kerberos",
+        "azure-ad",
+        "google-workspace",
+        "saas",
+        "service",
+        "other",
+    ] = "other"
+    is_privileged: bool = False
+    is_service_account: bool = False
+    identity_id: str = ""  # optional FK to BusinessContext.identities[*].id
+    description: str = ""
+
+
+class AccountOnAsset(BaseModel):
+    """User-account ↔ host asset edge.
+
+    Composite key (user_account_id, asset_id). Same login on two hosts
+    yields two edges. Lifecycle dates (first_seen / last_seen) support
+    ISO/IEC 27001 A.5.16 identity lifecycle review.
+    """
+
+    user_account_id: str
+    asset_id: str
+    first_seen: str = ""  # ISO date or empty
+    last_seen: str = ""
+
+
 class RecentIncident(BaseModel):
     year: int
     type: str
@@ -167,3 +221,5 @@ class BusinessContext(BaseModel):
     recent_incidents: list[RecentIncident] = Field(default_factory=list)
     identities: list[Identity] = Field(default_factory=list)
     has_access: list[HasAccess] = Field(default_factory=list)
+    user_accounts: list[UserAccount] = Field(default_factory=list)
+    account_on_asset: list[AccountOnAsset] = Field(default_factory=list)

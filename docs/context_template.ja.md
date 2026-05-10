@@ -224,3 +224,100 @@ identity と asset の各ペアで、identity が認証を経た / 運用上の�
 - **access_level**: admin
 - **role**: 残高管理 DB DBA
 ```
+
+---
+
+## User Accounts
+
+> **このセクションの目的** — SAGE 0.7.0+ (Initiative B) は個別の
+> ログイン識別子を `UserAccount` ノードとしてグラフに保持し、host
+> `Asset` (`AccountOnAsset`) や `Identity`
+> (`UserAccountBelongsTo`) とエッジで接続する。Initiative A の
+> ロール-資産エッジより 1 階下の粒度: CTI レポートで
+> `alice@corp.example.com` が侵害されたと記述された際、アナリスト
+> はそのログインが有効な資産に 1 hop でピボットできる。
+>
+> 準拠フレームワーク: **NIST SP 800-53 IA-2/IA-4/AC-2、NIST SP
+> 800-63B、ISO/IEC 27001:2022 A.5.16/A.8.5、CIS Controls v8 #5**。
+> 経験的裏付け: Verizon DBIR 2025 (stolen credentials = #1
+> 初期侵入 22%)、CrowdStrike GTR 2025 (valid-account abuse = #1
+> cloud 攻撃ベクトル 35%)。
+
+### 粒度のガイド
+
+- **個別アカウント識別子単位**で記載 (`alice@corp.example.com`,
+  `root`, `svc-jenkins`, ドメイン SID 等)。同一ログインが複数ホスト
+  で有効な場合は `account_on_asset` を複数エントリに分けて書く。
+- **サービスアカウントも含める** — `svc-*`、`_jenkins`、
+  `nt service\\*`、自動化ユーザ等。`is_service_account: true`。
+- **特権アカウント** — root / Domain Admin / sudoers / 高権限の
+  サービスアカウント。`is_privileged: true` (CIS Controls v8 #5.4
+  が別管理を要求)。
+- **Identity への optional リンク** — `identities[]` の人/チームが
+  アカウントを所有する場合は `identity_id` をセット。共用 / 不明
+  アカウントは空欄で可。
+
+### アカウント entry
+
+`Critical Assets` 上で名前のある login ごとに 1 エントリ追加。
+
+### 1. [Account Login]
+- **id**: [短く安定した slug、例: `ua-alice-corp`, `ua-svc-jenkins`]
+- **account_login**: [認証時に使う login 文字列]
+- **display_name**: [任意の人間可読名]
+- **account_type**: [unix-account | windows-local | windows-domain | ldap | kerberos | azure-ad | google-workspace | saas | service | other]
+- **is_privileged**: [true | false]
+- **is_service_account**: [true | false]
+- **identity_id**: [任意 — "Identities" の `id` と一致]
+- **description**: [任意]
+
+### アカウント-on-アセット entry
+
+各 (account, host) ペアを記述。
+
+### 1. [Account → Asset]
+- **user_account_id**: [上記 "User Accounts" の `id` と一致]
+- **asset_id**: [上記 "Critical Assets" の `id` (例: `CA-005`; BEACON が `asset-CA-005` に正規化)]
+- **first_seen**: [任意の ISO 日付]
+- **last_seen**: [任意の ISO 日付 — 現役なら空欄]
+
+### セクションを空のままにする場合
+
+文書が個別アカウントを記述していない場合は、このセクション自体を
+省略してよい。**資産リストからアカウントを捏造しない** こと。
+`generate_user_accounts.py` は空 array を出力し、TRACE はそれを
+受け入れる。
+
+### 例 (抜粋)
+
+```markdown
+## User Accounts
+
+### 1. ua-payment-ops-admin
+- **id**: ua-payment-ops-admin
+- **account_login**: ops-admin
+- **account_type**: unix-account
+- **is_privileged**: true
+- **identity_id**: id-payment-ops
+- **description**: 決済処理サーバの運用保守用 root-equivalent
+
+### 2. ua-svc-edy-batch
+- **id**: ua-svc-edy-batch
+- **account_login**: svc-edy-batch
+- **account_type**: service
+- **is_privileged**: false
+- **is_service_account**: true
+- **description**: バッチ処理用サービスアカウント
+
+### 1. ua-payment-ops-admin → CA-001
+- **user_account_id**: ua-payment-ops-admin
+- **asset_id**: CA-001
+
+### 2. ua-svc-edy-batch → CA-001
+- **user_account_id**: ua-svc-edy-batch
+- **asset_id**: CA-001
+
+### 3. ua-svc-edy-batch → CA-002
+- **user_account_id**: ua-svc-edy-batch
+- **asset_id**: CA-002
+```
