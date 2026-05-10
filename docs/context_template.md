@@ -136,7 +136,7 @@ List past security incidents to help calibrate threat likelihood.
 
 ### Granularity guidance
 
-- **Default to roles, teams, and groups** (e.g. "電子マネー運用チーム",
+- **Default to roles, teams, and groups** (e.g. "業務システム運用チーム",
   "DBA Group", "CFO"). ISO/IEC 27001 A.5.18 explicitly recommends
   role-based access documentation. Most context.md docs do not name
   individuals.
@@ -175,7 +175,7 @@ and `asset_id` must point to entries you've already declared above.
   (e.g. `CA-001` — BEACON normalizes to `asset-CA-001`)]
 - **access_level**: [read | write | admin | deny]
 - **role**: [optional free-form per-edge label — e.g. "ERP admin",
-  "残高管理 DB 運用保守"]
+  "業務 DB 運用保守"]
 - **granted_at**: [optional ISO date — leave blank if unknown]
 - **revoked_at**: [optional ISO date — leave blank if still active]
 
@@ -206,30 +206,30 @@ list — `generate_identity_assets.py` will emit an empty
 ```markdown
 ## Identities and Access
 
-### 1. 電子マネーシステム部 運用保守エンジニアチーム
-- **id**: id-payment-ops
+### 1. 情報システム部 運用保守エンジニアチーム
+- **id**: id-platform-ops
 - **identity_class**: group
 - **sectors**: financial-services
 - **roles**: operations, maintenance
-- **description**: Edy 決済処理サーバの 24/7 運用保守
+- **description**: 主要業務サーバの 24/7 運用保守
 
 ### 2. データベース管理者グループ
 - **id**: id-dba
 - **identity_class**: group
 - **roles**: dba
-- **description**: 楽天 ID 連携 DB と残高管理 DB の DBA
+- **description**: ID 連携 DB と業務 DB の DBA
 
-### 1. id-payment-ops → CA-001
-- **identity_id**: id-payment-ops
+### 1. id-platform-ops → CA-001
+- **identity_id**: id-platform-ops
 - **asset_id**: CA-001
 - **access_level**: admin
-- **role**: 決済処理サーバ運用保守
+- **role**: 主要業務サーバ運用保守
 
 ### 2. id-dba → CA-002
 - **identity_id**: id-dba
 - **asset_id**: CA-002
 - **access_level**: admin
-- **role**: 残高管理 DB DBA
+- **role**: 業務 DB DBA
 ```
 
 ---
@@ -273,7 +273,7 @@ For each named login on `Critical Assets`, add an entry.
 - **id**: [short stable slug, e.g. `ua-alice-corp`, `ua-svc-jenkins`]
 - **account_login**: [exact login string used at authentication]
 - **display_name**: [optional human-readable name]
-- **account_type**: [unix-account | windows-local | windows-domain | ldap | kerberos | azure-ad | google-workspace | saas | service | other]
+- **account_type**: STIX 2.1 §6.4 ``account-type-ov`` only. Either empty (no spec value applies) or `unix` / `windows-local` / `windows-domain` / `ldap` / `tacacs` / `radius` / `nis` / `openid` / `facebook` / `skype` / `twitter` / `kavi`. For service accounts, leave `account_type` empty and set `is_service_account: true` instead
 - **is_privileged**: [true | false]
 - **is_service_account**: [true | false]
 - **identity_id**: [optional — must match an `id` from "Identities" above]
@@ -301,31 +301,31 @@ TRACE accepts.
 ```markdown
 ## User Accounts
 
-### 1. ua-payment-ops-admin
-- **id**: ua-payment-ops-admin
+### 1. ua-platform-ops-admin
+- **id**: ua-platform-ops-admin
 - **account_login**: ops-admin
-- **account_type**: unix-account
+- **account_type**: unix
 - **is_privileged**: true
-- **identity_id**: id-payment-ops
-- **description**: 決済処理サーバの運用保守用 root-equivalent
+- **identity_id**: id-platform-ops
+- **description**: 主要業務サーバの運用保守用 root-equivalent
 
-### 2. ua-svc-edy-batch
-- **id**: ua-svc-edy-batch
-- **account_login**: svc-edy-batch
-- **account_type**: service
+### 2. ua-svc-etl-batch
+- **id**: ua-svc-etl-batch
+- **account_login**: svc-etl-batch
+- **account_type**:
 - **is_privileged**: false
 - **is_service_account**: true
-- **description**: バッチ処理用サービスアカウント
+- **description**: バッチ処理用サービスアカウント (STIX OV に該当値なし → 空欄 + is_service_account=true)
 
-### 1. ua-payment-ops-admin → CA-001
-- **user_account_id**: ua-payment-ops-admin
+### 1. ua-platform-ops-admin → CA-001
+- **user_account_id**: ua-platform-ops-admin
 - **asset_id**: CA-001
 
-### 2. ua-svc-edy-batch → CA-001
-- **user_account_id**: ua-svc-edy-batch
+### 2. ua-svc-etl-batch → CA-001
+- **user_account_id**: ua-svc-etl-batch
 - **asset_id**: CA-001
 
-### 3. ua-svc-edy-batch → CA-002
-- **user_account_id**: ua-svc-edy-batch
+### 3. ua-svc-etl-batch → CA-002
+- **user_account_id**: ua-svc-etl-batch
 - **asset_id**: CA-002
 ```

@@ -39,8 +39,8 @@ different vocabulary.
 
 User-managed `BEACON/input/context.md` should rename any
 `identity_class: unspecified` to `identity_class: unknown`. The
-楽天Edy fixture in this repo had no such occurrence (verified by
-grep).
+in-house e-money pilot fixture in this repo had no such
+occurrence (verified by grep).
 
 Pairs with TRACE 1.4.3. SAGE 0.7.0 schema unchanged (DDL comment
 updated to STIX-canonical wording — no functional change since
@@ -173,8 +173,8 @@ explicitly guards the normalization (`test_asset_id_normalized_to_asset_prefix`)
 #### `context_template.{md,ja.md}` extension
 
 New "User Accounts" section with granularity guide, account /
-account-on-asset entry templates, and a worked 楽天Edy-style
-example.
+account-on-asset entry templates, and a worked example based on
+the in-house e-money pilot fixture.
 
 ### Tests
 
@@ -296,9 +296,9 @@ TRACE's `validate_identity_assets.py` before SAGE ingest.
   empty arrays when the section is absent).
 
 The expanded output stays within the existing 32k token budget
-(0.10.2): the 楽天Edy context produces ~7k chars of structured JSON
-even before this addition; identity sections add a few hundred
-chars per identity at most.
+(0.10.2): the in-house e-money pilot context produces ~7k chars
+of structured JSON even before this addition; identity sections
+add a few hundred chars per identity at most.
 
 #### `_comment` field on output
 
@@ -333,9 +333,10 @@ All 272 tests pass; 0 vulnerabilities.
 
 - Phase 2 (post-production data review): surface identities tagged
   `privileged` for PIR weighting in SAGE.
-- 楽天Edy `context.md` upgrade: add an "Identities and Access"
-  section so the next regeneration populates real edges (currently
-  the section is absent → empty arrays).
+- in-house e-money pilot `context.md` upgrade: add an
+  "Identities and Access" section so the next regeneration
+  populates real edges (currently the section is absent → empty
+  arrays).
 
 ---
 
@@ -343,8 +344,8 @@ All 272 tests pass; 0 vulnerabilities.
 
 ### Fixed — `context_structuring` JSON truncation on long ja-JP contexts
 
-`cmd/generate_assets.py` failed mid-pipeline against the 楽天Edy
-context.md (6619 chars input) with
+`cmd/generate_assets.py` failed mid-pipeline against the in-house
+e-money pilot context.md (6619 chars input) with
 `json.JSONDecodeError: Unterminated string`. The LLM emitted ~6890
 chars of valid JSON before the response cut off in the middle of an
 asset's `data_types` array — i.e. the response hit the
@@ -378,10 +379,10 @@ likelihood scoring), and we want to be able to expand or contract
 each independently without coupling them.
 
 Why default 32768: gemini-2.5-flash supports up to 65536 output
-tokens. context_structuring on the 楽天Edy context produces ~6k
-output tokens, so 32k gives ~5x headroom for context.md files that
-grow over time. We did not pick 65536 to keep latency / cost bounded
-on the common path.
+tokens. context_structuring on the in-house e-money pilot context
+produces ~6k output tokens, so 32k gives ~5x headroom for
+context.md files that grow over time. We did not pick 65536 to
+keep latency / cost bounded on the common path.
 
 ### Documented — `.env.example`
 

@@ -35,7 +35,7 @@ class TestSingleIdentity:
             identities=[
                 Identity(
                     id="id-finance-team",
-                    name="電子マネーシステム部 運用保守エンジニアチーム",
+                    name="情報システム部 運用保守エンジニアチーム",
                     identity_class="group",
                     sectors=["financial-services"],
                     roles=["operations", "maintenance"],
@@ -49,7 +49,7 @@ class TestSingleIdentity:
 
     def test_japanese_name_preserved(self):
         ident = self.result["identities"][0]
-        assert ident["name"].startswith("電子マネーシステム部")
+        assert ident["name"].startswith("情報システム部")
 
     def test_identity_class_passed_through(self):
         assert self.result["identities"][0]["identity_class"] == "group"
@@ -69,7 +69,7 @@ class TestSingleHasAccessEdge:
                     identity_id="id-finance-team",
                     asset_id="asset-CA-001",
                     access_level="admin",
-                    role="Edy Core Processing 運用保守",
+                    role="Core Processing 運用保守",
                     granted_at="2024-04-01",
                 )
             ],
@@ -84,7 +84,7 @@ class TestSingleHasAccessEdge:
         assert edge["identity_id"] == "id-finance-team"
         assert edge["asset_id"] == "asset-CA-001"
         assert edge["access_level"] == "admin"
-        assert edge["role"] == "Edy Core Processing 運用保守"
+        assert edge["role"] == "Core Processing 運用保守"
         assert edge["granted_at"] == "2024-04-01"
         assert edge["revoked_at"] == ""
 
