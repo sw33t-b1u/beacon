@@ -122,3 +122,112 @@ List past security incidents to help calibrate threat likelihood.
 ### 2. [Year]
 - **Type**: ...
 - **Impact**: ...
+
+---
+
+## Identities and Access
+
+> **Why this section matters** — SAGE 0.6.0+ stores identity-asset
+> access as a first-class graph edge (`HasAccess`). When a threat
+> actor compromises a role / team, analysts can pivot in one hop to
+> the assets at risk. Frameworks: **NIST SP 800-53 AC-2 / AC-3, NIST
+> SP 800-207 (Zero Trust), ISO/IEC 27001:2022 A.5.16 / A.5.18, CIS
+> Controls v8 #5 / #6**.
+
+### Granularity guidance
+
+- **Default to roles, teams, and groups** (e.g. "電子マネー運用チーム",
+  "DBA Group", "CFO"). ISO/IEC 27001 A.5.18 explicitly recommends
+  role-based access documentation. Most context.md docs do not name
+  individuals.
+- **Name individuals only when authoritatively known** and the
+  individual's mention is operationally meaningful (e.g. a single
+  named system owner). Avoid for privacy / staleness reasons.
+- **System / service accounts** belong here too (`identity_class:
+  system`) — list the automation user, the integration account, the
+  bot.
+
+### Identity entries
+
+For each role / team / individual / system that owns or operates
+listed `Critical Assets`, add an entry. Repeat for as many as apply.
+
+### 1. [Identity Name — preserve original language]
+- **id**: [short stable slug, e.g. `id-finance-team`, `id-cfo`,
+  `id-erp-admin`. Keep stable across regenerations.]
+- **identity_class**: [individual | group | system | organization | class | unspecified]
+- **sectors**: [optional STIX 2.1 §6.6 industry sectors — e.g. `financial-services`]
+- **roles**: [short job-function tags — e.g. `operations`, `dba`, `executive`, `auditor`]
+- **description**: [optional — what this identity does, scope, etc.]
+
+### 2. [Identity Name]
+- ...
+
+### Access entries (`has_access`)
+
+For each identity-asset pair where the identity has authenticated /
+operational access to the asset, add an entry. Both `identity_id`
+and `asset_id` must point to entries you've already declared above.
+
+### 1. [Identity → Asset]
+- **identity_id**: [must match an `id` from "Identities" above]
+- **asset_id**: [must match an `id` from "Critical Assets" above
+  (e.g. `CA-001` — BEACON normalizes to `asset-CA-001`)]
+- **access_level**: [read | write | admin | deny]
+- **role**: [optional free-form per-edge label — e.g. "ERP admin",
+  "残高管理 DB 運用保守"]
+- **granted_at**: [optional ISO date — leave blank if unknown]
+- **revoked_at**: [optional ISO date — leave blank if still active]
+
+### 2. [Identity → Asset]
+- ...
+
+### Inferring `access_level` from prose
+
+When the document language is ambiguous, use these mappings:
+
+| Document language | access_level |
+|---|---|
+| "operates", "maintains", "管理者", "運用保守", root / superuser | `admin` |
+| "updates", "modifies", "登録", "編集" | `write` |
+| "reviews", "monitors", "閲覧", "参照" | `read` |
+| explicit prohibition (rare) | `deny` |
+
+### When to leave the section empty
+
+If the document does not describe role-asset access relationships
+(e.g. early-stage context with only assets listed), leave the
+section out entirely. Do **not** invent identities from the asset
+list — `generate_identity_assets.py` will emit an empty
+`identity_assets.json` artifact, which TRACE accepts.
+
+### Example (excerpt)
+
+```markdown
+## Identities and Access
+
+### 1. 電子マネーシステム部 運用保守エンジニアチーム
+- **id**: id-payment-ops
+- **identity_class**: group
+- **sectors**: financial-services
+- **roles**: operations, maintenance
+- **description**: Edy 決済処理サーバの 24/7 運用保守
+
+### 2. データベース管理者グループ
+- **id**: id-dba
+- **identity_class**: group
+- **roles**: dba
+- **description**: 楽天 ID 連携 DB と残高管理 DB の DBA
+
+### 1. id-payment-ops → CA-001
+- **identity_id**: id-payment-ops
+- **asset_id**: CA-001
+- **access_level**: admin
+- **role**: 決済処理サーバ運用保守
+
+### 2. id-dba → CA-002
+- **identity_id**: id-dba
+- **asset_id**: CA-002
+- **access_level**: admin
+- **role**: 残高管理 DB DBA
+```

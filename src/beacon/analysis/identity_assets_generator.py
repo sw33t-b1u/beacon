@@ -15,6 +15,7 @@ from typing import Any
 
 import structlog
 
+from beacon.analysis.assets_generator import _normalize_asset_id
 from beacon.ingest.schema import BusinessContext
 
 logger = structlog.get_logger(__name__)
@@ -40,10 +41,15 @@ def generate_identity_assets_json(ctx: BusinessContext) -> dict[str, Any]:
         for ident in ctx.identities
     ]
 
+    # Apply the same `asset-` prefix normalization that `assets_generator`
+    # does so the two artifacts share a single id form. Without this,
+    # TRACE's validate_identity_assets cross-ref check fails (the assets
+    # file carries `asset-CA-001` but identity_assets.json kept the raw
+    # `CA-001` from the LLM extraction). 0.11.1 fix.
     has_access = [
         {
             "identity_id": ha.identity_id,
-            "asset_id": ha.asset_id,
+            "asset_id": _normalize_asset_id(ha.asset_id),
             "access_level": ha.access_level,
             "role": ha.role,
             "granted_at": ha.granted_at,

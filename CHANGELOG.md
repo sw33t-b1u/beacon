@@ -6,6 +6,37 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [0.11.1] — 2026-05-10
+
+### Fixed — `identity_assets.json` asset_id normalization mismatch
+
+E2E verification of Initiative A surfaced that
+`identity_assets_generator.py` was emitting `has_access[*].asset_id`
+in the LLM-extracted raw form (e.g. ``CA-001``) while
+`assets_generator.py` normalizes the same id to ``asset-CA-001`` via
+`_normalize_asset_id`. TRACE 1.1.0+ validate_identity_assets
+performs string-equality cross-reference between the two artifacts,
+so every `has_access` edge was rejected as a dangling reference.
+
+The fix imports `_normalize_asset_id` from `assets_generator` and
+applies it in the identity_assets builder. Both BEACON outputs now
+share a single id form (`asset-<original>`); the TRACE cross-ref
+check resolves cleanly; SAGE's `load_identity_assets` continues to
+re-normalize defensively for inputs from other sources (idempotent).
+
+### Tests
+
+3 new cases in `tests/test_identity_assets_generator.py::TestAssetIdNormalization`:
+
+- raw `CA-001` gets `asset-` prefix
+- already-prefixed id passes through unchanged
+- output is idempotent under repeat normalization (SAGE's defense
+  layer doesn't double-prefix)
+
+All 275 tests pass; 0 vulnerabilities.
+
+---
+
 ## [0.11.0] — 2026-05-10
 
 ### Added — Initiative A: Identity-Asset HasAccess artifact

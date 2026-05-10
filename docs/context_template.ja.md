@@ -117,3 +117,110 @@
 ### 2. [年]
 - **Type**: ...
 - **Impact**: ...
+
+---
+
+## Identities and Access
+
+> **このセクションの目的** — SAGE 0.6.0+ では identity-asset の
+> アクセス関係を first-class なグラフエッジ (`HasAccess`) として保持
+> する。脅威アクターがロール / チームを侵害した際、アナリストが 1 hop
+> でリスクのある資産にピボットできるようになる。準拠フレームワーク:
+> **NIST SP 800-53 AC-2 / AC-3、NIST SP 800-207 (Zero Trust)、
+> ISO/IEC 27001:2022 A.5.16 / A.5.18、CIS Controls v8 #5 / #6**。
+
+### 粒度のガイド
+
+- **デフォルトはロール / チーム / グループ単位** (例: "電子マネー
+  運用チーム", "DBA Group", "CFO")。ISO/IEC 27001 A.5.18 は role-
+  based なアクセス権文書化を推奨している。多くの context.md は
+  個人を名指しできない。
+- **個人を名指しするのは権威ある情報源があり、運用上意味がある場合のみ**
+  (単一の named system owner 等)。privacy / 鮮度の観点で原則回避。
+- **システム / サービスアカウント** もここに含める (`identity_class:
+  system`) — 自動化ユーザ、連携用アカウント、bot 等。
+
+### Identity エントリ
+
+`Critical Assets` を所有・運用する各ロール / チーム / 個人 / システム
+ごとに 1 エントリ追加。該当する分だけ繰り返す。
+
+### 1. [Identity 名 — 原文の言語をそのまま]
+- **id**: [短く安定した slug、例: `id-finance-team`、`id-cfo`、
+  `id-erp-admin`。再生成時にも変えないこと。]
+- **identity_class**: [individual | group | system | organization | class | unspecified]
+- **sectors**: [任意の STIX 2.1 §6.6 業種値 — 例: `financial-services`]
+- **roles**: [短い職能タグ — 例: `operations`, `dba`, `executive`, `auditor`]
+- **description**: [任意 — このアイデンティティが何をしているか、スコープ等]
+
+### 2. [Identity 名]
+- ...
+
+### Access エントリ (`has_access`)
+
+identity と asset の各ペアで、identity が認証を経た / 運用上のアクセス
+を持つ関係を記載。`identity_id` と `asset_id` は両方とも上で宣言済の
+エントリを指す必要がある。
+
+### 1. [Identity → Asset]
+- **identity_id**: [上記 "Identities" の `id` と一致]
+- **asset_id**: [上記 "Critical Assets" の `id` と一致 (例: `CA-001`
+  — BEACON が `asset-CA-001` に正規化)]
+- **access_level**: [read | write | admin | deny]
+- **role**: [任意のフリー形式エッジラベル — 例: "ERP admin",
+  "残高管理 DB 運用保守"]
+- **granted_at**: [任意の ISO 日付 — 不明なら空欄]
+- **revoked_at**: [任意の ISO 日付 — 現役なら空欄]
+
+### 2. [Identity → Asset]
+- ...
+
+### 文章から `access_level` を推定する
+
+文書の表現が曖昧な場合は以下のマッピングを使う:
+
+| 文書の表現 | access_level |
+|---|---|
+| "operates", "maintains", "管理者", "運用保守", root / superuser | `admin` |
+| "updates", "modifies", "登録", "編集" | `write` |
+| "reviews", "monitors", "閲覧", "参照" | `read` |
+| 明示的な禁止 (稀) | `deny` |
+
+### セクションを空のままにする場合
+
+文書がロール-asset アクセス関係を記述していない (例: 資産だけ列挙
+された初期コンテキスト) 場合は、このセクション自体を省略してよい。
+**資産リストから identities を捏造しない** こと。
+`generate_identity_assets.py` は空の `identity_assets.json` artifact
+を出力し、TRACE はそれを受け入れる。
+
+### 例 (抜粋)
+
+```markdown
+## Identities and Access
+
+### 1. 電子マネーシステム部 運用保守エンジニアチーム
+- **id**: id-payment-ops
+- **identity_class**: group
+- **sectors**: financial-services
+- **roles**: operations, maintenance
+- **description**: Edy 決済処理サーバの 24/7 運用保守
+
+### 2. データベース管理者グループ
+- **id**: id-dba
+- **identity_class**: group
+- **roles**: dba
+- **description**: 楽天 ID 連携 DB と残高管理 DB の DBA
+
+### 1. id-payment-ops → CA-001
+- **identity_id**: id-payment-ops
+- **asset_id**: CA-001
+- **access_level**: admin
+- **role**: 決済処理サーバ運用保守
+
+### 2. id-dba → CA-002
+- **identity_id**: id-dba
+- **asset_id**: CA-002
+- **access_level**: admin
+- **role**: 残高管理 DB DBA
+```

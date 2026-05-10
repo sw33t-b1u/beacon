@@ -127,3 +127,42 @@ class TestDefaults:
         assert edge["role"] == ""
         assert edge["granted_at"] == ""
         assert edge["revoked_at"] == ""
+
+
+class TestAssetIdNormalization:
+    """0.11.1: ``has_access[*].asset_id`` must share the
+    `asset-` prefix convention with ``assets.json``. Without this, the
+    TRACE validator's cross-reference check rejects every edge as a
+    dangling reference because LLM-extracted ids (``CA-001``) and
+    assets_generator-emitted ids (``asset-CA-001``) don't match.
+    """
+
+    def test_raw_ca_id_gets_asset_prefix(self):
+        ctx = _ctx(
+            identities=[Identity(id="id-x", name="X")],
+            has_access=[HasAccess(identity_id="id-x", asset_id="CA-001")],
+        )
+        result = generate_identity_assets_json(ctx)
+        assert result["has_access"][0]["asset_id"] == "asset-CA-001"
+
+    def test_already_prefixed_id_passes_through(self):
+        ctx = _ctx(
+            identities=[Identity(id="id-x", name="X")],
+            has_access=[HasAccess(identity_id="id-x", asset_id="asset-CA-001")],
+        )
+        result = generate_identity_assets_json(ctx)
+        assert result["has_access"][0]["asset_id"] == "asset-CA-001"
+
+    def test_idempotent_double_normalization(self):
+        # Belt-and-braces: SAGE's load_identity_assets also normalizes,
+        # so this artifact must be safe under repeat normalization.
+        ctx = _ctx(
+            identities=[Identity(id="id-x", name="X")],
+            has_access=[HasAccess(identity_id="id-x", asset_id="CA-007")],
+        )
+        result = generate_identity_assets_json(ctx)
+        from beacon.analysis.assets_generator import _normalize_asset_id
+
+        once = result["has_access"][0]["asset_id"]
+        twice = _normalize_asset_id(once)
+        assert once == twice == "asset-CA-007"
