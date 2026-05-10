@@ -159,27 +159,45 @@ class HasAccess(BaseModel):
 class UserAccount(BaseModel):
     """An individual login account on internal hosts.
 
-    ``account_type`` follows STIX 2.1 §6.4 ``account-type-ov`` values
-    plus a TRACE-side ``other`` fallback. Out-of-vocab values are
-    demoted to ``labels`` at the STIX emission stage (mirrors Initiative
-    A's identity_class handling).
+    ``account_type`` strictly follows STIX 2.1 §6.4 ``account-type-ov``.
+    Empty string is the documented default for "unspecified / no
+    suitable spec value". 0.12.1 dropped operationally-named extensions
+    (``service`` / ``other`` / ``unix-account`` / ``azure-ad`` etc) —
+    operational distinctions move to:
+
+    - ``is_service_account: bool`` (STIX 2.1 §6.4 native property) for
+      service / automation accounts.
+    - ``description`` for free-form context (e.g. "Azure AD tenant
+      contoso.onmicrosoft.com") when STIX has no suitable
+      ``account_type`` value.
+
+    Migration (existing user_accounts.json):
+    - ``unix-account`` → ``unix`` (rename to spec value)
+    - ``service`` → empty string + ensure ``is_service_account: true``
+    - ``other`` → empty string
+    - ``azure-ad`` / ``google-workspace`` / ``saas`` / ``kerberos`` →
+      empty string (STIX has no spec value); add note in
+      ``description``.
     """
 
     id: str
     account_login: str
     display_name: str = ""
     account_type: Literal[
-        "unix-account",
+        "",  # unspecified / no suitable STIX vocab value
+        "unix",
         "windows-local",
         "windows-domain",
         "ldap",
-        "kerberos",
-        "azure-ad",
-        "google-workspace",
-        "saas",
-        "service",
-        "other",
-    ] = "other"
+        "tacacs",
+        "radius",
+        "nis",
+        "openid",
+        "facebook",
+        "skype",
+        "twitter",
+        "kavi",
+    ] = ""
     is_privileged: bool = False
     is_service_account: bool = False
     identity_id: str = ""  # optional FK to BusinessContext.identities[*].id

@@ -6,6 +6,57 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [0.12.1] — 2026-05-10
+
+### Changed — `account_type` aligned to STIX 2.1 §6.4 ``account-type-ov`` strictly
+
+Initial 0.12.0 emitted operationally-named values (`service`,
+`unix-account`, `azure-ad`, `google-workspace`, `saas`,
+`kerberos`, `other`) that are not present in STIX 2.1 §6.4
+``account-type-ov``. The downstream STIX validator therefore
+issued one `{244}` warning per non-spec value at TRACE bundle
+emission time.
+
+We are committed to honouring the STIX vocabulary instead of
+extending it; otherwise the rationale for using STIX evaporates.
+
+`UserAccount.account_type` Pydantic Literal now restricts values
+to the canonical 12-member STIX OV plus empty string:
+
+```
+"" | unix | windows-local | windows-domain | ldap | tacacs |
+radius | nis | openid | facebook | skype | twitter | kavi
+```
+
+`""` is the default and represents *"no STIX value applies"*.
+Operational distinctions move to:
+
+- `is_service_account: bool` (STIX 2.1 §6.4 native property) for
+  service / automation accounts.
+- `description` for free-form context (e.g. "Azure AD tenant
+  contoso.onmicrosoft.com") when STIX has no suitable
+  `account_type` value.
+
+#### Migration (existing `user_accounts.json`)
+
+Hand-edit existing `BEACON/input/context.md` user-account entries:
+
+| Was | Becomes |
+|---|---|
+| `unix-account` | `unix` (rename to spec value) |
+| `service` | `""` + ensure `is_service_account: true` |
+| `other` | `""` |
+| `azure-ad` / `google-workspace` / `saas` / `kerberos` | `""`; add note in `description` |
+
+LLM prompt (`context_structuring.md`) updated to instruct the
+extractor to emit only STIX OV values or empty string.
+
+Pairs with TRACE 1.4.2 (matching extractor + bundle assembler).
+SAGE 0.7.0 schema is unchanged (STRING(64) accepts both OV
+values and NULL/empty).
+
+---
+
 ## [0.12.0] — 2026-05-10
 
 ### Added — Initiative B: User-Account SCO artifact

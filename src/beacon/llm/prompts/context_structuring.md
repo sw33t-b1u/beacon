@@ -106,7 +106,7 @@ Return ONLY valid JSON (no markdown fences, no explanation) with this exact stru
       "id": "string — short stable identifier (e.g. ua-alice-corp, ua-svc-jenkins)",
       "account_login": "string — full account login (alice@corp.example.com, root, svc-jenkins)",
       "display_name": "string — preserve original language",
-      "account_type": "one of: unix-account | windows-local | windows-domain | ldap | kerberos | azure-ad | google-workspace | saas | service | other",
+      "account_type": "STIX 2.1 §6.4 account-type-ov value: '' | unix | windows-local | windows-domain | ldap | tacacs | radius | nis | openid | facebook | skype | twitter | kavi",
       "is_privileged": false,
       "is_service_account": false,
       "identity_id": "string — optional, must match identities[].id when set",
@@ -230,13 +230,21 @@ principals) and the hosts each is valid on.
 - **account_login** — exact login string as it would appear at
   authentication (`alice@corp.example.com`, `root`,
   `S-1-5-21-…`).
-- **account_type** — infer from context:
-  - `unix-account` — root, daemon, named *nix logins
+- **account_type** — STIX 2.1 §6.4 ``account-type-ov`` only.
+  Permitted values: `""` (empty), `unix`, `windows-local`,
+  `windows-domain`, `ldap`, `tacacs`, `radius`, `nis`, `openid`,
+  `facebook`, `skype`, `twitter`, `kavi`. Use:
+  - `unix` — root, daemon, named *nix logins
   - `windows-local` — host-local Windows accounts
   - `windows-domain` — `DOMAIN\\user` or `user@domain.local`
-  - `azure-ad` — `user@tenant.onmicrosoft.com` etc.
-  - `service` — automation / CI / pipeline accounts
-  - `other` — fallback when ambiguous
+  - `ldap` — directory-bound POSIX/UNIX or generic LDAP accounts
+  - `openid` — OIDC-federated accounts
+  - **Empty string** when no STIX value applies (Azure AD,
+    Google Workspace, Kerberos, generic SaaS, automation /
+    pipeline accounts, ambiguous cases). Do NOT invent
+    extension values like `azure-ad` or `service` — surface
+    those distinctions via `is_service_account` and
+    `description` instead.
 - **is_privileged** — true for root/admin/Domain Admin/sudoers/
   highly-privileged service accounts. Default false.
 - **is_service_account** — true when the account is non-human

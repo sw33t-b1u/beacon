@@ -68,7 +68,7 @@ class TestServiceAccount:
                 UserAccount(
                     id="ua-svc-jenkins",
                     account_login="svc-jenkins",
-                    account_type="service",
+                    account_type="",  # 0.12.1: no STIX OV value matches generic service
                     is_privileged=True,
                     is_service_account=True,
                 )
@@ -125,7 +125,7 @@ class TestSameLoginMultipleHosts:
                 UserAccount(
                     id="ua-root",
                     account_login="root",
-                    account_type="unix-account",
+                    account_type="unix",
                 )
             ],
             account_on_asset=[
@@ -167,7 +167,7 @@ class TestDefaults:
         result = generate_user_accounts_json(ctx)
         ua = result["user_accounts"][0]
         assert ua["display_name"] == ""
-        assert ua["account_type"] == "other"
+        assert ua["account_type"] == ""  # 0.12.1 strict STIX OV: empty default
         assert ua["is_privileged"] is False
         assert ua["is_service_account"] is False
         assert ua["identity_id"] == ""
