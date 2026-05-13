@@ -17,6 +17,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
   markdown + `--no-llm` `NotImplementedError` message. The combination is
   intentionally unsupported (no future-implementation plan), so the
   Phase-2 marker only added confusion.
+- `docs/triggers.{md,ja.md}`: 2026 annual review of the 7 business trigger
+  citations against the expanded `ref/` corpus. Fixed three citation
+  defects (T1 `cloud_dependency` M-Trends paraphrase not grep-verifiable;
+  T3 `third_party_dependency` IBM "15% of breaches" not in IBM CoDB 2025
+  and likely confused with DBIR prior-year stat; T6 `sectoral_high_risk`
+  CrowdStrike sector list mismatch and dropped "China-nexus" qualifier).
+  Added Dragos 2026 OT Cybersecurity Year in Review as the primary T2
+  citation; added ENISA Finance Sectoral, International AI Safety Report
+  2026, and Trend Micro AI-fication 2026 as additional T6 / T7 citations.
+  No source-code or detection-logic change.
 
 ## [0.12.2] — 2026-05-10
 

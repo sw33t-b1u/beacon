@@ -57,8 +57,8 @@ projects[*].cloud_providers が非空
   「クラウド資産の migration / moving / expansion における優先考慮事項」。
 - *CrowdStrike Global Threat Report 2025* — cloud intrusions YoY +26%、
   valid account abuse 35%（cloud 系の最多侵入手法）。
-- *Mandiant M-Trends 2026* — IAM 設定ミス、cross-environment ラテラル
-  ムーブメントが繰り返し言及。
+- *Mandiant M-Trends 2026* — Mandiant の 2025 年調査における cloud 関連
+  侵害では、初期侵入手法の最頻は voice phishing (23%)、次いで第三者経由侵害。
 - *IBM Cost of a Data Breach Report 2025* — multi-environment データ分散が
   コスト増幅要因。
 
@@ -85,6 +85,10 @@ supply_chain.ot_connectivity == True
 - *NIST SP 800-82 Rev 3 — Guide to Operational Technology (OT) Security*
   (2023) §1.2 — "OT ネットワークと広域接続網の統合の加速… 新規サイバー
   リスク"。
+- *Dragos 2026 OT Cybersecurity Year in Review (9th Annual)* — 2025 年に
+  119 の ransomware グループが 3,300+ の産業組織に影響 (2024 年は 1,693
+  攻撃)。新たに OT 特化の脅威グループ (AZURITE / PYROXENE / SYLVANITE)
+  を 3 件 identify。
 - *ENISA Threat Landscape 2025* — OT 脅威は全脅威カテゴリの 18.2%。
 - *IEC 62443 — Industrial Communication Networks Security* — IT/OT ゾーン
   分離の国際標準。
@@ -110,8 +114,9 @@ supply_chain.critical_vendors が非空
   しばしば多層サプライヤを含む」。
 - *Verizon Data Breach Investigations Report 2025* — 第三者関与が breach
   の 30%、前年の 15% から倍増。
-- *IBM Cost of a Data Breach Report 2025* — 第三者 / サプライチェーン侵害
-  約 15%、検出に最長（約 9 ヶ月）。
+- *IBM Cost of a Data Breach Report 2025* — 第三者ベンダー / サプライ
+  チェーン侵害は平均 breach コスト USD 4.91 million、検出・封じ込めに
+  最長で 267 日 (≈ 9 ヶ月)。
 - *Executive Order 14028 — Improving the Nation's Cybersecurity* — ソフト
   ウェアサプライチェーンを連邦サイバー優先事項として正式化。
 
@@ -191,10 +196,16 @@ organization.industry in {finance, healthcare, energy, manufacturing,
 - *ENISA Threat Landscape 2025* セクター分析（公共行政 38%、製造 59% は
   サイバー犯罪由来）。
 - *Verizon DBIR 2025* 業種別 breakdown。
-- *CrowdStrike Global Threat Report 2025* — 技術 / 金融 / 製造 / 小売で
-  侵入 YoY +200〜300%。
+- *CrowdStrike Global Threat Report 2025* — 金融 / メディア / 製造 /
+  industrials and engineering の 4 sector で China-nexus 侵入が YoY
+  +200〜300%。政府 / 技術 / 通信 (China-nexus トップ 3 ターゲット) は
+  YoY 約 +50%。
+- *ENISA Threat Landscape: Finance Sector (Jan 2023 – Jun 2024)* — finance
+  は EU で 3 番目に標的化されたセクター (公共行政・運輸に次ぐ)。2023 年
+  の NIS 重大インシデント報告のうち 12% が EU finance sector。
 - *ENISA Sectoral Threat Landscapes*（公共行政・エネルギー・医療・運輸・
-  通信）。
+  通信 — 公共行政 / Finance のみ `ref/` に保持。エネルギー / 医療 /
+  運輸 / 通信は次版発行時に追加）。
 
 **更新頻度:** 年次。ENISA / Verizon / CrowdStrike の翌年版発行時に経験的
 交集合を再計算し、変動があれば本書と定数を同一 commit で更新。
@@ -223,10 +234,18 @@ AI/ML キーワード（EN+JA）が以下のいずれかに出現:
 - *IBM Cost of a Data Breach Report 2025* — shadow AI が breach コスト
   平均に $670K 上乗せ、breach 組織の 63% が AI ガバナンスポリシー欠如、
   AI 関連 breach の 97% でアクセス制御欠如。
+- *International AI Safety Report 2026* (chair Y. Bengio) — AI システム
+  が実環境のサイバー攻撃で使用される事例が増加。2025 年に 12 社が
+  Frontier AI Safety Frameworks を公開／更新したが、リスク管理コミット
+  メントの大半は依然 voluntary。
 - *CrowdStrike Global Threat Report 2025* — vishing が H1→H2 2024 で
   +442%、AI 駆動。AI 生成 phishing の量産。
 - *ENISA Threat Landscape 2025* — 2025 年初頭時点で AI 支援 phishing
   キャンペーンが世界の社会的工学攻撃観測の 80% 超。
+- *Trend Micro Security Predictions for 2026 — The AI-fication of
+  Cyberthreats* — ransomware は AI 駆動の完全自動化オペレーションへ進化
+  すると予測、cloud-native phishing は email / SMS / voice / AI-driven
+  tactics の混合形態に。
 
 **Limitations:** AI の存在を flag するが、ガバナンスの不在を
 直接検出するものではなく、score 上昇は予防的（opportunistic）。

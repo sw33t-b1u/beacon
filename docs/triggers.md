@@ -56,8 +56,9 @@ projects[*].cloud_providers non-empty
   considerations… when migrating, moving, or expanding their cloud estates."
 - *CrowdStrike Global Threat Report 2025* — cloud intrusions +26% YoY; valid
   account abuse 35% of cloud incidents (top vector).
-- *Mandiant M-Trends 2026* — IAM misconfigurations and cross-environment
-  lateral movement as recurring themes.
+- *Mandiant M-Trends 2026* — for cloud-related compromises in Mandiant's
+  2025 investigations, voice phishing was the most common initial infection
+  vector (23%), followed by third-party compromise.
 - *IBM Cost of a Data Breach Report 2025* — multi-environment data
   distribution as cost amplifier.
 
@@ -84,6 +85,10 @@ supply_chain.ot_connectivity == True
 - *NIST SP 800-82 Rev 3 — Guide to Operational Technology (OT) Security*
   (2023) §1.2 — "increasing pace of integration between OT networks and
   broader connected networks… new cybersecurity risks."
+- *Dragos 2026 OT Cybersecurity Year in Review (9th Annual)* — tracked
+  119 ransomware groups impacting over 3,300 industrial organisations in
+  2025 (compared with 1,693 attacks in 2024); three new OT-specific threat
+  groups (AZURITE, PYROXENE, SYLVANITE) named in 2025.
 - *ENISA Threat Landscape 2025* — operational technology threats account for
   18.2% of all identified threat categories.
 - *IEC 62443 — Industrial Communication Networks Security* — international
@@ -110,8 +115,9 @@ supply_chain.critical_vendors non-empty
   involving multiple tiers of suppliers."
 - *Verizon Data Breach Investigations Report 2025* — third-party involvement
   in 30% of breaches, doubled from 15% in the prior report.
-- *IBM Cost of a Data Breach Report 2025* — third-party / supply-chain
-  compromises ≈ 15% of breaches; took the longest to detect (≈ 9 months).
+- *IBM Cost of a Data Breach Report 2025* — third-party vendor and supply
+  chain compromise had a USD 4.91 million average breach cost and took the
+  longest to identify and contain at 267 days (≈ 9 months).
 - *Executive Order 14028 — Improving the Nation's Cybersecurity* — formalised
   software supply chain as a federal cyber priority.
 
@@ -197,10 +203,19 @@ intersection of:
 - *ENISA Threat Landscape 2025* sectoral analysis (public administration 38%
   of incidents; manufacturing 59% cybercriminal).
 - *Verizon DBIR 2025* industry breakdowns.
-- *CrowdStrike Global Threat Report 2025* — technology, financial services,
-  manufacturing, retail experiencing 200–300% YoY intrusion increases.
+- *CrowdStrike Global Threat Report 2025* — financial services, media,
+  manufacturing, and industrials and engineering sectors experiencing
+  200–300% YoY increases in observed China-nexus intrusions; government,
+  technology, and telecommunications (the top-3 China-nexus targets) saw
+  ≈ 50% YoY increases.
+- *ENISA Threat Landscape: Finance Sector (Jan 2023 – Jun 2024)* — finance
+  was the third-most-targeted EU sector (after public administration and
+  transport); 12% of NIS-significant incidents reported in 2023 affected
+  the European finance sector.
 - *ENISA Sectoral Threat Landscapes* (Public Administration, Energy, Health,
-  Transport, Telecom).
+  Transport, Telecom — Public Administration and Finance are the two
+  sectoral reports currently in `ref/`; Energy / Health / Transport / Telecom
+  remain to be added as their volumes are reissued).
 
 **Update cadence:** annually, when ENISA / Verizon / CrowdStrike publish
 their next-year reports. If the empirical intersection changes, update the
@@ -231,11 +246,19 @@ documents.
 - *IBM Cost of a Data Breach Report 2025* — shadow AI added $670K to average
   breach cost; 63% of breached organisations lacked AI governance policies;
   97% of AI-related breaches involved missing access controls.
+- *International AI Safety Report 2026* (chair Y. Bengio) — more evidence
+  has emerged of AI systems being used in real-world cyberattacks; in 2025,
+  12 companies published or updated Frontier AI Safety Frameworks but most
+  risk-management commitments remain voluntary.
 - *CrowdStrike Global Threat Report 2025* — vishing operations grew 442%
   H1→H2 2024, AI-driven; AI-generated phishing at scale.
 - *ENISA Threat Landscape 2025* — by early 2025, AI-supported phishing
   campaigns represented more than 80% of observed social engineering activity
   worldwide.
+- *Trend Micro Security Predictions for 2026 — The AI-fication of
+  Cyberthreats* — ransomware predicted to evolve into AI-driven, fully
+  automated operations; cloud-native phishing campaigns blending email,
+  SMS, voice, and AI-driven tactics.
 
 **Limitations:** the trigger flags AI presence, not absence of governance —
 the score elevation is opportunistic. A future revision could AND the AI
