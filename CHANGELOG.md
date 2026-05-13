@@ -8,6 +8,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ## [Unreleased]
 
+## [0.12.3] — 2026-05-13
+
 ### Added
 
 - `Makefile` target `check-pir-schema-drift`: compares `schema/pir_output.schema.json`
