@@ -231,6 +231,47 @@ class RecentIncident(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# BEACON 0.14.0 — three additional business triggers
+# ---------------------------------------------------------------------------
+# Optional posture / continuity / IAM-maturity blocks consumed by
+# element_extractor._detect_triggers. All fields default to safe values so
+# existing 0.13.x BusinessContext payloads remain valid without migration.
+# See docs/triggers.md §8–§10 for definitions and ref/ citations.
+
+
+class GeopoliticalExposure(BaseModel):
+    """Geographic exposure to high-risk geopolitical zones."""
+
+    headquartered_country: str | None = None  # ISO 3166-1 alpha-2
+    operational_countries: list[str] = Field(default_factory=list)
+    primary_customer_regions: list[str] = Field(default_factory=list)
+    supply_chain_origin_regions: list[str] = Field(default_factory=list)
+
+
+class BusinessContinuity(BaseModel):
+    """Backup / IR-plan / recovery-test posture for the ransomware
+    resilience gap trigger."""
+
+    backup_strategy_documented: bool = False
+    backup_offsite_or_immutable: bool = False
+    incident_response_plan_documented: bool = False
+    recovery_test_cadence_days: int | None = None  # None = no testing
+    rto_target_hours: int | None = None
+    rpo_target_hours: int | None = None
+
+
+class IdentityManagement(BaseModel):
+    """MFA / PIM-PAM / SSO / helpdesk-auth posture for the
+    identity_credential_exposure trigger."""
+
+    mfa_coverage_percent: int | None = None  # 0-100
+    privileged_account_count: int | None = None
+    pim_or_pam_deployed: bool = False
+    sso_coverage_percent: int | None = None
+    helpdesk_authentication_documented: bool = False
+
+
+# ---------------------------------------------------------------------------
 # Top-level model
 # ---------------------------------------------------------------------------
 
@@ -247,3 +288,9 @@ class BusinessContext(BaseModel):
     has_access: list[HasAccess] = Field(default_factory=list)
     user_accounts: list[UserAccount] = Field(default_factory=list)
     account_on_asset: list[AccountOnAsset] = Field(default_factory=list)
+    # BEACON 0.14.0 — optional posture blocks feeding the three new triggers
+    # (geopolitical_exposure / ransomware_resilience_gap / identity_credential_exposure).
+    # All None by default to preserve backwards compatibility with 0.13.x payloads.
+    geopolitical_exposure: GeopoliticalExposure | None = None
+    business_continuity: BusinessContinuity | None = None
+    identity_management: IdentityManagement | None = None

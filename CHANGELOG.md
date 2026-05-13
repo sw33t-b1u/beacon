@@ -8,6 +8,60 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ## [Unreleased]
 
+## [0.14.0] — 2026-05-13
+
+### Added — three new business triggers (BEACON now has 10)
+
+- `geopolitical_exposure` — fires when the organisation has HQ,
+  operational presence, customer base, or supply-chain origin in a
+  high-risk geopolitical zone (UA / RU / IL / PS / TW / CN / IR / KP /
+  SY / YE). Backed by `GeopoliticalExposure` nested Pydantic model on
+  `BusinessContext`. Absent block = no signal (does not fire). See
+  `docs/triggers.md` §8 for the per-citation breakdown (CrowdStrike
+  GTR 2025 / Cloudflare 2026 / IOCTA 2026 / INTERPOL ASP 2025-2026 /
+  M-Trends 2026 Regional Breakouts).
+- `ransomware_resilience_gap` — fires when the organisation cannot
+  demonstrate ransomware-recovery readiness (missing backup posture /
+  IR plan / fresh recovery test). Backed by `BusinessContinuity`
+  nested model with `recovery_test_cadence_days ≤ 180` threshold.
+  Absent block = conservative gap (fires). See `docs/triggers.md` §9
+  (ENISA ETL 2025 / M-Trends 2026 "Ransomware is Now a Resilience
+  Problem" / IBM CoDB 2025 / Dragos 2026 / CrowdStrike GTR 2025).
+- `identity_credential_exposure` — fires when MFA coverage <95% OR
+  PIM/PAM absent OR helpdesk authentication undocumented. Backed by
+  `IdentityManagement` nested model. Absent block = conservative gap
+  (fires). See `docs/triggers.md` §10 (CrowdStrike GTR 2025 valid
+  account abuse 35% + vishing 442% / M-Trends 2026 cloud-vishing 23%
+  / IOCTA 2026 IAB chapter / APWG Q4 2025 BEC).
+- `HIGH_RISK_GEOPOLITICAL_ZONES` ISO 3166-1 alpha-2 frozenset (10
+  entries) added to `src/beacon/analysis/element_extractor.py` with
+  per-country rationale comments.
+- `docs/triggers.md` + `docs/triggers.ja.md` extended with §8 / §9 /
+  §10 sections including verbatim ref/ citations (file path + line
+  number for each quote). Update procedure §1 now references the
+  wider corpus (Cloudflare / IOCTA / APWG added) and a new step §4
+  requires ref/-cited rationale for any `HIGH_RISK_GEOPOLITICAL_ZONES`
+  revision.
+- `schema/business_context.schema.json` regenerated to reflect the
+  three new optional nested models on `BusinessContext`.
+- `tests/test_element_extractor.py`: 18 new trigger cases across the
+  three new triggers (default-fires-or-not, positive, boundary)
+  plus 2 regression tests for the `_compute_likelihood` cap-5 boost
+  rule with 10 active triggers.
+
+### Notes
+
+- Existing 0.13.x `context.json` payloads remain valid — all new
+  schema fields are optional with safe defaults. The two new
+  conservative-by-default triggers (`ransomware_resilience_gap`,
+  `identity_credential_exposure`) WILL fire on legacy payloads that
+  omit the new blocks; this is intentional (undocumented posture is
+  treated as elevated risk per M-Trends 2026 framing).
+- No existing trigger is removed or modified. `_HIGH_RISK_SECTORS`
+  unchanged.
+- Likelihood boost is still "+1 if any trigger fires, capped at 5".
+  The cap holds with 10 triggers active and is regression-tested.
+
 ## [0.13.0] — 2026-05-13
 
 ### Added — Initiative C Phase 2 producer side

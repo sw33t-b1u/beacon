@@ -38,6 +38,31 @@ _HIGH_RISK_SECTORS: frozenset[str] = frozenset(
     }
 )
 
+# ISO 3166-1 alpha-2 codes for the geopolitical exposure trigger (BEACON 0.14.0).
+# Sourced from the empirical intersection of active conflict zones and
+# state-sponsored cyber activity in the 2025-2026 reporting window:
+# CrowdStrike GTR 2025 (China-nexus +150%, key sectors +200-300%);
+# Cloudflare 2026 Threat Report (state-sponsored pre-positioning chapter);
+# IOCTA 2026 (Russian-speaking cybercrime ecosystems); INTERPOL ASP 2025/2026
+# (Taiwan / regional ASP exposure); M-Trends 2026 Regional Breakouts chapter.
+# See docs/triggers.md §8 for the per-citation breakdown. This set is a
+# judgement-laden constant — extension requires explicit re-review against
+# the ref/ corpus.
+HIGH_RISK_GEOPOLITICAL_ZONES: frozenset[str] = frozenset(
+    {
+        "UA",  # Ukraine — active conflict zone, Russia-nexus targeting
+        "RU",  # Russia — sanctions exposure, cybercriminal ecosystem nexus
+        "IL",  # Israel — active conflict, state-nexus targeting
+        "PS",  # Palestinian Territories — active conflict
+        "TW",  # Taiwan — China-nexus pre-positioning (Cloudflare 2026)
+        "CN",  # China — CCP-nexus state activity hub
+        "IR",  # Iran — state-sponsored activity / sanctions exposure
+        "KP",  # North Korea — DPRK-nexus state activity
+        "SY",  # Syria — conflict zone
+        "YE",  # Yemen — conflict zone
+    }
+)
+
 logger = structlog.get_logger(__name__)
 
 
@@ -272,6 +297,31 @@ def _detect_triggers(ctx: BusinessContext, cloud_providers: list[str]) -> list[s
     if _detect_ai_adoption(ctx):
         triggers.append("ai_adoption_exposure")
 
+    # 8. geopolitical_exposure — operates in / supplies / sells into a
+    #    high-risk geopolitical zone. CrowdStrike GTR 2025 (China-nexus
+    #    +150%); Cloudflare 2026 (state-sponsored pre-positioning); IOCTA
+    #    2026 (Russian-speaking ecosystems); INTERPOL ASP 2025/2026;
+    #    M-Trends 2026 Regional Breakouts. See docs/triggers.md §8.
+    if _detect_geopolitical_exposure(ctx):
+        triggers.append("geopolitical_exposure")
+
+    # 9. ransomware_resilience_gap — backup / IR / recovery-test posture is
+    #    absent or incomplete. ENISA ETL 2025 (ransomware 83.9% of
+    #    cybercrime); M-Trends 2026 ("Ransomware is Now a Resilience
+    #    Problem"); IBM CoDB 2025 ($5.08M ransomware breach cost); Dragos
+    #    2026 (119 ransomware groups, 3,300+ industrial victims).
+    #    See docs/triggers.md §9. Absent block = conservative gap=True.
+    if _detect_ransomware_resilience_gap(ctx):
+        triggers.append("ransomware_resilience_gap")
+
+    # 10. identity_credential_exposure — MFA / PIM-PAM / helpdesk-auth
+    #     maturity gap. CrowdStrike GTR 2025 (valid account abuse 35%,
+    #     vishing +442%); M-Trends 2026 (vishing 23% cloud initial access);
+    #     IOCTA 2026 (IAB ecosystem); APWG Q4 2025 (BEC).
+    #     See docs/triggers.md §10. Absent block = conservative gap=True.
+    if _detect_identity_credential_exposure(ctx):
+        triggers.append("identity_credential_exposure")
+
     return _dedup(triggers)
 
 
@@ -293,3 +343,54 @@ def _detect_ai_adoption(ctx: BusinessContext) -> bool:
         haystacks.append(proj.name)
         haystacks.extend(proj.data_types)
     return _matches_any_keyword(haystacks, _AI_ADOPTION_KEYWORDS)
+
+
+def _detect_geopolitical_exposure(ctx: BusinessContext) -> bool:
+    """Fire when any declared geographic touch-point intersects
+    HIGH_RISK_GEOPOLITICAL_ZONES. Returns False when the optional block
+    is absent (no information = no signal; conservative for this trigger
+    because false positives based on absence are not actionable).
+    """
+    geo = ctx.geopolitical_exposure
+    if geo is None:
+        return False
+    all_regions: set[str] = set()
+    if geo.headquartered_country:
+        all_regions.add(geo.headquartered_country)
+    all_regions.update(c for c in geo.operational_countries if c)
+    all_regions.update(c for c in geo.primary_customer_regions if c)
+    all_regions.update(c for c in geo.supply_chain_origin_regions if c)
+    return bool(all_regions & HIGH_RISK_GEOPOLITICAL_ZONES)
+
+
+def _detect_ransomware_resilience_gap(ctx: BusinessContext) -> bool:
+    """Fire when the org cannot demonstrate ransomware recovery readiness.
+    Absent block = gap (conservative — undocumented posture is treated
+    as elevated risk per M-Trends 2026 ``Ransomware is Now a Resilience
+    Problem``). Threshold: recovery test cadence within the last 180 days.
+    """
+    bc = ctx.business_continuity
+    if bc is None:
+        return True
+    cadence = bc.recovery_test_cadence_days
+    cadence_ok = cadence is not None and 0 < cadence <= 180
+    return not (
+        bc.backup_strategy_documented
+        and bc.backup_offsite_or_immutable
+        and bc.incident_response_plan_documented
+        and cadence_ok
+    )
+
+
+def _detect_identity_credential_exposure(ctx: BusinessContext) -> bool:
+    """Fire when MFA coverage <95% OR PIM/PAM absent OR helpdesk
+    authentication undocumented. Absent block = gap (conservative —
+    undocumented IAM posture is the empirical baseline for credential
+    abuse / vishing / IAB-driven initial access per CrowdStrike GTR 2025).
+    """
+    im = ctx.identity_management
+    if im is None:
+        return True
+    mfa = im.mfa_coverage_percent
+    mfa_gap = mfa is None or mfa < 95
+    return mfa_gap or not im.pim_or_pam_deployed or not im.helpdesk_authentication_documented

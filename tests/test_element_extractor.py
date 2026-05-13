@@ -142,6 +142,261 @@ class TestTriggerDetection:
         assert len(elements.active_triggers) == len(set(elements.active_triggers))
 
 
+class TestGeopoliticalExposureTrigger:
+    """0.14.0 trigger 8 — fires when any declared geographic touch-point
+    is in HIGH_RISK_GEOPOLITICAL_ZONES. Absent block = no signal (does
+    NOT fire). See docs/triggers.md §8."""
+
+    def _base_ctx(self):
+        from beacon.ingest.schema import BusinessContext, Organization
+
+        return BusinessContext(organization=Organization(name="X", industry="other"))
+
+    def test_absent_block_does_not_fire(self):
+        elements = extract(self._base_ctx())
+        assert "geopolitical_exposure" not in elements.active_triggers
+
+    def test_hq_in_high_risk_zone_fires(self):
+        from beacon.ingest.schema import GeopoliticalExposure
+
+        ctx = self._base_ctx()
+        ctx.geopolitical_exposure = GeopoliticalExposure(headquartered_country="UA")
+        assert "geopolitical_exposure" in extract(ctx).active_triggers
+
+    def test_operational_country_in_zone_fires(self):
+        from beacon.ingest.schema import GeopoliticalExposure
+
+        ctx = self._base_ctx()
+        ctx.geopolitical_exposure = GeopoliticalExposure(
+            headquartered_country="JP",
+            operational_countries=["TW"],
+        )
+        assert "geopolitical_exposure" in extract(ctx).active_triggers
+
+    def test_supply_chain_origin_in_zone_fires(self):
+        from beacon.ingest.schema import GeopoliticalExposure
+
+        ctx = self._base_ctx()
+        ctx.geopolitical_exposure = GeopoliticalExposure(
+            headquartered_country="JP",
+            supply_chain_origin_regions=["CN"],
+        )
+        assert "geopolitical_exposure" in extract(ctx).active_triggers
+
+    def test_all_low_risk_countries_does_not_fire(self):
+        from beacon.ingest.schema import GeopoliticalExposure
+
+        ctx = self._base_ctx()
+        ctx.geopolitical_exposure = GeopoliticalExposure(
+            headquartered_country="JP",
+            operational_countries=["US", "DE"],
+            primary_customer_regions=["GB"],
+            supply_chain_origin_regions=["KR"],
+        )
+        assert "geopolitical_exposure" not in extract(ctx).active_triggers
+
+
+class TestRansomwareResilienceGapTrigger:
+    """0.14.0 trigger 9 — fires when business_continuity is absent OR
+    when any one of (backup_strategy_documented, backup_offsite_or_immutable,
+    incident_response_plan_documented, recovery_test_cadence within 180
+    days) is missing. Absent block = conservative gap=True. See
+    docs/triggers.md §9."""
+
+    def _base_ctx(self):
+        from beacon.ingest.schema import BusinessContext, Organization
+
+        return BusinessContext(organization=Organization(name="X", industry="other"))
+
+    def test_absent_block_fires_conservatively(self):
+        elements = extract(self._base_ctx())
+        assert "ransomware_resilience_gap" in elements.active_triggers
+
+    def test_fully_documented_posture_does_not_fire(self):
+        from beacon.ingest.schema import BusinessContinuity
+
+        ctx = self._base_ctx()
+        ctx.business_continuity = BusinessContinuity(
+            backup_strategy_documented=True,
+            backup_offsite_or_immutable=True,
+            incident_response_plan_documented=True,
+            recovery_test_cadence_days=90,
+        )
+        assert "ransomware_resilience_gap" not in extract(ctx).active_triggers
+
+    def test_missing_offsite_backup_fires(self):
+        from beacon.ingest.schema import BusinessContinuity
+
+        ctx = self._base_ctx()
+        ctx.business_continuity = BusinessContinuity(
+            backup_strategy_documented=True,
+            backup_offsite_or_immutable=False,
+            incident_response_plan_documented=True,
+            recovery_test_cadence_days=90,
+        )
+        assert "ransomware_resilience_gap" in extract(ctx).active_triggers
+
+    def test_stale_recovery_test_fires(self):
+        from beacon.ingest.schema import BusinessContinuity
+
+        ctx = self._base_ctx()
+        ctx.business_continuity = BusinessContinuity(
+            backup_strategy_documented=True,
+            backup_offsite_or_immutable=True,
+            incident_response_plan_documented=True,
+            recovery_test_cadence_days=365,  # > 180 day threshold
+        )
+        assert "ransomware_resilience_gap" in extract(ctx).active_triggers
+
+    def test_boundary_recovery_cadence_exactly_180_does_not_fire(self):
+        from beacon.ingest.schema import BusinessContinuity
+
+        ctx = self._base_ctx()
+        ctx.business_continuity = BusinessContinuity(
+            backup_strategy_documented=True,
+            backup_offsite_or_immutable=True,
+            incident_response_plan_documented=True,
+            recovery_test_cadence_days=180,
+        )
+        assert "ransomware_resilience_gap" not in extract(ctx).active_triggers
+
+    def test_missing_ir_plan_fires(self):
+        from beacon.ingest.schema import BusinessContinuity
+
+        ctx = self._base_ctx()
+        ctx.business_continuity = BusinessContinuity(
+            backup_strategy_documented=True,
+            backup_offsite_or_immutable=True,
+            incident_response_plan_documented=False,
+            recovery_test_cadence_days=90,
+        )
+        assert "ransomware_resilience_gap" in extract(ctx).active_triggers
+
+
+class TestIdentityCredentialExposureTrigger:
+    """0.14.0 trigger 10 — fires when identity_management is absent OR
+    MFA coverage <95% OR PIM/PAM absent OR helpdesk-auth undocumented.
+    Absent block = conservative gap=True. See docs/triggers.md §10."""
+
+    def _base_ctx(self):
+        from beacon.ingest.schema import BusinessContext, Organization
+
+        return BusinessContext(organization=Organization(name="X", industry="other"))
+
+    def test_absent_block_fires_conservatively(self):
+        elements = extract(self._base_ctx())
+        assert "identity_credential_exposure" in elements.active_triggers
+
+    def test_fully_mature_iam_does_not_fire(self):
+        from beacon.ingest.schema import IdentityManagement
+
+        ctx = self._base_ctx()
+        ctx.identity_management = IdentityManagement(
+            mfa_coverage_percent=100,
+            pim_or_pam_deployed=True,
+            helpdesk_authentication_documented=True,
+        )
+        assert "identity_credential_exposure" not in extract(ctx).active_triggers
+
+    def test_low_mfa_coverage_fires(self):
+        from beacon.ingest.schema import IdentityManagement
+
+        ctx = self._base_ctx()
+        ctx.identity_management = IdentityManagement(
+            mfa_coverage_percent=80,
+            pim_or_pam_deployed=True,
+            helpdesk_authentication_documented=True,
+        )
+        assert "identity_credential_exposure" in extract(ctx).active_triggers
+
+    def test_boundary_mfa_at_95_does_not_fire(self):
+        from beacon.ingest.schema import IdentityManagement
+
+        ctx = self._base_ctx()
+        ctx.identity_management = IdentityManagement(
+            mfa_coverage_percent=95,
+            pim_or_pam_deployed=True,
+            helpdesk_authentication_documented=True,
+        )
+        assert "identity_credential_exposure" not in extract(ctx).active_triggers
+
+    def test_boundary_mfa_at_94_fires(self):
+        from beacon.ingest.schema import IdentityManagement
+
+        ctx = self._base_ctx()
+        ctx.identity_management = IdentityManagement(
+            mfa_coverage_percent=94,
+            pim_or_pam_deployed=True,
+            helpdesk_authentication_documented=True,
+        )
+        assert "identity_credential_exposure" in extract(ctx).active_triggers
+
+    def test_missing_pim_pam_fires(self):
+        from beacon.ingest.schema import IdentityManagement
+
+        ctx = self._base_ctx()
+        ctx.identity_management = IdentityManagement(
+            mfa_coverage_percent=100,
+            pim_or_pam_deployed=False,
+            helpdesk_authentication_documented=True,
+        )
+        assert "identity_credential_exposure" in extract(ctx).active_triggers
+
+    def test_undocumented_helpdesk_auth_fires(self):
+        from beacon.ingest.schema import IdentityManagement
+
+        ctx = self._base_ctx()
+        ctx.identity_management = IdentityManagement(
+            mfa_coverage_percent=100,
+            pim_or_pam_deployed=True,
+            helpdesk_authentication_documented=False,
+        )
+        assert "identity_credential_exposure" in extract(ctx).active_triggers
+
+
+class TestLikelihoodCapWithTenTriggers:
+    """0.14.0 regression — the +1-if-any-trigger / cap-5 likelihood boost
+    must remain intact even when all ten triggers fire. Verifies the
+    risk_scorer never returns likelihood > 5."""
+
+    def test_likelihood_capped_at_5_with_many_triggers(self):
+        from beacon.analysis.risk_scorer import _compute_likelihood
+        from beacon.analysis.threat_mapper import ThreatProfile
+
+        # 3 matched categories → base=4; trigger present → +1; cap at 5
+        threat = ThreatProfile(
+            threat_actor_tags=["t1", "t2", "t3"],
+            notable_groups=[],
+            priority_ttps=[],
+            active_triggers=[f"trigger_{i}" for i in range(10)],
+            matched_categories=["a", "b", "c"],
+        )
+        likelihood = _compute_likelihood(elements=None, threat=threat)
+        assert likelihood == 5
+
+    def test_likelihood_boost_is_single_not_per_trigger(self):
+        from beacon.analysis.risk_scorer import _compute_likelihood
+        from beacon.analysis.threat_mapper import ThreatProfile
+
+        # 0 matched categories → base=1; any trigger → +1 (single, not per-trigger)
+        one_trigger = ThreatProfile(
+            threat_actor_tags=[],
+            notable_groups=[],
+            priority_ttps=[],
+            active_triggers=["only_one"],
+            matched_categories=[],
+        )
+        ten_triggers = ThreatProfile(
+            threat_actor_tags=[],
+            notable_groups=[],
+            priority_ttps=[],
+            active_triggers=[f"t_{i}" for i in range(10)],
+            matched_categories=[],
+        )
+        assert _compute_likelihood(elements=None, threat=one_trigger) == 2
+        assert _compute_likelihood(elements=None, threat=ten_triggers) == 2
+
+
 class TestDedup:
     def test_completed_project_excluded(self):
         ctx = _load_ctx("sample_context_manufacturing.json")

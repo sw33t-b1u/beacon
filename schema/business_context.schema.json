@@ -29,6 +29,64 @@
       "title": "AccountOnAsset",
       "type": "object"
     },
+    "BusinessContinuity": {
+      "description": "Backup / IR-plan / recovery-test posture for the ransomware\nresilience gap trigger.",
+      "properties": {
+        "backup_strategy_documented": {
+          "default": false,
+          "title": "Backup Strategy Documented",
+          "type": "boolean"
+        },
+        "backup_offsite_or_immutable": {
+          "default": false,
+          "title": "Backup Offsite Or Immutable",
+          "type": "boolean"
+        },
+        "incident_response_plan_documented": {
+          "default": false,
+          "title": "Incident Response Plan Documented",
+          "type": "boolean"
+        },
+        "recovery_test_cadence_days": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Recovery Test Cadence Days"
+        },
+        "rto_target_hours": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rto Target Hours"
+        },
+        "rpo_target_hours": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rpo Target Hours"
+        }
+      },
+      "title": "BusinessContinuity",
+      "type": "object"
+    },
     "CriticalAsset": {
       "description": "Detailed technical asset record — from the Critical Assets section of context.md.",
       "properties": {
@@ -185,6 +243,46 @@
       "title": "CrownJewel",
       "type": "object"
     },
+    "GeopoliticalExposure": {
+      "description": "Geographic exposure to high-risk geopolitical zones.",
+      "properties": {
+        "headquartered_country": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Headquartered Country"
+        },
+        "operational_countries": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Operational Countries",
+          "type": "array"
+        },
+        "primary_customer_regions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Primary Customer Regions",
+          "type": "array"
+        },
+        "supply_chain_origin_regions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Supply Chain Origin Regions",
+          "type": "array"
+        }
+      },
+      "title": "GeopoliticalExposure",
+      "type": "object"
+    },
     "HasAccess": {
       "description": "Identity-to-asset access edge.\n\n``identity_id`` references an entry in ``BusinessContext.identities``;\n``asset_id`` references ``CriticalAsset.id`` (cross-file reference is\nenforced by TRACE's validate_identity_assets, not here).",
       "properties": {
@@ -291,6 +389,59 @@
         "name"
       ],
       "title": "Identity",
+      "type": "object"
+    },
+    "IdentityManagement": {
+      "description": "MFA / PIM-PAM / SSO / helpdesk-auth posture for the\nidentity_credential_exposure trigger.",
+      "properties": {
+        "mfa_coverage_percent": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mfa Coverage Percent"
+        },
+        "privileged_account_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Privileged Account Count"
+        },
+        "pim_or_pam_deployed": {
+          "default": false,
+          "title": "Pim Or Pam Deployed",
+          "type": "boolean"
+        },
+        "sso_coverage_percent": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sso Coverage Percent"
+        },
+        "helpdesk_authentication_documented": {
+          "default": false,
+          "title": "Helpdesk Authentication Documented",
+          "type": "boolean"
+        }
+      },
+      "title": "IdentityManagement",
       "type": "object"
     },
     "Organization": {
@@ -670,6 +821,39 @@
       },
       "title": "Account On Asset",
       "type": "array"
+    },
+    "geopolitical_exposure": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GeopoliticalExposure"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "business_continuity": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BusinessContinuity"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "identity_management": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/IdentityManagement"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": [

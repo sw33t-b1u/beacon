@@ -21,7 +21,7 @@ Significant Changes to the Environment of Operation*:
 > that cause a predefined organizational reaction) for both ongoing
 > authorization and reauthorization."
 
-BEACON の 7 トリガーは、BusinessContext スキーマで検出可能な範囲における
+BEACON の 10 トリガーは、BusinessContext スキーマで検出可能な範囲における
 significant change の **business-level 列挙**である。各トリガーは以下の
 いずれかで裏付けられる:
 
@@ -31,11 +31,11 @@ significant change の **business-level 列挙**である。各トリガーは�
 トリガーは **記述的**（組織がその状態にあると記録）かつ **規範的**
 （likelihood に +1、intelligence level を `tactical` → `operational` に
 昇格）である。NIST SP 800-37 R2 は trigger 間の重み差別化を規定して
-いないため、BEACON も 7 トリガーを **対称**に扱う。
+いないため、BEACON も 10 トリガーを **対称**に扱う。
 
 ---
 
-## 7 つのトリガー
+## 10 のトリガー
 
 ### 1. `cloud_dependency`
 
@@ -254,9 +254,176 @@ AI/ML キーワード（EN+JA）が以下のいずれかに出現:
 
 ---
 
+### 8. `geopolitical_exposure`
+
+**定義:** 組織が高リスク地政学ゾーンに本社・運用拠点・主要顧客地域・
+サプライチェーン origin を持つことで、国家関連・nexus・紛争波及型
+サイバー活動への曝露が上昇している。
+
+**検出:**
+
+```
+HIGH_RISK_GEOPOLITICAL_ZONES に以下のいずれかが含まれる:
+  geopolitical_exposure.headquartered_country
+  OR geopolitical_exposure.operational_countries の任意要素
+  OR geopolitical_exposure.primary_customer_regions の任意要素
+  OR geopolitical_exposure.supply_chain_origin_regions の任意要素
+```
+
+`HIGH_RISK_GEOPOLITICAL_ZONES` は ISO 3166-1 alpha-2 コードの frozenset:
+`{UA, RU, IL, PS, TW, CN, IR, KP, SY, YE}`。2025-2026 reporting window 中の
+紛争ゾーンと state-sponsored サイバー活動拠点の交差を経験的に抽出。
+集合の拡張・改訂は ref/ コーパスに対する明示的な再 review が必要 —
+politically judgemental な constant である。
+
+ブロック未指定（`geopolitical_exposure is None`）の場合、本 trigger は
+**fire しない**。下記 §9 / §10 とは対照的に「情報なし = 高リスク」と
+扱うのは false-positive が actionable でないため。
+
+**出典**
+
+- *CrowdStrike Global Threat Report 2025* — "China-nexus activity surged
+  150% overall, with some targeted industries suffering 200% to 300% more
+  attacks than the previous year"（`ref/CrowdStrikeGlobalThreatReport2025.md`
+  63-65 行目）。同 922-923 行: "financial services, media, manufacturing,
+  and industrials and engineering sectors, which all experienced 200-300%
+  increases in observed China-nexus intrusions"。
+- *Cloudflare 2026 Threat Report* — "geopolitical leverage"
+  （`ref/Cloudflare-2026-threat-report.md` 77 行）、"highly sophisticated
+  state-sponsored pre-positioning"（1591 行）。
+- *IOCTA 2026 (Europol)* — Russia-based / Russian-speaking cybercrime
+  ecosystems を全編に記述; Initial Access Brokers エコシステム章は
+  `ref/IOCTA-2026.md` 921 行。
+- *INTERPOL Asia and South Pacific Cyber Threat Assessment 2025/2026* —
+  ASP 地政学的曝露専用 regional CTI
+  （`ref/CYBER_ASP Cyber Threat Assessment Report_2025_2026_v4.md`）。
+- *Mandiant M-Trends 2026* — "Regional Breakouts" 章（Americas / EMEA /
+  JAPAC）が regional differential を扱う。
+
+**Limitations:**
+
+- 高リスクゾーン集合は judgement call。EU 加盟国の NIS2 wartime advisory
+  下や US 重要インフラなど edge case は集合に含まれない。
+- HQ 在所・顧客所在・サプライチェーン所在の semantic は本来異なる
+  （能動曝露 vs 受動曝露）が、現状は対称に扱っている。差別重みは
+  将来 revision 候補。
+- 集合の拡張・改訂は同じ ref/ コーパスを参照することで、経験的根拠から
+  political judgement への drift を回避する。
+
+---
+
+### 9. `ransomware_resilience_gap`
+
+**定義:** 組織が ransomware 復旧 readiness を `backup_strategy` /
+`incident_response_plan` / `recovery_test_cadence` で示せない状態。
+2025-2026 reporting window では ransomware はほぼ普遍的脅威であり、
+resilience evidence を持たない組織は侵入された際の business
+continuity impact が桁違いに大きい。
+
+**検出:**
+
+```
+business_continuity is None
+  OR NOT (backup_strategy_documented
+          AND backup_offsite_or_immutable
+          AND incident_response_plan_documented
+          AND 0 < recovery_test_cadence_days <= 180)
+```
+
+ブロック未指定（`business_continuity is None`）→ trigger **fire**
+（保守的: undocumented = 高リスク扱い、M-Trends 2026 "Ransomware is Now
+a Resilience Problem" の framing に従う）。180 日 recovery-test cadence
+threshold は NIST SP 800-34 / ISO 22301 の plan-testing currency 推奨に
+近似。
+
+**出典**
+
+- *ENISA Threat Landscape 2025* — "ransomware accounting for 83.9% and
+  data breaches 16.1% of cybercrime incidents"
+  （`ref/ENISA_Threat_Landscape_2025_v1.2.md` 730 行）。同 EU 切り口
+  931 行: "ransomware (81.1%) and data breaches (15.2%)"。
+- *Mandiant M-Trends 2026* — "In 44% of Mandiant's 2025 investigations,
+  the intrusion"（`ref/m-trends-2026-en.md` 1270 行）、章 "Ransomware
+  is Now a Resilience Problem"（TOC 25 行）— 本 trigger 命名の直接根拠。
+- *IBM Cost of a Data Breach Report 2025* — ransomware "hit USD 5.08
+  million in this year's report"
+  （`ref/20250822_Cost-of-a-Data-Breach-Report-2025.md` 51 行）。
+- *Dragos 2026 OT Cybersecurity Year in Review* — "Dragos tracked 119
+  ransomware groups targeting industrial organizations"
+  （`ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md` 1641
+  行）; 2024 年の 1,693 件から 2025 年の 3,300+ 件へほぼ 2 倍化。
+- *CrowdStrike Global Threat Report 2025* — eCrime / ransomware-as-a-service
+  ecosystem を全編で扱う。
+
+**Limitations:**
+
+- "documented" は self-report で gaming されやすい。verifiable signal
+  （backup SaaS ベンダーの導入有無、ISO 22301 認証）への置換が将来 revision
+  候補。
+- 180 日 cadence threshold は rule-of-thumb。ISO 22301 / NIST SP 800-34
+  は単一数値を規定しておらず、180 は両者の中央値近似。
+- 「ブロック未指定 = gap」は false positive を生む。schema に
+  `unknown` enum を追加して "情報なし" と "documented gap" を区別する
+  ことが将来検討候補。
+
+---
+
+### 10. `identity_credential_exposure`
+
+**定義:** 組織の identity / credential 管理成熟度が低い状態 — MFA
+カバレッジ gap・PIM/PAM 不在・helpdesk authentication 未文書化 — により
+access-broker・valid account abuse・vishing・BEC への曝露が上昇する。
+
+**検出:**
+
+```
+identity_management is None
+  OR mfa_coverage_percent < 95
+  OR NOT pim_or_pam_deployed
+  OR NOT helpdesk_authentication_documented
+```
+
+ブロック未指定（`identity_management is None`）→ trigger **fire**
+（保守的: undocumented IAM 姿勢は経験的に credential abuse / vishing /
+IAB 主導 initial access の baseline）。95% MFA カバレッジ threshold は
+CISA Shields Up guidance / NIST SP 800-63B / CIS Controls v8 IG2 で示される
+"near-universal" 水準に対応。
+
+**出典**
+
+- *CrowdStrike Global Threat Report 2025* — "Meanwhile, valid account
+  abuse was responsible for 35%"（cloud incidents の 35%）
+  （`ref/CrowdStrikeGlobalThreatReport2025.md` 284 行）; vishing growth
+  "up 442% between the first and second half of 2024"（58 行）;
+  access broker 広告 "increased 50% year-over-year"。
+- *Mandiant M-Trends 2026* — "cloud-related compromises was voice
+  phishing, at 23%, followed by third-party compromise"
+  （`ref/m-trends-2026-en.md` 1609 行）。
+- *IOCTA 2026 (Europol)* — Initial Access Brokers エコシステム章
+  （`ref/IOCTA-2026.md` 921 行）; Scattered Spider / ShinyHunters /
+  LAPSUS$ を IAB として記述（1062 行）。
+- *APWG Q4 2025 Trends Report* — Fortra "tracks the identity theft
+  technique known as 'business e-mail compromise'"
+  （`ref/apwg_trends_report_q4_2025.md` 594 行）; phishing と impersonation
+  "accounted for 86 percent of all confirmed threats"（311 行）。
+
+**Limitations:**
+
+- 95% MFA カバレッジ threshold は rule-of-thumb で、authoritative source
+  は単一数値を規定していない。90-94% の組織は engagement 単位で analyst
+  judgement を要する borderline ケース。
+- Helpdesk authentication の強化は recent best practice（UNC3944 vishing
+  mitigation）で標準化途上。"documented" boolean は coarse。
+- BEC は trigger source というより impact magnifier の側面が強い。
+  cause-side と impact-side のシグナル分離が将来 refinement 候補。
+- ブロック未指定 = gap 扱いは §9 と同じ false positive risk を持つ。
+  `unknown` enum 拡張も同様に適用可能。
+
+---
+
 ## 重み付け
 
-7 トリガーすべて対称に risk scoring に寄与する:
+10 トリガーすべて対称に risk scoring に寄与する:
 
 | 効果 | 機構 |
 |------|------|
@@ -275,16 +442,21 @@ AI/ML キーワード（EN+JA）が以下のいずれかに出現:
 ## 更新手順
 
 1. **年次（Q1）に**最新の ENISA Threat Landscape / Verizon DBIR / IBM
-   Cost of a Data Breach / CrowdStrike GTR / Mandiant M-Trends を再読する。
-   trigger の primary citation が成立しなくなった、または独立 ≥2 報告
-   に新しい経験的支持を持つ trigger が出現した場合は、citation 付きで
-   改訂を提案する。
-2. **BusinessContext スキーマ変更時には**、各 trigger が依然として構造的
-   検出パスを持つかを確認する。参照フィールドが削除されると、trigger
-   は再配線または廃止のいずれかが必要。
+   Cost of a Data Breach / CrowdStrike GTR / Mandiant M-Trends /
+   Cloudflare Threat Report / IOCTA / APWG を再読する。trigger の
+   primary citation が成立しなくなった、または独立 ≥2 報告に新しい
+   経験的支持を持つ trigger が出現した場合は、citation 付きで改訂を
+   提案する。
+2. **BusinessContext スキーマ変更時には**、10 trigger すべてが依然として
+   構造的検出パスを持つかを確認する。参照フィールドが削除されると、
+   trigger は再配線または廃止のいずれかが必要。
 3. **trigger の変更はすべて本書と `docs/triggers.md` の両方を同一
    commit で更新**し、`tests/test_element_extractor.py` の該当ケースも
    併せて更新すること。
+4. **`HIGH_RISK_GEOPOLITICAL_ZONES` の改訂**は、追加・削除する国ごとに
+   ref/ コーパスの具体的根拠（CrowdStrike GTR / Cloudflare 国家主体章 /
+   IOCTA 地域エコシステムなど）を citation すること。集合は経験的根拠で
+   定まる constant であり、規範的判断ではない。
 
 ---
 

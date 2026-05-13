@@ -20,7 +20,7 @@ Significant Changes to the Environment of Operation*:
 > that cause a predefined organizational reaction) for both ongoing
 > authorization and reauthorization."
 
-BEACON's seven triggers are a **business-level enumeration** of significant
+BEACON's ten triggers are a **business-level enumeration** of significant
 changes that BEACON can detect from the BusinessContext schema. Each is
 corroborated by either a long-standing standard (NIST/ISO/IEC/SEC/EU) or by
 two or more independent past-12-month incident-response reports.
@@ -28,12 +28,12 @@ two or more independent past-12-month incident-response reports.
 A trigger is **descriptive** (records that the org is in this state) and
 **prescriptive** (contributes +1 to risk likelihood and escalates intelligence
 level from `tactical` to `operational`). NIST SP 800-37 R2 does not
-differentiate event-driven trigger weights; BEACON treats all seven
+differentiate event-driven trigger weights; BEACON treats all ten
 symmetrically.
 
 ---
 
-## The seven triggers
+## The ten triggers
 
 ### 1. `cloud_dependency`
 
@@ -266,9 +266,190 @@ signal with regulatory_context lacking AI-governance keywords.
 
 ---
 
+### 8. `geopolitical_exposure`
+
+**Definition:** the organisation has headquarters, operational presence,
+customer base, or supply-chain origin in a high-risk geopolitical zone —
+elevating exposure to state-sponsored, nexus, or conflict-spillover
+cyber activity.
+
+**Detection:**
+
+```
+any(value in HIGH_RISK_GEOPOLITICAL_ZONES for value in (
+    geopolitical_exposure.headquartered_country,
+    *geopolitical_exposure.operational_countries,
+    *geopolitical_exposure.primary_customer_regions,
+    *geopolitical_exposure.supply_chain_origin_regions,
+))
+```
+
+`HIGH_RISK_GEOPOLITICAL_ZONES` is a frozenset of ISO 3166-1 alpha-2 codes:
+`{UA, RU, IL, PS, TW, CN, IR, KP, SY, YE}`. The set is sourced from the
+intersection of active-conflict zones and state-sponsored cyber-activity
+hubs in the 2025-2026 reporting window. Extension requires explicit
+re-review against the ref/ corpus — it is a judgement-laden constant.
+
+Absent block (`geopolitical_exposure is None`) → trigger does **not** fire.
+Unlike the two resilience triggers below, lack-of-information here is not
+treated as elevated risk (false positives based on missing region data
+are not actionable).
+
+**Citations**
+
+- *CrowdStrike Global Threat Report 2025* — "China-nexus activity surged
+  150% overall, with some targeted industries suffering 200% to 300% more
+  attacks than the previous year" (`ref/CrowdStrikeGlobalThreatReport2025.md`
+  line 63-65). Same report, line 922-923: "financial services, media,
+  manufacturing, and industrials and engineering sectors, which all
+  experienced 200-300% increases in observed China-nexus intrusions".
+- *Cloudflare 2026 Threat Report* — "geopolitical leverage"
+  (`ref/Cloudflare-2026-threat-report.md` line 77); same report,
+  "highly sophisticated state-sponsored pre-positioning" (line 1591).
+- *IOCTA 2026 (Europol)* — Russia-based / Russian-speaking cybercrime
+  ecosystems are documented across the report; Initial Access Brokers
+  ecosystem chapter at `ref/IOCTA-2026.md` line 921.
+- *INTERPOL Asia and South Pacific Cyber Threat Assessment 2025/2026* —
+  regional CTI dedicated to ASP geopolitical exposure
+  (`ref/CYBER_ASP Cyber Threat Assessment Report_2025_2026_v4.md`).
+- *Mandiant M-Trends 2026* — "Regional Breakouts" chapter (Americas /
+  EMEA / JAPAC) covering regional differentials.
+
+**Limitations:**
+
+- The high-risk zone set is a judgement call. Edge cases (e.g. EU under
+  NIS2 wartime advisory, US critical infrastructure) are not in the set.
+- HQ-in-zone vs customer-in-zone vs supply-chain-in-zone have different
+  risk semantics (active vs passive exposure) but are currently treated
+  symmetrically. Differential weighting is a future-revision candidate.
+- Set extension or revision should reference the same ref/ corpus to
+  avoid drift from empirical evidence into political judgement.
+
+---
+
+### 9. `ransomware_resilience_gap`
+
+**Definition:** the organisation cannot demonstrate ransomware-recovery
+readiness — `backup_strategy` / `incident_response_plan` /
+`recovery_test_cadence` are missing, undocumented, or stale.
+Ransomware is empirically near-universal in the 2025-2026 reporting
+window; orgs without resilience evidence face an order-of-magnitude
+larger business-continuity impact when (not if) they are hit.
+
+**Detection:**
+
+```
+business_continuity is None
+  OR NOT (backup_strategy_documented
+          AND backup_offsite_or_immutable
+          AND incident_response_plan_documented
+          AND 0 < recovery_test_cadence_days <= 180)
+```
+
+Absent block (`business_continuity is None`) → trigger **fires**
+(conservative: undocumented posture is treated as elevated risk, per the
+M-Trends 2026 "Ransomware is Now a Resilience Problem" framing). The
+180-day recovery-test cadence threshold approximates the NIST SP 800-34 /
+ISO 22301 cadence for plan-testing currency.
+
+**Citations**
+
+- *ENISA Threat Landscape 2025* — "ransomware accounting for 83.9% and
+  data breaches 16.1% of cybercrime incidents"
+  (`ref/ENISA_Threat_Landscape_2025_v1.2.md` line 730). Same report, EU
+  cut: "ransomware (81.1%) and data breaches (15.2%)" (line 931).
+- *Mandiant M-Trends 2026* — "In 44% of Mandiant's 2025 investigations,
+  the intrusion" (`ref/m-trends-2026-en.md` line 1270); chapter
+  "Ransomware is Now a Resilience Problem" (TOC entry line 25), which
+  is the direct naming source for this trigger.
+- *IBM Cost of a Data Breach Report 2025* — ransomware "hit USD 5.08
+  million in this year's report"
+  (`ref/20250822_Cost-of-a-Data-Breach-Report-2025.md` line 51).
+- *Dragos 2026 OT Cybersecurity Year in Review* — "Dragos tracked 119
+  ransomware groups targeting industrial organizations"
+  (`ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md` line
+  1641); same report documents the ~2x year-over-year increase from
+  1,693 attacks in 2024 to over 3,300 industrial victims in 2025.
+- *CrowdStrike Global Threat Report 2025* — eCrime / ransomware-as-a-service
+  ecosystem documented throughout (`ref/CrowdStrikeGlobalThreatReport2025.md`).
+
+**Limitations:**
+
+- "documented" is self-reported and gameable. Verifiable signals (backup
+  SaaS vendor, ISO 22301 certification) would harden the trigger; both
+  are future-revision candidates.
+- The 180-day cadence threshold is a rule-of-thumb; ISO 22301 / NIST
+  SP 800-34 do not prescribe a single number. The 180-day choice
+  approximates the median of those frameworks' guidance.
+- Absent block treated as gap = elevated false-positive rate for orgs
+  that do have a plan but have not populated the optional schema block.
+  A future `unknown` enum value could distinguish "no info" from
+  "documented gap".
+
+---
+
+### 10. `identity_credential_exposure`
+
+**Definition:** the organisation has low identity / credential management
+maturity — MFA coverage gap, no PIM/PAM, or undocumented helpdesk-auth
+procedure — elevating exposure to access-broker, valid-account-abuse,
+vishing, and BEC vectors.
+
+**Detection:**
+
+```
+identity_management is None
+  OR mfa_coverage_percent < 95
+  OR NOT pim_or_pam_deployed
+  OR NOT helpdesk_authentication_documented
+```
+
+Absent block (`identity_management is None`) → trigger **fires**
+(conservative: undocumented IAM posture is the empirical baseline that
+makes credential abuse, vishing, and IAB-mediated initial access
+profitable). The 95% MFA coverage threshold corresponds to the
+"near-universal" coverage level called out across CISA Shields Up
+guidance, NIST SP 800-63B, and CIS Controls v8 IG2.
+
+**Citations**
+
+- *CrowdStrike Global Threat Report 2025* — "Meanwhile, valid account
+  abuse was responsible for 35%" of cloud-related incidents
+  (`ref/CrowdStrikeGlobalThreatReport2025.md` line 284); vishing growth
+  "up 442% between the first and second half of 2024" (line 58); access
+  broker advertisements "increased 50% year-over-year".
+- *Mandiant M-Trends 2026* — "cloud-related compromises was voice
+  phishing, at 23%, followed by third-party compromise"
+  (`ref/m-trends-2026-en.md` line 1609).
+- *IOCTA 2026 (Europol)* — Initial Access Brokers ecosystem chapter
+  (`ref/IOCTA-2026.md` line 921); Scattered Spider / ShinyHunters /
+  LAPSUS$ documented as acting as IABs around line 1062.
+- *APWG Q4 2025 Trends Report* — Fortra "tracks the identity theft
+  technique known as 'business e-mail compromise'"
+  (`ref/apwg_trends_report_q4_2025.md` line 594); phishing and
+  impersonation "accounted for 86 percent of all confirmed threats"
+  (line 311).
+
+**Limitations:**
+
+- The 95% MFA coverage threshold is a rule-of-thumb; no single
+  authoritative source prescribes a numeric line. Orgs at 90-94% are
+  borderline cases analysts may downgrade per engagement.
+- Helpdesk-authentication hardening is a recent best practice (UNC3944
+  vishing mitigation); standardisation is still in flight, so the
+  "documented" boolean is coarse.
+- BEC functions partly as an impact magnifier rather than purely a
+  trigger source. A future split between cause-side and impact-side
+  signals would refine the model.
+- Absent block treated as gap = same false-positive risk as the
+  ransomware trigger; the `unknown` enum extension would also apply
+  here.
+
+---
+
 ## Weighting
 
-All seven triggers contribute symmetrically to risk scoring:
+All ten triggers contribute symmetrically to risk scoring:
 
 | Effect | Mechanism |
 |--------|-----------|
@@ -288,16 +469,20 @@ without external citation; it was removed in 0.10.0.
 ## Update procedure
 
 1. **Annually** (Q1) re-read the most recent ENISA Threat Landscape, Verizon
-   DBIR, IBM Cost of a Data Breach, CrowdStrike GTR, and Mandiant M-Trends.
-   If a trigger's primary citation no longer holds, or a new
-   empirically-supported trigger emerges across ≥2 independent reports,
-   propose a revision with citations.
-2. **When the BusinessContext schema changes**, re-check that all triggers
-   still have a structural detection path. If a referenced field is removed,
-   the trigger must be either rewired or retired.
+   DBIR, IBM Cost of a Data Breach, CrowdStrike GTR, Mandiant M-Trends,
+   Cloudflare Threat Report, IOCTA, and APWG. If a trigger's primary
+   citation no longer holds, or a new empirically-supported trigger emerges
+   across ≥2 independent reports, propose a revision with citations.
+2. **When the BusinessContext schema changes**, re-check that all ten
+   triggers still have a structural detection path. If a referenced field
+   is removed, the trigger must be either rewired or retired.
 3. **All trigger changes require updating both this document and
    `docs/triggers.ja.md`** in the same commit, plus the relevant
    `tests/test_element_extractor.py` cases.
+4. **`HIGH_RISK_GEOPOLITICAL_ZONES` revisions** must cite specific
+   ref/ corpus evidence (e.g. CrowdStrike GTR / Cloudflare nation-state
+   chapter / IOCTA regional ecosystem) for any country added or removed.
+   The set is empirically grounded, not a normative judgement.
 
 ---
 
