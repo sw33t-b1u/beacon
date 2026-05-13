@@ -154,19 +154,87 @@ uv run python cmd/load_assets.py --file output/assets.json
 
 ---
 
+## SAGE identity_assets.json の生成
+
+コンテキストドキュメントの `Identities and Access` セクションを
+`identity_assets.json` (Initiative A) に変換します。各 identity は
+`id` / `name` / `role_tags` / `has_access` エッジ (アセットへのアクセス)
+を持ち、BEACON 0.13.0 以降は Initiative C Phase 2 のフラグ
+`is_high_value_impersonation_target` と自由形式の
+`impersonation_risk_factors` list も搬送します。
+
+```bash
+# Markdown から生成 (LLM が必要)
+uv run python cmd/generate_identity_assets.py --context input/context.md
+
+# JSON から生成 (LLM 不要)
+uv run python cmd/generate_identity_assets.py \
+  --context input/context.json \
+  --no-llm \
+  --output output/identity_assets.json
+```
+
+TRACE で検証 (`has_access[].asset_id` を `assets.json` とクロス参照) してから
+SAGE にロード:
+
+```bash
+cd ../TRACE && uv run python cmd/validate_identity_assets.py \
+  --identity-assets ../BEACON/output/identity_assets.json \
+  --assets          ../BEACON/output/assets.json
+
+cd ../SAGE  && uv run python cmd/load_identity_assets.py \
+  --file ../BEACON/output/identity_assets.json
+```
+
+コンテキストドキュメントに identity セクションがない場合、CLI は空の artifact
+(`identities: []`, `has_access: []`) を出力し、TRACE はそれを受理します。
+
+---
+
+## SAGE user_accounts.json の生成
+
+`User Accounts` セクションを `user_accounts.json` に変換します。各エントリは
+`username` と `identity_id` (任意、`identity_assets.json` へのリンク) を持ち、
+`account_on_asset` エッジで「どのアカウントがどのアセット上に存在するか」を
+表現します (SAGE のクレデンシャルフロー解析に使用)。
+
+```bash
+# Markdown から生成 (LLM が必要)
+uv run python cmd/generate_user_accounts.py --context input/context.md
+
+# JSON から生成 (LLM 不要)
+uv run python cmd/generate_user_accounts.py \
+  --context input/context.json \
+  --no-llm \
+  --output output/user_accounts.json
+```
+
+TRACE で検証してから SAGE にロード:
+
+```bash
+cd ../TRACE && uv run python cmd/validate_user_accounts.py \
+  --user-accounts ../BEACON/output/user_accounts.json \
+  --assets        ../BEACON/output/assets.json
+
+cd ../SAGE  && uv run python cmd/load_user_accounts.py \
+  --file ../BEACON/output/user_accounts.json
+```
+
+---
+
 ## CTI レポートからの STIX バンドル生成
 
-> **0.9.0 で TRACE に移管済み。** PDF / URL → STIX 2.1 抽出は姉妹プロジェクト
+> **BEACON 0.9.0 で TRACE に移管済み (`cmd/stix_from_report.py` は
+> BEACON 0.10.0 で削除済)。** PDF / URL → STIX 2.1 抽出は姉妹プロジェクト
 > [TRACE](../../TRACE/) に移った。後継コマンドは `TRACE/cmd/crawl_single.py`。
 > 詳細は `TRACE/docs/setup.ja.md` と `TRACE/docs/beacon_handoff.md` を参照。
-> BEACON 側の `cmd/stix_from_report.py` は短期間の deprecation stub で、
-> 実行するとリダイレクトメッセージを表示して exit code 2 で終了する。
 
 ---
 
 ## 生成後のレビューとエクスポート
 
-1. **バリデーション** — TRACE に移管済み。新しい検証はスキーマに加えて
+1. **バリデーション** — BEACON 0.9.0 で TRACE に移管済 (`BEACON/cmd/validate_pir.py`
+   は BEACON 0.10.0 で削除済)。新しい検証はスキーマに加えて
    タクソノミー照合・資産タグ一致・有効期間も確認します:
 
    ```bash
@@ -174,9 +242,6 @@ uv run python cmd/load_assets.py --file output/assets.json
    # assets.json を併せて渡すと asset_weight_rules のタグ整合性も確認可能:
    cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json --assets assets.json
    ```
-
-   `BEACON/cmd/validate_pir.py` は誘導メッセージのみ出力して exit 2 で終了する
-   一時的な deprecation stub です。BEACON 0.10.0 で削除予定。
 
 2. **レビュー** — `pir_output.json` を手動で確認・編集するか、Web UI を使用:
 

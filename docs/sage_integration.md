@@ -45,9 +45,9 @@ Expected fields in each PIR entry:
 
 ## Step 2: Validate PIR for SAGE Compatibility
 
-PIR validation has moved to TRACE. The richer validator covers schema
-plus referential checks (taxonomy presence, asset-tag match, validity
-window).
+PIR validation moved to TRACE in BEACON 0.9.0 (`BEACON/cmd/validate_pir.py`
+was deleted in BEACON 0.10.0). The richer validator covers schema plus
+referential checks (taxonomy presence, asset-tag match, validity window).
 
 ```bash
 cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json
@@ -55,9 +55,6 @@ cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json
 # at least one tag in your assets.json:
 cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json --assets assets.json
 ```
-
-`BEACON/cmd/validate_pir.py` is a deprecation stub for one release; it
-prints this redirect and exits 2.
 
 ---
 

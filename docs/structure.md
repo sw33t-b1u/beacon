@@ -33,14 +33,14 @@ BEACON/
 │       └── templates/           # Jinja2 HTML templates (base, index, review)
 │
 ├── cmd/                         # CLI entry points (one script per command)
-│   ├── generate_pir.py          # Main PIR pipeline (context.md → pir_output.json)
-│   ├── generate_assets.py       # CriticalAsset → SAGE assets.json
-│   ├── stix_from_report.py      # 0.9.0: deprecation stub → TRACE/cmd/crawl_single.py
-│   ├── validate_pir.py          # 0.9.x: deprecation stub → TRACE/cmd/validate_pir.py
-│   ├── generate_schemas.py      # Generate JSONSchema from Pydantic models
-│   ├── update_taxonomy.py       # Sync threat taxonomy from MITRE ATT&CK STIX
-│   ├── submit_for_review.py     # Create GHE Issues for analyst sign-off
-│   └── web_app.py               # Launch Web UI (uvicorn)
+│   ├── generate_pir.py              # Main PIR pipeline (context.md → pir_output.json)
+│   ├── generate_assets.py           # CriticalAsset → SAGE assets.json
+│   ├── generate_identity_assets.py  # Identities + has_access → SAGE identity_assets.json (Initiative A / Initiative C Phase 2)
+│   ├── generate_user_accounts.py    # User accounts + account_on_asset → SAGE user_accounts.json
+│   ├── generate_schemas.py          # Generate JSONSchema from Pydantic models
+│   ├── update_taxonomy.py           # Sync threat taxonomy from MITRE ATT&CK STIX
+│   ├── submit_for_review.py         # Create GHE Issues for analyst sign-off
+│   └── web_app.py                   # Launch Web UI (uvicorn)
 │
 ├── schema/                      # Dictionary and schema files
 │   ├── threat_taxonomy.json     # Industry × geography × trigger → threat actor tags

@@ -33,14 +33,14 @@ BEACON/
 │       └── templates/           # Jinja2 HTML テンプレート (base, index, review)
 │
 ├── cmd/                         # CLI エントリポイント（コマンドごとに1スクリプト）
-│   ├── generate_pir.py          # メイン PIR パイプライン (context.md → pir_output.json)
-│   ├── generate_assets.py       # CriticalAsset → SAGE assets.json
-│   ├── stix_from_report.py      # 0.9.0: deprecation stub → TRACE/cmd/crawl_single.py
-│   ├── validate_pir.py          # 0.9.x: deprecation stub → TRACE/cmd/validate_pir.py
-│   ├── generate_schemas.py      # Pydantic モデルから JSONSchema 生成
-│   ├── update_taxonomy.py       # MITRE ATT&CK STIX から脅威タクソノミ同期
-│   ├── submit_for_review.py     # アナリスト承認用 GHE Issue 作成
-│   └── web_app.py               # Web UI 起動 (uvicorn)
+│   ├── generate_pir.py              # メイン PIR パイプライン (context.md → pir_output.json)
+│   ├── generate_assets.py           # CriticalAsset → SAGE assets.json
+│   ├── generate_identity_assets.py  # Identity + has_access → SAGE identity_assets.json (Initiative A / Initiative C Phase 2)
+│   ├── generate_user_accounts.py    # ユーザーアカウント + account_on_asset → SAGE user_accounts.json
+│   ├── generate_schemas.py          # Pydantic モデルから JSONSchema 生成
+│   ├── update_taxonomy.py           # MITRE ATT&CK STIX から脅威タクソノミ同期
+│   ├── submit_for_review.py         # アナリスト承認用 GHE Issue 作成
+│   └── web_app.py                   # Web UI 起動 (uvicorn)
 │
 ├── schema/                      # 辞書・スキーマファイル
 │   ├── threat_taxonomy.json     # 業種 × 地域 × トリガー → 脅威アクタータグ

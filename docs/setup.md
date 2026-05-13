@@ -155,19 +155,87 @@ uv run python cmd/load_assets.py --file output/assets.json
 
 ---
 
+## Generating SAGE identity_assets.json
+
+Convert the `Identities and Access` section of the context document into
+`identity_assets.json` (Initiative A). Each identity carries an `id`, `name`,
+`role_tags`, `has_access` edges to one or more assets, and — from BEACON
+0.13.0 — the Initiative C Phase 2 flag `is_high_value_impersonation_target`
+plus the free-form `impersonation_risk_factors` list.
+
+```bash
+# Markdown context (requires LLM)
+uv run python cmd/generate_identity_assets.py --context input/context.md
+
+# JSON context (no LLM)
+uv run python cmd/generate_identity_assets.py \
+  --context input/context.json \
+  --no-llm \
+  --output output/identity_assets.json
+```
+
+Validate via TRACE (cross-references each `has_access[].asset_id` against
+`assets.json`), then load into SAGE:
+
+```bash
+cd ../TRACE && uv run python cmd/validate_identity_assets.py \
+  --identity-assets ../BEACON/output/identity_assets.json \
+  --assets          ../BEACON/output/assets.json
+
+cd ../SAGE  && uv run python cmd/load_identity_assets.py \
+  --file ../BEACON/output/identity_assets.json
+```
+
+If the context document omits the identity section, the CLI emits an empty
+artifact (`identities: []`, `has_access: []`) which TRACE accepts.
+
+---
+
+## Generating SAGE user_accounts.json
+
+Convert the `User Accounts` section into `user_accounts.json`. Each entry
+carries a `username`, optional `identity_id` linking back to
+`identity_assets.json`, and `account_on_asset` edges describing which
+accounts exist on which assets (used by SAGE for credential-flow analytics).
+
+```bash
+# Markdown context (requires LLM)
+uv run python cmd/generate_user_accounts.py --context input/context.md
+
+# JSON context (no LLM)
+uv run python cmd/generate_user_accounts.py \
+  --context input/context.json \
+  --no-llm \
+  --output output/user_accounts.json
+```
+
+Validate via TRACE, then load into SAGE:
+
+```bash
+cd ../TRACE && uv run python cmd/validate_user_accounts.py \
+  --user-accounts ../BEACON/output/user_accounts.json \
+  --assets        ../BEACON/output/assets.json
+
+cd ../SAGE  && uv run python cmd/load_user_accounts.py \
+  --file ../BEACON/output/user_accounts.json
+```
+
+---
+
 ## Extracting STIX bundles from CTI reports
 
-> **Moved to TRACE in 0.9.0.** PDF / URL → STIX 2.1 extraction now lives in
-> the sibling project [TRACE](../../TRACE/). Use `TRACE/cmd/crawl_single.py`
-> instead. See `TRACE/docs/setup.md` and `TRACE/docs/beacon_handoff.md` for
-> the new workflow. The BEACON `cmd/stix_from_report.py` script is a
-> short-lived deprecation stub that prints a redirect message and exits 2.
+> **Moved to TRACE in BEACON 0.9.0 (`cmd/stix_from_report.py` deleted in
+> BEACON 0.10.0).** PDF / URL → STIX 2.1 extraction now lives in the
+> sibling project [TRACE](../../TRACE/). Use `TRACE/cmd/crawl_single.py`
+> instead. See `TRACE/docs/setup.md` and `TRACE/docs/beacon_handoff.md`
+> for the new workflow.
 
 ---
 
 ## After Generation: Review and Export
 
-1. **Validate** — moved to TRACE. The richer validator runs schema +
+1. **Validate** — moved to TRACE in BEACON 0.9.0 (`BEACON/cmd/validate_pir.py`
+   was deleted in BEACON 0.10.0). The richer validator runs schema +
    referential checks (taxonomy presence, asset-tag match, validity window):
 
    ```bash
@@ -175,9 +243,6 @@ uv run python cmd/load_assets.py --file output/assets.json
    # Optionally combine with assets.json so asset_weight_rules are checked too:
    cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json --assets assets.json
    ```
-
-   `BEACON/cmd/validate_pir.py` is now a deprecation stub that prints this
-   redirect and exits 2; it will be deleted in BEACON 0.10.0.
 
 2. **Review** — inspect and edit `pir_output.json` manually, or use the Web UI:
 

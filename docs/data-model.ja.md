@@ -102,6 +102,126 @@ LLM が Markdown を構造化 `BusinessContext` JSON に変換します。`--sav
 
 ---
 
+## 出力: identity_assets.json (Initiative A + Initiative C Phase 2)
+
+`cmd/generate_identity_assets.py` がコンテキストドキュメントの
+`Identities and Access` セクションから生成します。SAGE
+`load_identity_assets.py` が消費 (`Identity` 行 + `HasAccess` ポリモーフィック
+エッジを書き込み)、TRACE `cmd/validate_identity_assets.py` が検証します。
+
+```json
+{
+  "identities": [
+    {
+      "id": "id-ceo",
+      "name": "Alice Anderson",
+      "identity_class": "individual",
+      "sectors": ["manufacturing"],
+      "roles": ["executive", "ceo"],
+      "description": "Chief Executive Officer",
+      "is_high_value_impersonation_target": true,
+      "impersonation_risk_factors": ["public-facing-brand", "executive"]
+    }
+  ],
+  "has_access": [
+    {
+      "identity_id": "id-ceo",
+      "asset_id": "asset-CA-001",
+      "access_level": "read",
+      "role": "ERP read-only viewer",
+      "granted_at": "2024-04-01",
+      "revoked_at": ""
+    }
+  ]
+}
+```
+
+### Identity フィールド
+
+| フィールド | 型 | 説明 |
+|-----------|----|------|
+| `id` | string | BEACON 内部の安定 id。SAGE が取り込み時に最終的な `identity--<uuid>` を割り当てる |
+| `name` | string | 表示名 |
+| `identity_class` | enum | `individual` / `group` / `system` / `organization` / `class` / `unknown` (STIX 2.1 §4.4) |
+| `sectors` | list[string] | 業種セクター |
+| `roles` | list[string] | 自由形式 role タグ (例: `executive`, `dba`, `it-admin`) |
+| `description` | string | 自由形式アナリスト description |
+| `is_high_value_impersonation_target` | bool | **Initiative C Phase 2 (BEACON 0.13.0+)** — `true` の場合、SAGE 0.9.0 は `ImpersonatesIdentity` の `effective_priority` 計算式に multiplier=1.5 を無条件適用 (`HIGH_VALUE_IMPERSONATION_ROLES` 15 entry role-tag フォールバックを上書き)。TRACE 1.6.0 PIR L2 ゲートは、文書にフラグ付き identity 名が出現すると relevance score を +0.2 boost。 |
+| `impersonation_risk_factors` | list[string] | **Initiative C Phase 2** — 自由形式タグ (例: `["public-facing-brand", "executive", "trusted-supplier"]`)。アナリスト dashboard 用。`effective_priority` 計算式には**関与しない**。 |
+
+### HasAccess フィールド
+
+| フィールド | 型 | 説明 |
+|-----------|----|------|
+| `identity_id` | string | FK → `identities[*].id` |
+| `asset_id` | string | FK → `assets.json` (`asset-<CriticalAsset.id>` プレフィックス)。クロスファイル参照整合性は TRACE `validate_identity_assets` で強制 (BEACON 内では強制しない) |
+| `access_level` | enum | `read` / `write` / `admin` / `deny` |
+| `role` | string | エッジごとの自由形式ラベル (例: `"ERP admin"`) |
+| `granted_at` / `revoked_at` | ISO 日付 or 空文字 | `revoked_at` 空 = 有効 |
+
+コンテキストドキュメントに identity セクションがない場合、
+`identity_assets.json` は `identities: []` / `has_access: []` の空 artifact として
+生成され、TRACE はこれを受理します。
+
+---
+
+## 出力: user_accounts.json (Initiative B)
+
+`cmd/generate_user_accounts.py` が `User Accounts` セクションから生成。
+identity 層より細かい account レベルの粒度 (個別ログイン識別子、例:
+`alice@corp`, `svc-jenkins`, `S-1-5-21-…`)。SAGE `load_user_accounts.py` が消費。
+
+```json
+{
+  "user_accounts": [
+    {
+      "id": "ua-alice-corp",
+      "account_login": "alice@corp",
+      "display_name": "Alice Anderson",
+      "account_type": "windows-domain",
+      "is_privileged": false,
+      "is_service_account": false,
+      "identity_id": "id-ceo",
+      "description": ""
+    }
+  ],
+  "account_on_asset": [
+    {
+      "user_account_id": "ua-alice-corp",
+      "asset_id": "asset-CA-001",
+      "first_seen": "2024-04-01",
+      "last_seen": ""
+    }
+  ]
+}
+```
+
+### UserAccount フィールド
+
+| フィールド | 型 | 説明 |
+|-----------|----|------|
+| `id` | string | BEACON 内部の安定 id |
+| `account_login` | string | ログイン識別子 (例: `alice@corp`, `svc-jenkins`) |
+| `display_name` | string | 自由形式表示名 |
+| `account_type` | enum | STIX 2.1 §6.4 `account-type-ov`: 空文字 / `unix` / `windows-local` / `windows-domain` / `ldap` / `tacacs` / `radius` / `nis` / `openid` / `facebook` / `skype` / `twitter` / `kavi`。サービスアカウントは空文字 + `is_service_account=true` を使用 (BEACON 0.12.1 で spec 外の値は削除) |
+| `is_privileged` | bool | 特権アカウントフラグ |
+| `is_service_account` | bool | STIX 2.1 §6.4 ネイティブプロパティ — サービス / 自動化アカウント |
+| `identity_id` | string | 任意 FK → `identity_assets.json` `identities[*].id` |
+| `description` | string | 自由形式 (`account_type=""` のコンテキスト用、例: `"Azure AD tenant contoso.onmicrosoft.com"`) |
+
+### AccountOnAsset フィールド
+
+| フィールド | 型 | 説明 |
+|-----------|----|------|
+| `user_account_id` | string | FK → `user_accounts[*].id` |
+| `asset_id` | string | FK → `assets.json` |
+| `first_seen` / `last_seen` | ISO 日付 or 空文字 | ISO/IEC 27001 A.5.16 identity ライフサイクルレビュー対応 |
+
+複合キーは `(user_account_id, asset_id)` — 同じログインが 2 つのホストに
+存在すれば 2 エッジ生成。
+
+---
+
 ## PIR 優先度フィルタリング
 
 `pir_output.json` には P1 と P2 のみが含まれます。P3 は `collection_plan.md`（`--collection-plan` で生成）に記録されます。
@@ -145,7 +265,7 @@ uv run python cmd/generate_pir.py --context ... --output pir_output.json \
 | `operational` | 12–19 | +6 ヶ月 | 進行中のランサムウェアキャンペーン |
 | `tactical` | 1–11 | +1 ヶ月 | 特定 CVE の悪用 |
 
-ビジネストリガーが 1 件以上検出されれば、composite に関わらず `tactical` → `operational` に昇格します（NIST SP 800-37 R2 event-driven trigger framework に準拠）。トリガーは BusinessContext 構造化フィールドから検出され、外部出典で裏付けられています — 7 トリガーの正式契約は [`docs/triggers.ja.md`](triggers.ja.md) を参照。
+ビジネストリガーが 1 件以上検出されれば、composite に関わらず `tactical` → `operational` に昇格します（NIST SP 800-37 R2 event-driven trigger framework に準拠）。トリガーは BusinessContext 構造化フィールドから検出され、外部出典で裏付けられています — 10 トリガーの正式契約は [`docs/triggers.ja.md`](triggers.ja.md) を参照。
 
 ---
 

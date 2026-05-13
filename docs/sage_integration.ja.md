@@ -44,17 +44,15 @@ cat pir_output.json | python -m json.tool
 
 ## Step 2: SAGE 互換性を検証する
 
-PIR バリデーションは TRACE に移管されました。新バリデーターはスキーマ
-チェックに加えて、タクソノミー照合・資産タグ一致・有効期間も検証します。
+PIR バリデーションは BEACON 0.9.0 で TRACE に移管されました
+(`BEACON/cmd/validate_pir.py` は BEACON 0.10.0 で削除済)。新バリデーターは
+スキーマチェックに加えて、タクソノミー照合・資産タグ一致・有効期間も検証します。
 
 ```bash
 cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json
 # assets.json を併せて指定すると asset_weight_rules.tag の整合性も確認:
 cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json --assets assets.json
 ```
-
-`BEACON/cmd/validate_pir.py` は誘導メッセージのみ出力する deprecation stub
-で、exit 2 で終了します。
 
 ---
 

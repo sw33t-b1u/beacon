@@ -10,7 +10,7 @@ BEACON は組織のビジネスコンテキスト（JSON またはマークダ�
 
 ## 概要
 
-BEACON は同一のコンテキストドキュメントから 3 つの出力パイプラインを提供します：
+BEACON は同一のコンテキストドキュメントから 4 つの出力パイプラインを提供します：
 
 ```
   input/context.md  (または .json)
@@ -29,9 +29,25 @@ BEACON は同一のコンテキストドキュメントから 3 つの出力パ�
          │                                  ▼                        ▼
          │                           SAGE ETL             pir_adjusted_criticality
          │
-         └─── cmd/generate_assets.py ─── output/assets.json ─── SAGE load_assets
-                  CriticalAsset → ネットワークセグメント、
-                  アセットタグ、接続、重要度
+         ├─── cmd/generate_assets.py ─── output/assets.json ─── SAGE load_assets
+         │        CriticalAsset → ネットワークセグメント、
+         │        アセットタグ、接続、重要度
+         │
+         ├─── cmd/generate_identity_assets.py ── output/identity_assets.json
+         │        Identity + has_access エッジ            │
+         │        (+ Initiative C Phase 2 フラグ:          ▼
+         │         is_high_value_impersonation_target,    TRACE validate_identity_assets
+         │         impersonation_risk_factors)            │
+         │                                                 ▼
+         │                                        SAGE load_identity_assets
+         │
+         └─── cmd/generate_user_accounts.py ──── output/user_accounts.json
+                  UserAccount + account_on_asset エッジ  │
+                                                          ▼
+                                               TRACE validate_user_accounts
+                                                          │
+                                                          ▼
+                                               SAGE load_user_accounts
 ```
 
 > **CTI レポート取り込み（PDF / URL → STIX 2.1）は BEACON 0.9.0 で姉妹プロジェクト
@@ -51,7 +67,7 @@ BEACON は同一のコンテキストドキュメントから 3 つの出力パ�
 |-------------|------|
 | [docs/setup.ja.md](docs/setup.ja.md) | 前提条件・インストール・環境変数・GCP 認証 |
 | [docs/context_template.ja.md](docs/context_template.ja.md) | `input/context.md` テンプレート — パイプライン入力となる Markdown 戦略ドキュメントの記述ガイド |
-| [docs/data-model.ja.md](docs/data-model.ja.md) | BusinessContext スキーマ・PIR 出力フォーマット・インテリジェンスレベル・脅威タクソノミー |
+| [docs/data-model.ja.md](docs/data-model.ja.md) | BusinessContext スキーマ・PIR 出力フォーマット・`identity_assets.json` / `user_accounts.json` スキーマ・インテリジェンスレベル・脅威タクソノミー |
 | [docs/sage_integration.ja.md](docs/sage_integration.ja.md) | SAGE への PIR デプロイと ETL 検証手順 |
 | [docs/dependencies.ja.md](docs/dependencies.ja.md) | 依存パッケージの選定理由とライセンス情報 |
 

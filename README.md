@@ -10,7 +10,7 @@ Converts organizational business context (JSON or Markdown strategy documents) i
 
 ## Overview
 
-BEACON provides three output pipelines, all driven from the same context document:
+BEACON provides four output pipelines, all driven from the same context document:
 
 ```
   input/context.md  (or .json)
@@ -29,9 +29,25 @@ BEACON provides three output pipelines, all driven from the same context documen
          │                                  ▼                        ▼
          │                           SAGE ETL             pir_adjusted_criticality
          │
-         └─── cmd/generate_assets.py ─── output/assets.json ─── SAGE load_assets
-                  CriticalAsset → network segments,
-                  asset tags, connections, criticality
+         ├─── cmd/generate_assets.py ─── output/assets.json ─── SAGE load_assets
+         │        CriticalAsset → network segments,
+         │        asset tags, connections, criticality
+         │
+         ├─── cmd/generate_identity_assets.py ── output/identity_assets.json
+         │        Identity + has_access edges            │
+         │        (+ Initiative C Phase 2 flags:         ▼
+         │         is_high_value_impersonation_target,   TRACE validate_identity_assets
+         │         impersonation_risk_factors)           │
+         │                                                ▼
+         │                                       SAGE load_identity_assets
+         │
+         └─── cmd/generate_user_accounts.py ──── output/user_accounts.json
+                  UserAccount + account_on_asset edges  │
+                                                         ▼
+                                              TRACE validate_user_accounts
+                                                         │
+                                                         ▼
+                                              SAGE load_user_accounts
 ```
 
 > **CTI report ingestion (PDF / URL → STIX 2.1) has moved to the sibling
@@ -51,7 +67,7 @@ BEACON provides three output pipelines, all driven from the same context documen
 |----------|-------------|
 | [docs/setup.md](docs/setup.md) | Prerequisites, installation, environment variables, GCP authentication |
 | [docs/context_template.md](docs/context_template.md) | Template for `input/context.md` — the Markdown strategy document used as pipeline input |
-| [docs/data-model.md](docs/data-model.md) | BusinessContext schema, PIR output format, intelligence levels, threat taxonomy |
+| [docs/data-model.md](docs/data-model.md) | BusinessContext schema, PIR output format, `identity_assets.json` / `user_accounts.json` schemas, intelligence levels, threat taxonomy |
 | [docs/sage_integration.md](docs/sage_integration.md) | PIR deployment to SAGE and ETL verification procedure |
 | [docs/dependencies.md](docs/dependencies.md) | Dependency rationale and license information |
 
