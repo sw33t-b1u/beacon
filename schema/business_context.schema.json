@@ -272,6 +272,18 @@
           "default": "",
           "title": "Description",
           "type": "string"
+        },
+        "is_high_value_impersonation_target": {
+          "default": false,
+          "title": "Is High Value Impersonation Target",
+          "type": "boolean"
+        },
+        "impersonation_risk_factors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Impersonation Risk Factors",
+          "type": "array"
         }
       },
       "required": [

@@ -88,7 +88,9 @@ Return ONLY valid JSON (no markdown fences, no explanation) with this exact stru
       "identity_class": "one of: individual | group | system | organization | class | unknown",
       "sectors": [],
       "roles": [],
-      "description": ""
+      "description": "",
+      "is_high_value_impersonation_target": false,
+      "impersonation_risk_factors": []
     }
   ],
   "has_access": [
@@ -217,6 +219,17 @@ touch — into `identities[]` and `has_access[]`.
   (preserve original language).
 - **granted_at / revoked_at** — leave empty unless an explicit date is
   in the document.
+- **is_high_value_impersonation_target / impersonation_risk_factors**
+  (Initiative C Phase 2, HLD §4.3) —
+  > If the document describes an identity as a publicly-recognizable
+  > brand, an executive role with public exposure (CFO/CEO/board), or
+  > a critical supplier whose name appears on customer-facing
+  > communications, set `is_high_value_impersonation_target: true`
+  > and populate `impersonation_risk_factors` with applicable tags
+  > (e.g. `['public-facing-brand', 'executive', 'trusted-supplier']`).
+
+  Leave the flag `false` and `impersonation_risk_factors: []` when no
+  such signal is present in the document.
 
 If the section is absent, return `identities: []` and `has_access: []`
 (do not invent entries from other sections).

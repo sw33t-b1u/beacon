@@ -128,6 +128,12 @@ class Identity(BaseModel):
     sectors: list[str] = Field(default_factory=list)
     roles: list[str] = Field(default_factory=list)
     description: str = ""
+    # Initiative C Phase 2 (0.13.0): flag-first impersonation prioritization.
+    # SAGE 0.9.0 consumes this to apply effective_priority multiplier=1.5;
+    # TRACE 1.6.0 PIR L2 gate uses it to boost relevance score for
+    # documents that mention flagged identity names.
+    is_high_value_impersonation_target: bool = False
+    impersonation_risk_factors: list[str] = Field(default_factory=list)
 
 
 class HasAccess(BaseModel):

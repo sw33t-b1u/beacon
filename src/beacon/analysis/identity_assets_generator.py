@@ -37,6 +37,8 @@ def generate_identity_assets_json(ctx: BusinessContext) -> dict[str, Any]:
             "sectors": list(ident.sectors),
             "roles": list(ident.roles),
             "description": ident.description,
+            "is_high_value_impersonation_target": ident.is_high_value_impersonation_target,
+            "impersonation_risk_factors": list(ident.impersonation_risk_factors),
         }
         for ident in ctx.identities
     ]

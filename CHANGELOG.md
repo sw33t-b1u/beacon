@@ -8,6 +8,39 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ## [Unreleased]
 
+## [0.13.0] — 2026-05-13
+
+### Added — Initiative C Phase 2 producer side
+
+- `Identity` Pydantic model (`src/beacon/ingest/schema.py`) gains two
+  optional fields, both with safe defaults so existing fixtures /
+  `context.json` payloads remain valid without migration:
+  - `is_high_value_impersonation_target: bool = False`
+  - `impersonation_risk_factors: list[str] = []`
+- LLM prompt `src/beacon/llm/prompts/context_structuring.md`:
+  - Identities JSON schema block lists the two new fields.
+  - New HLD §4.3 verbatim guidance under "Identities and Access"
+    instructing the LLM to set the flag for publicly-recognizable
+    brands, executive roles with public exposure (CFO/CEO/board), or
+    critical suppliers whose name appears on customer-facing
+    communications, and to populate `impersonation_risk_factors` with
+    applicable tags (e.g. `['public-facing-brand', 'executive',
+    'trusted-supplier']`).
+- `src/beacon/analysis/identity_assets_generator.py`: propagate the two
+  new fields into the emitted `identity_assets.json` so SAGE 0.9.0's
+  `effective_priority` flag-first formula and TRACE 1.6.0's PIR L2 gate
+  receive them.
+- `schema/business_context.schema.json`: regenerated to reflect the
+  expanded `Identity` model (additive only).
+- `tests/fixtures/sample_identities_phase2.json`: new fixture
+  demonstrating a flag-true executive identity alongside a flag-false
+  default identity, used by the round-trip test.
+- `tests/test_identity_assets_generator.py`: six new test cases under
+  `TestImpersonationFlagPassThrough` covering flag pass-through,
+  default behaviour, Pydantic validation of non-bool flag values,
+  legacy-payload compatibility, and a fixture-loaded end-to-end
+  round-trip.
+
 ## [0.12.3] — 2026-05-13
 
 ### Added

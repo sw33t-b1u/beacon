@@ -1,0 +1,43 @@
+{
+  "_comment": "Initiative C Phase 2 (BEACON 0.13.0) fixture — demonstrates a flag-true Identity (executive role with public exposure) alongside a flag-false default identity. Consumed by tests/test_identity_assets_generator.py to verify producer-side flag propagation. The CFO entry is a synthetic example; no real-world person is intended.",
+  "organization": {
+    "name": "Example Phase2 Corp",
+    "industry": "finance"
+  },
+  "identities": [
+    {
+      "id": "id-cfo",
+      "name": "Chief Financial Officer",
+      "identity_class": "individual",
+      "sectors": ["financial-services"],
+      "roles": ["executive"],
+      "description": "CFO with public exposure on earnings calls and investor communications.",
+      "is_high_value_impersonation_target": true,
+      "impersonation_risk_factors": ["executive", "public-facing-brand"]
+    },
+    {
+      "id": "id-ops-team",
+      "name": "Operations Team",
+      "identity_class": "group",
+      "sectors": ["financial-services"],
+      "roles": ["operations"],
+      "description": "Internal operations group — no public-facing exposure.",
+      "is_high_value_impersonation_target": false,
+      "impersonation_risk_factors": []
+    }
+  ],
+  "has_access": [
+    {
+      "identity_id": "id-cfo",
+      "asset_id": "CA-001",
+      "access_level": "read",
+      "role": "Executive Review"
+    },
+    {
+      "identity_id": "id-ops-team",
+      "asset_id": "CA-001",
+      "access_level": "admin",
+      "role": "Operations"
+    }
+  ]
+}

@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from beacon.analysis.identity_assets_generator import generate_identity_assets_json
 from beacon.ingest.schema import (
     BusinessContext,
@@ -9,6 +12,8 @@ from beacon.ingest.schema import (
     Identity,
     Organization,
 )
+
+FIXTURES = Path(__file__).parent / "fixtures"
 
 
 def _ctx(*, identities=None, has_access=None) -> BusinessContext:
@@ -127,6 +132,103 @@ class TestDefaults:
         assert edge["role"] == ""
         assert edge["granted_at"] == ""
         assert edge["revoked_at"] == ""
+
+
+class TestImpersonationFlagPassThrough:
+    """Initiative C Phase 2 (0.13.0): the producer must propagate
+    ``is_high_value_impersonation_target`` and ``impersonation_risk_factors``
+    from BusinessContext into identity_assets.json so SAGE 0.9.0 and TRACE
+    1.6.0 can consume them. Flag default is False, list default is [].
+    """
+
+    def test_flag_true_with_risk_factors_round_trips(self):
+        ctx = _ctx(
+            identities=[
+                Identity(
+                    id="id-cfo",
+                    name="Chief Financial Officer",
+                    identity_class="individual",
+                    roles=["executive"],
+                    is_high_value_impersonation_target=True,
+                    impersonation_risk_factors=["executive", "public-facing-brand"],
+                )
+            ]
+        )
+        result = generate_identity_assets_json(ctx)
+        ident = result["identities"][0]
+        assert ident["is_high_value_impersonation_target"] is True
+        assert ident["impersonation_risk_factors"] == ["executive", "public-facing-brand"]
+
+    def test_flag_default_false_and_empty_risk_factors(self):
+        ctx = _ctx(
+            identities=[Identity(id="id-team", name="Generic Team")],
+        )
+        result = generate_identity_assets_json(ctx)
+        ident = result["identities"][0]
+        assert ident["is_high_value_impersonation_target"] is False
+        assert ident["impersonation_risk_factors"] == []
+
+    def test_pydantic_rejects_non_bool_flag(self):
+        import pytest
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            Identity(
+                id="id-x",
+                name="X",
+                is_high_value_impersonation_target="not-a-bool",  # type: ignore[arg-type]
+            )
+
+    def test_round_trip_through_business_context_validation(self):
+        ctx = _ctx(
+            identities=[
+                Identity(
+                    id="id-brand",
+                    name="Public Brand",
+                    identity_class="organization",
+                    is_high_value_impersonation_target=True,
+                    impersonation_risk_factors=["public-facing-brand", "trusted-supplier"],
+                )
+            ]
+        )
+        dumped = ctx.model_dump()
+        reloaded = BusinessContext.model_validate(dumped)
+        assert reloaded.identities[0].is_high_value_impersonation_target is True
+        assert reloaded.identities[0].impersonation_risk_factors == [
+            "public-facing-brand",
+            "trusted-supplier",
+        ]
+
+    def test_legacy_identity_without_flag_remains_valid(self):
+        """Existing 0.12.x identity_assets payloads omit the flag entirely.
+        Schema must accept them (default False, default [])."""
+        legacy_payload = {
+            "id": "id-legacy",
+            "name": "Legacy Team",
+            "identity_class": "group",
+            "sectors": [],
+            "roles": [],
+            "description": "",
+        }
+        ident = Identity.model_validate(legacy_payload)
+        assert ident.is_high_value_impersonation_target is False
+        assert ident.impersonation_risk_factors == []
+
+    def test_phase2_fixture_round_trips_through_generator(self):
+        """End-to-end: load the Phase 2 fixture, validate as BusinessContext,
+        run through generate_identity_assets_json, verify both flag-true
+        and flag-false identities are preserved in the output."""
+        data = json.loads((FIXTURES / "sample_identities_phase2.json").read_text(encoding="utf-8"))
+        # Drop the comment field (not part of BusinessContext schema)
+        data.pop("_comment", None)
+        ctx = BusinessContext.model_validate(data)
+        result = generate_identity_assets_json(ctx)
+        by_id = {ident["id"]: ident for ident in result["identities"]}
+
+        assert by_id["id-cfo"]["is_high_value_impersonation_target"] is True
+        assert "executive" in by_id["id-cfo"]["impersonation_risk_factors"]
+        assert by_id["id-ops-team"]["is_high_value_impersonation_target"] is False
+        assert by_id["id-ops-team"]["impersonation_risk_factors"] == []
 
 
 class TestAssetIdNormalization:
