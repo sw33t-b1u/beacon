@@ -1,5 +1,145 @@
 {
   "$defs": {
+    "AccountOnAsset": {
+      "description": "User-account ↔ host asset edge.\n\nComposite key (user_account_id, asset_id). Same login on two hosts\nyields two edges. Lifecycle dates (first_seen / last_seen) support\nISO/IEC 27001 A.5.16 identity lifecycle review.",
+      "properties": {
+        "user_account_id": {
+          "title": "User Account Id",
+          "type": "string"
+        },
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "first_seen": {
+          "default": "",
+          "title": "First Seen",
+          "type": "string"
+        },
+        "last_seen": {
+          "default": "",
+          "title": "Last Seen",
+          "type": "string"
+        }
+      },
+      "required": [
+        "user_account_id",
+        "asset_id"
+      ],
+      "title": "AccountOnAsset",
+      "type": "object"
+    },
+    "CriticalAsset": {
+      "description": "Detailed technical asset record — from the Critical Assets section of context.md.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "type": {
+          "default": "other",
+          "enum": [
+            "server",
+            "database",
+            "network_device",
+            "application",
+            "endpoint",
+            "storage",
+            "identity_system",
+            "ot_device",
+            "cloud_service",
+            "other"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "function": {
+          "default": "",
+          "title": "Function",
+          "type": "string"
+        },
+        "hostname": {
+          "default": "",
+          "title": "Hostname",
+          "type": "string"
+        },
+        "os_platform": {
+          "default": "",
+          "title": "Os Platform",
+          "type": "string"
+        },
+        "network_zone": {
+          "default": "unknown",
+          "enum": [
+            "internet",
+            "dmz",
+            "corporate",
+            "ot",
+            "cloud",
+            "restricted",
+            "unknown"
+          ],
+          "title": "Network Zone",
+          "type": "string"
+        },
+        "criticality": {
+          "default": "high",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "title": "Criticality",
+          "type": "string"
+        },
+        "data_types": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Data Types",
+          "type": "array"
+        },
+        "managing_vendor": {
+          "default": "",
+          "title": "Managing Vendor",
+          "type": "string"
+        },
+        "supply_chain_role": {
+          "default": "",
+          "title": "Supply Chain Role",
+          "type": "string"
+        },
+        "dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Dependencies",
+          "type": "array"
+        },
+        "exposure_risk": {
+          "default": "medium",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "title": "Exposure Risk",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "CriticalAsset",
+      "type": "object"
+    },
     "CrownJewel": {
       "properties": {
         "id": {
@@ -45,10 +185,122 @@
       "title": "CrownJewel",
       "type": "object"
     },
+    "HasAccess": {
+      "description": "Identity-to-asset access edge.\n\n``identity_id`` references an entry in ``BusinessContext.identities``;\n``asset_id`` references ``CriticalAsset.id`` (cross-file reference is\nenforced by TRACE's validate_identity_assets, not here).",
+      "properties": {
+        "identity_id": {
+          "title": "Identity Id",
+          "type": "string"
+        },
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "access_level": {
+          "default": "read",
+          "enum": [
+            "read",
+            "write",
+            "admin",
+            "deny"
+          ],
+          "title": "Access Level",
+          "type": "string"
+        },
+        "role": {
+          "default": "",
+          "title": "Role",
+          "type": "string"
+        },
+        "granted_at": {
+          "default": "",
+          "title": "Granted At",
+          "type": "string"
+        },
+        "revoked_at": {
+          "default": "",
+          "title": "Revoked At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "identity_id",
+        "asset_id"
+      ],
+      "title": "HasAccess",
+      "type": "object"
+    },
+    "Identity": {
+      "description": "Person / role / group / organization granted access to assets.\n\nMaps onto a STIX 2.1 §4.4 identity SDO when emitted to SAGE. ``id`` is\nBEACON-internal (stable string the analyst chooses); SAGE assigns the\nfinal ``identity--<uuid>`` STIX id at ingest.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "identity_class": {
+          "default": "group",
+          "enum": [
+            "individual",
+            "group",
+            "system",
+            "organization",
+            "class",
+            "unknown"
+          ],
+          "title": "Identity Class",
+          "type": "string"
+        },
+        "sectors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sectors",
+          "type": "array"
+        },
+        "roles": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Roles",
+          "type": "array"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "Identity",
+      "type": "object"
+    },
     "Organization": {
       "properties": {
         "name": {
           "title": "Name",
+          "type": "string"
+        },
+        "unit_name": {
+          "default": "",
+          "title": "Unit Name",
+          "type": "string"
+        },
+        "unit_type": {
+          "default": "company",
+          "enum": [
+            "company",
+            "division",
+            "department",
+            "team"
+          ],
+          "title": "Unit Type",
           "type": "string"
         },
         "industry": {
@@ -271,6 +523,70 @@
       },
       "title": "SupplyChain",
       "type": "object"
+    },
+    "UserAccount": {
+      "description": "An individual login account on internal hosts.\n\n``account_type`` strictly follows STIX 2.1 §6.4 ``account-type-ov``.\nEmpty string is the documented default for \"unspecified / no\nsuitable spec value\". 0.12.1 dropped operationally-named extensions\n(``service`` / ``other`` / ``unix-account`` / ``azure-ad`` etc) —\noperational distinctions move to:\n\n- ``is_service_account: bool`` (STIX 2.1 §6.4 native property) for\n  service / automation accounts.\n- ``description`` for free-form context (e.g. \"Azure AD tenant\n  contoso.onmicrosoft.com\") when STIX has no suitable\n  ``account_type`` value.\n\nMigration (existing user_accounts.json):\n- ``unix-account`` → ``unix`` (rename to spec value)\n- ``service`` → empty string + ensure ``is_service_account: true``\n- ``other`` → empty string\n- ``azure-ad`` / ``google-workspace`` / ``saas`` / ``kerberos`` →\n  empty string (STIX has no spec value); add note in\n  ``description``.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "account_login": {
+          "title": "Account Login",
+          "type": "string"
+        },
+        "display_name": {
+          "default": "",
+          "title": "Display Name",
+          "type": "string"
+        },
+        "account_type": {
+          "default": "",
+          "enum": [
+            "",
+            "unix",
+            "windows-local",
+            "windows-domain",
+            "ldap",
+            "tacacs",
+            "radius",
+            "nis",
+            "openid",
+            "facebook",
+            "skype",
+            "twitter",
+            "kavi"
+          ],
+          "title": "Account Type",
+          "type": "string"
+        },
+        "is_privileged": {
+          "default": false,
+          "title": "Is Privileged",
+          "type": "boolean"
+        },
+        "is_service_account": {
+          "default": false,
+          "title": "Is Service Account",
+          "type": "boolean"
+        },
+        "identity_id": {
+          "default": "",
+          "title": "Identity Id",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "account_login"
+      ],
+      "title": "UserAccount",
+      "type": "object"
     }
   },
   "properties": {
@@ -298,6 +614,13 @@
       "title": "Crown Jewels",
       "type": "array"
     },
+    "critical_assets": {
+      "items": {
+        "$ref": "#/$defs/CriticalAsset"
+      },
+      "title": "Critical Assets",
+      "type": "array"
+    },
     "supply_chain": {
       "$ref": "#/$defs/SupplyChain"
     },
@@ -306,6 +629,34 @@
         "$ref": "#/$defs/RecentIncident"
       },
       "title": "Recent Incidents",
+      "type": "array"
+    },
+    "identities": {
+      "items": {
+        "$ref": "#/$defs/Identity"
+      },
+      "title": "Identities",
+      "type": "array"
+    },
+    "has_access": {
+      "items": {
+        "$ref": "#/$defs/HasAccess"
+      },
+      "title": "Has Access",
+      "type": "array"
+    },
+    "user_accounts": {
+      "items": {
+        "$ref": "#/$defs/UserAccount"
+      },
+      "title": "User Accounts",
+      "type": "array"
+    },
+    "account_on_asset": {
+      "items": {
+        "$ref": "#/$defs/AccountOnAsset"
+      },
+      "title": "Account On Asset",
       "type": "array"
     }
   },

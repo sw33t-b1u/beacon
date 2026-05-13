@@ -38,6 +38,14 @@
       "title": "Intelligence Level",
       "type": "string"
     },
+    "organizational_scope": {
+      "title": "Organizational Scope",
+      "type": "string"
+    },
+    "decision_point": {
+      "title": "Decision Point",
+      "type": "string"
+    },
     "description": {
       "title": "Description",
       "type": "string"
@@ -46,11 +54,22 @@
       "title": "Rationale",
       "type": "string"
     },
+    "recommended_action": {
+      "title": "Recommended Action",
+      "type": "string"
+    },
     "threat_actor_tags": {
       "items": {
         "type": "string"
       },
       "title": "Threat Actor Tags",
+      "type": "array"
+    },
+    "notable_groups": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notable Groups",
       "type": "array"
     },
     "asset_weight_rules": {
@@ -90,8 +109,11 @@
   "required": [
     "pir_id",
     "intelligence_level",
+    "organizational_scope",
+    "decision_point",
     "description",
     "rationale",
+    "recommended_action",
     "threat_actor_tags",
     "asset_weight_rules",
     "collection_focus",

@@ -8,6 +8,26 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ## [Unreleased]
 
+### Added
+
+- `Makefile` target `check-pir-schema-drift`: compares `schema/pir_output.schema.json`
+  against TRACE's `schema/pir.schema.json` using `scripts/check_pir_schema_drift.py`
+  (TRACE-authored). Skips gracefully (warning, exit 0) when `../TRACE/` is not present.
+  Chained into the `check` target.
+- `Makefile` target `check-pir-roundtrip`: generates a PIR from
+  `tests/fixtures/sample_context_manufacturing.json` via `cmd/generate_pir.py --no-llm`
+  and validates the output with TRACE `cmd/validate_pir.py --strict`. Skips when
+  `../TRACE/` is absent. Chained into the `check` target after `check-pir-schema-drift`.
+- `tests/test_pir_roundtrip.py`: in-process round-trip unit test exercising
+  `build_pirs()` → `PIROutput.model_dump_json()` → `PIRItem.model_validate()`.
+  Uses the real `trace_engine.validate.schema.models.PIRItem` when TRACE is installed,
+  otherwise falls back to an inline minimal replica so BEACON-only CI stays green.
+- Updated `schema/pir_output.schema.json` to reflect current `PIROutput` model
+  (added `organizational_scope`, `decision_point`, `recommended_action` as required
+  fields; `notable_groups` as optional).
+- `.githooks/pre-push`: appended explicit `make check-pir-schema-drift check-pir-roundtrip`
+  call so the drift gate runs on every push.
+
 ### Docs
 
 - Drop stale `Phase 2 onwards` framing on `google-genai` in
