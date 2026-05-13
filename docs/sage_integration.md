@@ -183,3 +183,22 @@ Each row represents a threat actor → asset targeting relationship inferred fro
 | New regulatory requirement | Update `organization.regulatory_context`; re-generate PIR |
 
 After regenerating, always validate with `TRACE/cmd/validate_pir.py` before deploying to SAGE.
+
+---
+
+## Identity Asset Handoff (Initiative A + Initiative C Phase 2)
+
+BEACON also emits `identity_assets.json` describing per-identity access on
+internal assets. SAGE 0.6.0+ ingests it into the `HasAccess` edge table
+(Initiative A). From BEACON 0.13.0 / SAGE 0.9.0 / TRACE 1.6.0 (Initiative C
+Phase 2), two additional fields propagate through the handoff:
+
+| Field | Producer | Consumer effect |
+|-------|----------|-----------------|
+| `is_high_value_impersonation_target: bool` | BEACON 0.13.0+ (LLM-populated when the identity is a publicly-recognizable brand, executive role with public exposure, or critical supplier per HLD §4.3) | SAGE 0.9.0+: `effective_priority` formula on `ImpersonatesIdentity` switches to multiplier=1.5 unconditionally when this flag is true; falls back to `HIGH_VALUE_IMPERSONATION_ROLES` role-tag intersection (15-entry frozenset) when false. TRACE 1.6.0+: PIR L2 relevance score gains a +0.2 boost when the crawled document mentions a flagged identity name. |
+| `impersonation_risk_factors: list[str]` | BEACON 0.13.0+ (free-form tags, e.g. `["public-facing-brand", "executive", "trusted-supplier"]`) | Stored on the SAGE `Identity` row for analyst-facing dashboards; not used in `effective_priority` formula. |
+
+Both fields are optional with safe defaults (`False` / `[]`), so BEACON 0.12.x
+`identity_assets.json` artifacts remain valid input to SAGE 0.9.0 / TRACE 1.6.0
+without migration. See `docs/initiative_c_attributed_impersonates.md` §11 in
+the project root for the full Initiative C Phase 2 design.

@@ -2,7 +2,7 @@
 
 English version: [`docs/triggers.md`](triggers.md)
 
-本書は BEACON の 7 つのビジネストリガー、それぞれの定義・検出ロジック・
+本書は BEACON の 10 のビジネストリガー、それぞれの定義・検出ロジック・
 外部出典を記録する canonical な文書である。トリガーの追加・削除・重み
 変更は本ファイルを同一 commit で更新すること。
 

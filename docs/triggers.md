@@ -2,7 +2,7 @@
 
 Japanese translation: [`docs/triggers.ja.md`](triggers.ja.md)
 
-This document is the canonical record of BEACON's seven business triggers,
+This document is the canonical record of BEACON's ten business triggers,
 their definitions, detection logic, and external citations. If a trigger is
 added, removed, or reweighted, update this file in the same commit.
 

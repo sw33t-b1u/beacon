@@ -180,3 +180,22 @@ gcloud spanner databases execute-sql sage-db \
 | 新規規制要件 | `organization.regulatory_context` を更新して PIR を再生成 |
 
 再生成後は必ず `TRACE/cmd/validate_pir.py` で検証してから SAGE に配置してください。
+
+---
+
+## Identity Asset 連携 (Initiative A + Initiative C Phase 2)
+
+BEACON は `identity_assets.json` も emit し、内部資産に対する identity 別
+アクセス情報を表現します。SAGE 0.6.0+ は `HasAccess` エッジテーブルに
+取り込みます (Initiative A)。BEACON 0.13.0 / SAGE 0.9.0 / TRACE 1.6.0
+(Initiative C Phase 2) からは、handoff に 2 つの field が追加で伝搬します:
+
+| Field | Producer | Consumer 効果 |
+|-------|----------|---------------|
+| `is_high_value_impersonation_target: bool` | BEACON 0.13.0+ (HLD §4.3 に従い LLM が公開ブランド・公開露出のある幹部役職・顧客向け communication に登場する critical supplier に対して true を設定) | SAGE 0.9.0+: `ImpersonatesIdentity` の `effective_priority` 計算式が、flag=true で multiplier=1.5 を無条件適用に切替。flag=false では `HIGH_VALUE_IMPERSONATION_ROLES` 15 entry frozenset との role-tag 交差にフォールバック。TRACE 1.6.0+: PIR L2 relevance score が、文書中に flag 付き identity 名が出現すると +0.2 boost。 |
+| `impersonation_risk_factors: list[str]` | BEACON 0.13.0+ (自由形式タグ、例: `["public-facing-brand", "executive", "trusted-supplier"]`) | SAGE `Identity` 行に保存しアナリスト dashboard 向けに使用。`effective_priority` の式自体には関与しない。 |
+
+両 field とも optional default (`False` / `[]`) のため、BEACON 0.12.x の
+`identity_assets.json` artifact は移行作業なしで SAGE 0.9.0 / TRACE 1.6.0 の
+入力として有効です。Initiative C Phase 2 の設計詳細はプロジェクトルートの
+`docs/initiative_c_attributed_impersonates.md` §11 を参照。
