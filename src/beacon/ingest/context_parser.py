@@ -54,7 +54,7 @@ def parse(source: str | Path, no_llm: bool = False, config=None) -> BusinessCont
     if path.suffix.lower() in {".md", ".markdown"}:
         if no_llm:
             raise NotImplementedError(
-                "Markdown input requires LLM processing (Phase 2). "
+                "Markdown input requires LLM processing. "
                 "Use a JSON file with --no-llm, or omit --no-llm to enable LLM support."
             )
         return parse_markdown(path, config=config)

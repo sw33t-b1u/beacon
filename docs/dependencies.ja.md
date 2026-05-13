@@ -9,7 +9,7 @@
 | パッケージ | バージョン制約 | 目的 | ライセンス |
 |-----------|-------------|------|---------|
 | `pydantic` | `>=2.0` | BusinessContext / PIR の入出力スキーマバリデーション、`model_json_schema()` による JSONSchema 自動生成 | MIT |
-| `google-genai` | `>=1.0` | Google Gen AI SDK による Vertex AI Gemini 呼び出し — Phase 2 以降で使用 | Apache-2.0 |
+| `google-genai` | `>=1.0` | Google Gen AI SDK による Vertex AI Gemini 呼び出し — LLM モード markdown コンテキスト解析（`src/beacon/llm/client.py`）および STIX / user-account 抽出で使用 | Apache-2.0 |
 | `structlog` | `>=24.4.0` | 構造化ログ出力（SAGE と統一） | Apache-2.0 / MIT |
 | `httpx` | `>=0.27.0` | MITRE CTI STIX バンドル取得（`cmd/update_taxonomy.py`）および SAGE Analysis API ポーリング（`src/beacon/sage/client.py`）用 HTTP クライアント | BSD-3-Clause |
 | `fastapi` | `>=0.111.0` | Web UI フレームワーク — 宣言的ルーティング・OpenAPI 自動生成・Jinja2 テンプレート連携 | MIT |

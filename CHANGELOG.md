@@ -6,6 +6,18 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [Unreleased]
+
+### Docs
+
+- Drop stale `Phase 2 onwards` framing on `google-genai` in
+  `docs/dependencies.{md,ja.md}` — replaced with a concrete description
+  pointing at the actual call site (`src/beacon/llm/client.py`).
+- `src/beacon/ingest/context_parser.py`: drop `(Phase 2)` label from the
+  markdown + `--no-llm` `NotImplementedError` message. The combination is
+  intentionally unsupported (no future-implementation plan), so the
+  Phase-2 marker only added confusion.
+
 ## [0.12.2] — 2026-05-10
 
 ### Fixed — `identity_class` aligned to STIX 2.1 §6.7 ``identity-class-ov``

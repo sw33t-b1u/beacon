@@ -5,7 +5,7 @@
 | Package | Version | Purpose | License |
 |---------|---------|---------|---------|
 | `pydantic` | `>=2.0` | BusinessContext / PIR input–output schema validation; JSONSchema auto-generation via `model_json_schema()` | MIT |
-| `google-genai` | `>=1.0` | Google Gen AI SDK for Vertex AI Gemini calls — used from Phase 2 onwards | Apache-2.0 |
+| `google-genai` | `>=1.0` | Google Gen AI SDK for Vertex AI Gemini calls — used by LLM-mode markdown context parsing (`src/beacon/llm/client.py`) and required for STIX/user-account extraction. | Apache-2.0 |
 | `structlog` | `>=24.4.0` | Structured logging (aligned with SAGE) | Apache-2.0 / MIT |
 | `httpx` | `>=0.27.0` | HTTP client for MITRE CTI STIX bundle fetch (`cmd/update_taxonomy.py`) and SAGE Analysis API polling (`src/beacon/sage/client.py`) | BSD-3-Clause |
 | `fastapi` | `>=0.111.0` | Web UI framework — declarative routing, automatic OpenAPI docs, Jinja2 template integration | MIT |
