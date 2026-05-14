@@ -147,10 +147,11 @@ The generated file is written to `output/assets.json`. Open it and fill in:
 | `asset_vulnerabilities` | Populate after running STIX ETL |
 | `actor_targets` | Populate after running STIX ETL |
 
-Then load into SAGE Spanner:
+Then load into SAGE Spanner (`load_assets.py` lives in `SAGE/cmd/`, so switch
+directories first):
 
 ```bash
-uv run python cmd/load_assets.py --file output/assets.json
+cd ../SAGE && uv run python cmd/load_assets.py --file ../BEACON/output/assets.json
 ```
 
 ---

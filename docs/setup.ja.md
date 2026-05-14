@@ -146,10 +146,11 @@ uv run python cmd/generate_assets.py \
 | `asset_vulnerabilities` | STIX ETL 実行後に設定 |
 | `actor_targets` | STIX ETL 実行後に設定 |
 
-SAGE Spanner へのロード:
+SAGE Spanner へのロード (`load_assets.py` は `SAGE/cmd/` 配下のため
+ディレクトリを切り替えて実行):
 
 ```bash
-uv run python cmd/load_assets.py --file output/assets.json
+cd ../SAGE && uv run python cmd/load_assets.py --file ../BEACON/output/assets.json
 ```
 
 ---
@@ -271,10 +272,10 @@ cd ../SAGE  && uv run python cmd/load_user_accounts.py \
 
 ```bash
 # 変更内容をプレビュー（ファイル書き込みなし）
-uv run python -m cmd/update_taxonomy --dry-run
+uv run python -m cmd.update_taxonomy --dry-run
 
 # 実際に更新
-uv run python -m cmd/update_taxonomy
+uv run python -m cmd.update_taxonomy
 ```
 
 オプション:
