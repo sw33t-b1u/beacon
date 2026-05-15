@@ -83,4 +83,4 @@ input/
 output/
 
 # Local-only design notes (kept out of VCS by maintainer policy)
-high-level-design.md
+docs/high-level-design.md

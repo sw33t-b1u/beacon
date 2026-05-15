@@ -55,6 +55,7 @@ BEACON/
 │   └── test_*.py                # pytest test files
 │
 ├── docs/                        # English documentation (authoritative)
+│   ├── high-level-design.md     # Authoritative system design (local-only; gitignored)
 │   ├── setup.md                 # Prerequisites, installation, environment variables
 │   ├── context_template.md      # Template for input/context.md
 │   ├── data-model.md            # BusinessContext schema, PIR format, LLM integration
@@ -67,7 +68,6 @@ BEACON/
 │   ├── pre-commit               # Runs make vet lint before every commit
 │   └── pre-push                 # Runs make check before every push
 │
-├── high-level-design.md         # Authoritative system design document
 ├── CHANGELOG.md                 # Version history
 ├── Makefile                     # Quality gate targets (check, vet, lint, test, audit, setup)
 ├── pyproject.toml               # Python project config (uv + ruff)
@@ -81,5 +81,5 @@ BEACON/
 - **`cmd/`** contains thin CLI scripts that parse arguments and delegate to `src/beacon/` modules. No business logic lives here.
 - **`schema/`** holds the dictionary files and JSONSchemas that drive the pipeline. These are data, not code.
 - **`docs/`** holds user-facing documentation. English files use the base name (e.g. `setup.md`); Japanese translations are siblings with the `.ja.md` suffix (e.g. `setup.ja.md`).
-- **`high-level-design.md`** must be updated before any architectural change is implemented (Rule 27).
+- **`docs/high-level-design.md`** must be updated before any architectural change is implemented (Rule 27). The file is gitignored per maintainer policy.
 - **`input/`** and **`output/`** are runtime directories gitignored by default — they contain sensitive operational data and must not be committed.

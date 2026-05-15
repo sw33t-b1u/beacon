@@ -55,6 +55,7 @@ BEACON/
 │   └── test_*.py                # pytest テストファイル
 │
 ├── docs/                        # 英語ドキュメント（正本）
+│   ├── high-level-design.md     # システム設計書（正本; local-only / gitignored）
 │   ├── setup.md                 # 前提条件、インストール、環境変数
 │   ├── context_template.md      # input/context.md 用テンプレート
 │   ├── data-model.md            # BusinessContext スキーマ、PIR フォーマット、LLM 統合
@@ -67,7 +68,6 @@ BEACON/
 │   ├── pre-commit               # コミット前に make vet lint を実行
 │   └── pre-push                 # プッシュ前に make check を実行
 │
-├── high-level-design.md         # システム設計書（正本）
 ├── CHANGELOG.md                 # バージョン履歴
 ├── Makefile                     # 品質ゲートターゲット (check, vet, lint, test, audit, setup)
 ├── pyproject.toml               # Python プロジェクト設定 (uv + ruff)
@@ -81,5 +81,5 @@ BEACON/
 - **`cmd/`** は引数をパースして `src/beacon/` モジュールに委譲する薄い CLI スクリプトを格納。ビジネスロジックは置かない。
 - **`schema/`** はパイプラインを駆動する辞書ファイルと JSONSchema を保持。データであり、コードではない。
 - **`docs/`** は利用者向けドキュメントを保持。英語版はベース名（例 `setup.md`）、日本語翻訳は `.ja.md` サフィックス（例 `setup.ja.md`）で同じディレクトリに並べて維持。
-- **`high-level-design.md`** はアーキテクチャ変更前に必ず更新すること (Rule 27)。
+- **`docs/high-level-design.md`** はアーキテクチャ変更前に必ず更新すること (Rule 27)。本ファイルは maintainer 方針で gitignored。
 - **`input/`** と **`output/`** はデフォルトで gitignore されるランタイムディレクトリ — 機密な運用データを含むためコミットしてはならない。
