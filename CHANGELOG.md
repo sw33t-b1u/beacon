@@ -8,6 +8,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ## [Unreleased]
 
+### Changed — RULES.md compliance pass
+
+- `high-level-design.md` moved from the project root into `docs/` per
+  Rule 27, matching the fix shipped in TRACE and SAGE. The file remains
+  gitignored per maintainer policy; the `.gitignore` entry is updated
+  to the new path. `docs/structure.md` / `docs/structure.ja.md` updated
+  to reflect the relocation.
+
 ## [0.14.0] — 2026-05-13
 
 ### Added — three new business triggers (BEACON now has 10)
