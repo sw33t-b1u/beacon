@@ -1,0 +1,238 @@
+{
+  "_metadata": {
+    "description": "SAGE asset-tag → MITRE ATT&CK Enterprise TTP mapping for actor triage surface analysis. Each entry maps one SAGE tag to a TTP observed targeting that surface. Used by BEACON actor_triage to compute Opportunity.victimology_match via surface_ttp_matches.",
+    "schema_version": "1.0.0",
+    "generator": "manual (BEACON 0.15.0 / plan beacon-actor-triage §1 / §3.3)",
+    "citation_policy": "All entries verbatim-cited from ref/ md sources per [[feedback_ref_md_first]] and [[feedback_external_citations]]. Source filename and line numbers recorded inline.",
+    "deferred_entries": "None. All 35 entries have ref/ md citations.",
+    "sources_used": [
+      "ref/m-trends-2026-en.md",
+      "ref/ENISA_Threat_Landscape_2025_v1.2.md",
+      "ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md"
+    ]
+  },
+  "surface_ttp_map": {
+    "external-facing": [
+      {
+        "ttp_id": "T1190",
+        "ttp_name": "Exploit Public-Facing Application",
+        "kill_chain_phase": "initial-access",
+        "citation": "ref/m-trends-2026-en.md:1734 — '| 5    | T1190: Exploit Public-Facing Application | 27.7%   |'"
+      },
+      {
+        "ttp_id": "T1133",
+        "ttp_name": "External Remote Services",
+        "kill_chain_phase": "initial-access",
+        "citation": "ref/m-trends-2026-en.md:1739 — '| 10   | T1133: External Remote Services          | 23.8%   |'"
+      },
+      {
+        "ttp_id": "T1078",
+        "ttp_name": "Valid Accounts",
+        "kill_chain_phase": "initial-access",
+        "citation": "ref/m-trends-2026-en.md:4108 — '| T1078: Valid Accounts                     | 17% T1078.004: Cloud Accounts         | 9.5% |'"
+      },
+      {
+        "ttp_id": "T1189",
+        "ttp_name": "Drive-by Compromise",
+        "kill_chain_phase": "initial-access",
+        "citation": "ref/m-trends-2026-en.md:4113 — '| T1189: Drive-by Compromise                | 6.3%                                  |      |'"
+      },
+      {
+        "ttp_id": "T1195",
+        "ttp_name": "Supply Chain Compromise",
+        "kill_chain_phase": "initial-access",
+        "citation": "ref/m-trends-2026-en.md:4114 — 'T1195: Supply Chain Compromise  1.7% T1195.002: Compromise Software Supply Chain 1.5%'"
+      }
+    ],
+    "email_gateway": [
+      {
+        "ttp_id": "T1566",
+        "ttp_name": "Phishing",
+        "kill_chain_phase": "initial-access",
+        "citation": "ref/m-trends-2026-en.md:4109 — '| T1566: Phishing                           | 14.1% T1566.004: Spearphishing Voice  | 6.1% |'"
+      },
+      {
+        "ttp_id": "T1566.001",
+        "ttp_name": "Spearphishing Attachment",
+        "kill_chain_phase": "initial-access",
+        "citation": "ref/m-trends-2026-en.md:4112 — '|                                           | T1566.001: Spearphishing Attachment   | 1.0% |'"
+      },
+      {
+        "ttp_id": "T1566.002",
+        "ttp_name": "Spearphishing Link",
+        "kill_chain_phase": "initial-access",
+        "citation": "ref/m-trends-2026-en.md:4110 — '|                                           | T1566.002: Spearphishing Link         | 3.2% |'"
+      },
+      {
+        "ttp_id": "T1566.003",
+        "ttp_name": "Spearphishing via Service",
+        "kill_chain_phase": "initial-access",
+        "citation": "ref/m-trends-2026-en.md:4111 — '|                                           | T1566.003: Spearphishing via Service  | 2.7% |'"
+      },
+      {
+        "ttp_id": "T1566.004",
+        "ttp_name": "Spearphishing Voice",
+        "kill_chain_phase": "initial-access",
+        "citation": "ref/m-trends-2026-en.md:4109 — '| T1566: Phishing                           | 14.1% T1566.004: Spearphishing Voice  | 6.1% |'"
+      },
+      {
+        "ttp_id": "T1598",
+        "ttp_name": "Phishing for Information",
+        "kill_chain_phase": "reconnaissance",
+        "citation": "ref/m-trends-2026-en.md:4084 — 'ATT&CK v18. T1598: Phishing for Information 2.4%'"
+      }
+    ],
+    "vpn_remote_access": [
+      {
+        "ttp_id": "T1133",
+        "ttp_name": "External Remote Services",
+        "kill_chain_phase": "persistence",
+        "citation": "ref/m-trends-2026-en.md:4107 — '| T1133: External Remote Services           | 23.8%                                 |      |'"
+      },
+      {
+        "ttp_id": "T1078",
+        "ttp_name": "Valid Accounts",
+        "kill_chain_phase": "persistence",
+        "citation": "ref/ENISA_Threat_Landscape_2025_v1.2.md:2940 — 'TA0003: Persistence T1078: Valid Accounts M1027: Password Policies, M1018: User'"
+      },
+      {
+        "ttp_id": "T1021",
+        "ttp_name": "Remote Services",
+        "kill_chain_phase": "lateral-movement",
+        "citation": "ref/m-trends-2026-en.md:1733 — '| 4    | T1021: Remote Services                   | 30.6%   |'"
+      },
+      {
+        "ttp_id": "T1021.001",
+        "ttp_name": "Remote Desktop Protocol",
+        "kill_chain_phase": "lateral-movement",
+        "citation": "ref/m-trends-2026-en.md:1749 — '| 3    | T1021.001: Remote Desktop Protocol       | 22.1%   |'"
+      },
+      {
+        "ttp_id": "T1572",
+        "ttp_name": "Protocol Tunneling",
+        "kill_chain_phase": "command-and-control",
+        "citation": "ref/m-trends-2026-en.md:4573 — '| T1572: Protocol Tunneling             | 8.0%                               |      |'"
+      }
+    ],
+    "cloud": [
+      {
+        "ttp_id": "T1537",
+        "ttp_name": "Transfer Data to Cloud Account",
+        "kill_chain_phase": "exfiltration",
+        "citation": "ref/ENISA_Threat_Landscape_2025_v1.2.md:3521 — 'TA0010: Exfiltration T1537: Transfer Data to Cloud Account M1057: Data Loss Prevention, M1018:'"
+      },
+      {
+        "ttp_id": "T1530",
+        "ttp_name": "Data from Cloud Storage",
+        "kill_chain_phase": "collection",
+        "citation": "ref/m-trends-2026-en.md:4608 — '| T1530: Data from Cloud Storage        | 2.7%                                |      |'"
+      },
+      {
+        "ttp_id": "T1528",
+        "ttp_name": "Steal Application Access Token",
+        "kill_chain_phase": "credential-access",
+        "citation": "ref/m-trends-2026-en.md:4160 — '| T1528: Steal Application Access Token              | 0.2%                       |      |'"
+      },
+      {
+        "ttp_id": "T1578",
+        "ttp_name": "Modify Cloud Compute Infrastructure",
+        "kill_chain_phase": "defense-evasion",
+        "citation": "ref/m-trends-2026-en.md:4488 — 'T1578: Modify Cloud Compute Infrastructure 1.5% T1578.003: Delete Cloud Instance 1.2%'"
+      },
+      {
+        "ttp_id": "T1078.004",
+        "ttp_name": "Cloud Accounts",
+        "kill_chain_phase": "initial-access",
+        "citation": "ref/m-trends-2026-en.md:4108 — '| T1078: Valid Accounts                     | 17% T1078.004: Cloud Accounts         | 9.5% |'"
+      },
+      {
+        "ttp_id": "T1098.001",
+        "ttp_name": "Additional Cloud Credentials",
+        "kill_chain_phase": "persistence",
+        "citation": "ref/m-trends-2026-en.md:4202 — '|                        | T1098.001: Additional Cloud Credentials  | 1.0% |'"
+      },
+      {
+        "ttp_id": "T1562.001",
+        "ttp_name": "Disable or Modify Tools",
+        "kill_chain_phase": "defense-evasion",
+        "citation": "ref/m-trends-2026-en.md:4443 — 'T1562.001: Disable or Modify Tools  10.2%'"
+      }
+    ],
+    "ot": [
+      {
+        "ttp_id": "T1190",
+        "ttp_name": "Exploit Public-Facing Application",
+        "kill_chain_phase": "initial-access",
+        "citation": "ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md:322 — 'Exploitation of internet-facing Ivanti, Fortinet, Cisco, and F5 assets'"
+      },
+      {
+        "ttp_id": "T1133",
+        "ttp_name": "External Remote Services",
+        "kill_chain_phase": "initial-access",
+        "citation": "ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md:601 — 'particularly VPN appliances. Enforcing strong remote access controls, including timely patching of internet-facing services'"
+      },
+      {
+        "ttp_id": "T1021",
+        "ttp_name": "Remote Services",
+        "kill_chain_phase": "lateral-movement",
+        "citation": "ref/m-trends-2026-en.md:1733 — '| 4    | T1021: Remote Services                   | 30.6%   |'"
+      },
+      {
+        "ttp_id": "T1040",
+        "ttp_name": "Network Sniffing",
+        "kill_chain_phase": "credential-access",
+        "citation": "ref/m-trends-2026-en.md:4158 — '| T1040: Network Sniffing                            | 1.0%                       |      |'"
+      },
+      {
+        "ttp_id": "T1195",
+        "ttp_name": "Supply Chain Compromise",
+        "kill_chain_phase": "initial-access",
+        "citation": "ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md:65 — 'Increased Targeting of OT-Adjacent and Supply-Chain Entities'"
+      }
+    ],
+    "domain_controller": [
+      {
+        "ttp_id": "T1003.001",
+        "ttp_name": "LSASS Memory",
+        "kill_chain_phase": "credential-access",
+        "citation": "ref/m-trends-2026-en.md:4128 — '|                              | T1003.001: LSASS Memory                | 3.2% |'"
+      },
+      {
+        "ttp_id": "T1003.006",
+        "ttp_name": "DCSync",
+        "kill_chain_phase": "credential-access",
+        "citation": "ref/m-trends-2026-en.md:4130 — '|                              | T1003.006: DCSync                      | 1.7% |'"
+      },
+      {
+        "ttp_id": "T1003.003",
+        "ttp_name": "NTDS",
+        "kill_chain_phase": "credential-access",
+        "citation": "ref/m-trends-2026-en.md:4125 — '| T1003: OS Credential Dumping | 13.6% T1003.003: NTDS                  | 4.4% |'"
+      },
+      {
+        "ttp_id": "T1484",
+        "ttp_name": "Domain or Tenant Policy Modification",
+        "kill_chain_phase": "defense-evasion",
+        "citation": "ref/m-trends-2026-en.md:4324 — 'T1484: Domain or Tenant Policy Modification  0.7% T1484.001: Group Policy Modification 0.7%'"
+      },
+      {
+        "ttp_id": "T1484.001",
+        "ttp_name": "Group Policy Modification",
+        "kill_chain_phase": "defense-evasion",
+        "citation": "ref/ENISA_Threat_Landscape_2025_v1.2.md:3062 — 'TA-OTHER: Other  T1484.001: Group Policy Modification  M1047: Audit, M1018: User Account'"
+      },
+      {
+        "ttp_id": "T1207",
+        "ttp_name": "Rogue Domain Controller",
+        "kill_chain_phase": "defense-evasion",
+        "citation": "ref/m-trends-2026-en.md:4501 — 'T1207: Rogue Domain Controller 0.5%'"
+      },
+      {
+        "ttp_id": "T1098",
+        "ttp_name": "Account Manipulation",
+        "kill_chain_phase": "persistence",
+        "citation": "ref/m-trends-2026-en.md:4199 — 'T1098: Account Manipulation  18.7% T1098.007: Additional Local or Domain Groups 7.8%'"
+      }
+    ]
+  }
+}

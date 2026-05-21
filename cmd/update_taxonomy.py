@@ -11,6 +11,12 @@ No manually curated fields are retained; each run overwrites `actor_categories`
 and `geography_threat_map` completely. Hand-curated sections (`industry_threat_map`,
 `business_trigger_map`, `supply_chain_threat_map`, `subgroups`) are intentionally
 absent from the new schema — they were deleted as part of the credibility refactor.
+
+Schema changelog:
+  2.0.0 — Added kill_chain_phases_map (TTP → [phase_name]),
+           intrusion_set_profiles (per-group technique_count / software_count /
+           sophistication_tier / campaign_last_seen), and _metadata.schema_version.
+           (BEACON 0.15.0 / actor triage preparation; plan beacon-actor-triage §1)
 """
 
 from __future__ import annotations
@@ -25,6 +31,8 @@ import httpx
 import structlog
 
 logger = structlog.get_logger(__name__)
+
+_SCHEMA_VERSION = "2.0.0"
 
 _MITRE_STIX_URL = (
     "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json"
@@ -218,6 +226,159 @@ def extract_group_ttps(bundle: dict) -> dict[str, list[str]]:
             result.setdefault(group_name, set()).add(ttp_id)
 
     return {name: sorted(ttps) for name, ttps in result.items()}
+
+
+def extract_kill_chain_phases(bundle: dict) -> dict[str, list[str]]:
+    """Extract {ttp_id: [phase_name, ...]} from attack-pattern kill_chain_phases.
+
+    Only includes phases where kill_chain_name == "mitre-attack".
+    Result phases are sorted and deduplicated.
+    """
+    result: dict[str, list[str]] = {}
+    for obj in bundle.get("objects", []):
+        if obj.get("type") != "attack-pattern":
+            continue
+        ttp_id: str | None = None
+        for ref in obj.get("external_references", []):
+            if ref.get("source_name") == "mitre-attack":
+                ext_id = ref.get("external_id", "")
+                if ext_id.startswith("T"):
+                    ttp_id = ext_id
+                    break
+        if not ttp_id:
+            continue
+        phases = sorted(
+            {
+                kp["phase_name"]
+                for kp in obj.get("kill_chain_phases", [])
+                if kp.get("kill_chain_name") == "mitre-attack" and kp.get("phase_name")
+            }
+        )
+        if phases:
+            result[ttp_id] = phases
+    return result
+
+
+def extract_group_software_counts(bundle: dict) -> dict[str, int]:
+    """Count distinct malware/tool objects used per intrusion-set.
+
+    Walks `uses` relationships from intrusion-set → malware or tool objects.
+    Returns {group_canonical_name: count}.
+    """
+    intrusion_set_name: dict[str, str] = {}
+    software_ids: set[str] = set()
+
+    for obj in bundle.get("objects", []):
+        otype = obj.get("type")
+        if otype == "intrusion-set":
+            obj_id = obj.get("id", "")
+            name = obj.get("name", "")
+            if obj_id and name:
+                intrusion_set_name[obj_id] = name
+        elif otype in ("malware", "tool"):
+            obj_id = obj.get("id", "")
+            if obj_id:
+                software_ids.add(obj_id)
+
+    result: dict[str, int] = {}
+    for obj in bundle.get("objects", []):
+        if obj.get("type") != "relationship":
+            continue
+        if obj.get("relationship_type") != "uses":
+            continue
+        src = obj.get("source_ref", "")
+        tgt = obj.get("target_ref", "")
+        group_name = intrusion_set_name.get(src)
+        if group_name and tgt in software_ids:
+            result[group_name] = result.get(group_name, 0) + 1
+
+    return result
+
+
+def _sophistication_tier(technique_count: int) -> str:
+    """Classify intrusion-set sophistication based on ATT&CK technique count.
+
+    Thresholds derived from observed ATT&CK Enterprise group coverage:
+      ≥50 techniques → expert   (large, well-resourced APT groups)
+      ≥20 techniques → advanced (established, multi-TTP groups)
+      ≥5  techniques → intermediate (active, focused groups)
+      <5  techniques → minimal  (limited observed activity)
+    """
+    if technique_count >= 50:
+        return "expert"
+    if technique_count >= 20:
+        return "advanced"
+    if technique_count >= 5:
+        return "intermediate"
+    return "minimal"
+
+
+def extract_group_campaign_last_seen(bundle: dict) -> dict[str, str | None]:
+    """Return {group_canonical_name: latest_campaign_last_seen_iso} from STIX campaigns.
+
+    Walks campaign objects (which carry an optional `last_seen` field) and
+    `attributed-to` relationships linking campaigns to intrusion-sets.
+    Returns the most recent `last_seen` ISO string per group, or omits the
+    group entirely if no campaign data is found.
+    """
+    intrusion_set_name: dict[str, str] = {}
+    campaign_last_seen: dict[str, str] = {}
+
+    for obj in bundle.get("objects", []):
+        otype = obj.get("type")
+        if otype == "intrusion-set":
+            obj_id = obj.get("id", "")
+            name = obj.get("name", "")
+            if obj_id and name:
+                intrusion_set_name[obj_id] = name
+        elif otype == "campaign":
+            obj_id = obj.get("id", "")
+            last_seen = obj.get("last_seen")
+            if obj_id and last_seen:
+                campaign_last_seen[obj_id] = last_seen
+
+    result: dict[str, str | None] = {}
+    for obj in bundle.get("objects", []):
+        if obj.get("type") != "relationship":
+            continue
+        if obj.get("relationship_type") != "attributed-to":
+            continue
+        src = obj.get("source_ref", "")
+        tgt = obj.get("target_ref", "")
+        group_name = intrusion_set_name.get(tgt)
+        last_seen = campaign_last_seen.get(src)
+        if group_name and last_seen:
+            existing = result.get(group_name)
+            if existing is None or last_seen > existing:
+                result[group_name] = last_seen
+
+    return result
+
+
+def build_intrusion_set_profiles(
+    mitre_bundle: dict,
+    group_ttps: dict[str, list[str]],
+) -> dict[str, dict]:
+    """Build per-intrusion-set attribute profiles consumed by the actor triage layer.
+
+    Returns {group_name: {technique_count, software_count,
+                           sophistication_tier, campaign_last_seen}}.
+    campaign_last_seen is None when no STIX campaign is attributed to the group.
+    """
+    groups = extract_groups(mitre_bundle)
+    software_counts = extract_group_software_counts(mitre_bundle)
+    campaign_last = extract_group_campaign_last_seen(mitre_bundle)
+
+    profiles: dict[str, dict] = {}
+    for name in sorted(groups.keys()):
+        tc = len(group_ttps.get(name, []))
+        profiles[name] = {
+            "technique_count": tc,
+            "software_count": software_counts.get(name, 0),
+            "sophistication_tier": _sophistication_tier(tc),
+            "campaign_last_seen": campaign_last.get(name),
+        }
+    return profiles
 
 
 # --- MISP normalization -----------------------------------------------------
@@ -456,6 +617,8 @@ def build_taxonomy(
     """Produce a complete threat_taxonomy.json dict from upstream sources."""
     mitre_groups = extract_groups(mitre_bundle)
     mitre_group_ttps = extract_group_ttps(mitre_bundle)
+    kill_chain_phases_map = extract_kill_chain_phases(mitre_bundle)
+    intrusion_set_profiles = build_intrusion_set_profiles(mitre_bundle, mitre_group_ttps)
 
     return {
         "_metadata": {
@@ -465,9 +628,12 @@ def build_taxonomy(
             },
             "last_auto_sync": now_iso,
             "generator": "cmd/update_taxonomy.py",
+            "schema_version": _SCHEMA_VERSION,
         },
         "actor_categories": build_actor_categories(mitre_groups, mitre_group_ttps, misp_data),
         "geography_threat_map": build_geography_threat_map(mitre_groups, misp_data),
+        "kill_chain_phases_map": kill_chain_phases_map,
+        "intrusion_set_profiles": intrusion_set_profiles,
     }
 
 

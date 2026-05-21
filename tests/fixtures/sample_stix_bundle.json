@@ -32,6 +32,9 @@
       "name": "Exploit Public-Facing Application",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1190"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "initial-access"}
       ]
     },
     {
@@ -40,6 +43,9 @@
       "name": "Phishing",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1566"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "initial-access"}
       ]
     },
     {
@@ -48,6 +54,9 @@
       "name": "Spearphishing Attachment",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1566.001"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "initial-access"}
       ]
     },
     {
@@ -56,6 +65,12 @@
       "name": "Valid Accounts",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1078"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "defense-evasion"},
+        {"kill_chain_name": "mitre-attack", "phase_name": "initial-access"},
+        {"kill_chain_name": "mitre-attack", "phase_name": "persistence"},
+        {"kill_chain_name": "mitre-attack", "phase_name": "privilege-escalation"}
       ]
     },
     {
@@ -64,6 +79,9 @@
       "name": "Exfiltration Over C2 Channel",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1041"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "exfiltration"}
       ]
     },
     {
@@ -72,6 +90,9 @@
       "name": "Command and Scripting Interpreter",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1059"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "execution"}
       ]
     },
     {
@@ -80,6 +101,9 @@
       "name": "Data Encrypted for Impact",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1486"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "impact"}
       ]
     },
     {
@@ -88,6 +112,9 @@
       "name": "File and Directory Discovery",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1083"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "discovery"}
       ]
     },
     {
@@ -96,6 +123,9 @@
       "name": "Supply Chain Compromise",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1195"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "initial-access"}
       ]
     },
     {
@@ -104,6 +134,9 @@
       "name": "LSASS Memory",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1003.001"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "credential-access"}
       ]
     },
     {
@@ -112,6 +145,9 @@
       "name": "Transfer Data to Cloud Account",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1537"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "exfiltration"}
       ]
     },
     {
@@ -120,6 +156,9 @@
       "name": "Network Denial of Service",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1498"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "impact"}
       ]
     },
     {
@@ -128,6 +167,9 @@
       "name": "Endpoint Denial of Service",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1499"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "impact"}
       ]
     },
     {
@@ -136,6 +178,9 @@
       "name": "Defacement",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1491"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "impact"}
       ]
     },
     {
@@ -144,7 +189,35 @@
       "name": "DLL Side-Loading",
       "external_references": [
         {"source_name": "mitre-attack", "external_id": "T1574.002"}
+      ],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "defense-evasion"},
+        {"kill_chain_name": "mitre-attack", "phase_name": "persistence"},
+        {"kill_chain_name": "mitre-attack", "phase_name": "privilege-escalation"}
       ]
+    },
+    {
+      "type": "malware",
+      "id": "malware--test-mimikatz",
+      "name": "Mimikatz",
+      "is_family": false
+    },
+    {
+      "type": "tool",
+      "id": "tool--test-cobaltstrike",
+      "name": "Cobalt Strike"
+    },
+    {
+      "type": "campaign",
+      "id": "campaign--test-camp1",
+      "name": "Test Campaign 2025-A",
+      "last_seen": "2025-06-01T00:00:00Z"
+    },
+    {
+      "type": "campaign",
+      "id": "campaign--test-camp2",
+      "name": "Test Campaign 2025-B",
+      "last_seen": "2025-11-15T00:00:00Z"
     },
     {
       "type": "relationship",
@@ -180,6 +253,41 @@
       "relationship_type": "attributed-to",
       "source_ref": "intrusion-set--test-apt10",
       "target_ref": "attack-pattern--T1083"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--r6",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--test-apt10",
+      "target_ref": "malware--test-mimikatz"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--r7",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--test-apt41",
+      "target_ref": "tool--test-cobaltstrike"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--r8",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--test-lazarus",
+      "target_ref": "malware--test-mimikatz"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--r9",
+      "relationship_type": "attributed-to",
+      "source_ref": "campaign--test-camp1",
+      "target_ref": "intrusion-set--test-apt10"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--r10",
+      "relationship_type": "attributed-to",
+      "source_ref": "campaign--test-camp2",
+      "target_ref": "intrusion-set--test-lazarus"
     }
   ]
 }

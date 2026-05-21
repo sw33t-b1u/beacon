@@ -5,7 +5,8 @@
       "misp_galaxy_threat_actor": "https://raw.githubusercontent.com/MISP/misp-galaxy/main/clusters/threat-actor.json"
     },
     "last_auto_sync": "2026-05-09T05:31:07+00:00",
-    "generator": "cmd/update_taxonomy.py"
+    "generator": "cmd/update_taxonomy.py",
+    "schema_version": "2.0.0"
   },
   "actor_categories": {
     "state_sponsored": {
@@ -4076,6 +4077,621 @@
         "apt-iran",
         "apt-united-states"
       ]
+    }
+  },
+  "kill_chain_phases_map": {},
+  "intrusion_set_profiles": {
+    "APT-C-23": {
+      "technique_count": 16,
+      "software_count": 0,
+      "sophistication_tier": "intermediate",
+      "campaign_last_seen": null
+    },
+    "APT-C-36": {
+      "technique_count": 147,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT1": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT12": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT16": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT17": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT18": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT19": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT28": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT29": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT3": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT30": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT32": {
+      "technique_count": 78,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT33": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT37": {
+      "technique_count": 203,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT39": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT41": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT42": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "APT5": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Agrius": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Ajax Security Team": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Andariel": {
+      "technique_count": 203,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Aoqin Dragon": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "AppleJeus": {
+      "technique_count": 203,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "BITTER": {
+      "technique_count": 58,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "BRONZE BUTLER": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "BlackTech": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "CURIUM": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Charming Kitten": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Cinnamon Tempest": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Cleaver": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Contagious Interview": {
+      "technique_count": 203,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "CopyKittens": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Daggerfly": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Darkhotel": {
+      "technique_count": 40,
+      "software_count": 0,
+      "sophistication_tier": "advanced",
+      "campaign_last_seen": null
+    },
+    "DragonOK": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Dragonfly": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Earth Lusca": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Elderwood": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Ember Bear": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "FIN13": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "FIN7": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Ferocious Kitten": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Fox Kitten": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "GALLIUM": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "GCMAN": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Gamaredon Group": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "HAFNIUM": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "HEXANE": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Higaisa": {
+      "technique_count": 40,
+      "software_count": 0,
+      "sophistication_tier": "advanced",
+      "campaign_last_seen": null
+    },
+    "Inception": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "IndigoZebra": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Indrik Spider": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Ke3chang": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Kimsuky": {
+      "technique_count": 203,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Lazarus Group": {
+      "technique_count": 203,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Leviathan": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Lotus Blossom": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Machete": {
+      "technique_count": 147,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Magic Hound": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "MirrorFace": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Mofang": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Molerats": {
+      "technique_count": 16,
+      "software_count": 0,
+      "sophistication_tier": "intermediate",
+      "campaign_last_seen": null
+    },
+    "Moses Staff": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "MoustachedBouncer": {
+      "technique_count": 8,
+      "software_count": 0,
+      "sophistication_tier": "intermediate",
+      "campaign_last_seen": null
+    },
+    "MuddyWater": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Mustang Panda": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Naikon": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Night Dragon": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Nomadic Octopus": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "OilRig": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "POLONIUM": {
+      "technique_count": 7,
+      "software_count": 0,
+      "sophistication_tier": "intermediate",
+      "campaign_last_seen": null
+    },
+    "Patchwork": {
+      "technique_count": 58,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Putter Panda": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Rancor": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Salt Typhoon": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Sandworm Team": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Scarlet Mimic": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Sidewinder": {
+      "technique_count": 58,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Silent Librarian": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Sowbug": {
+      "technique_count": 147,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Star Blizzard": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Stealth Falcon": {
+      "technique_count": 16,
+      "software_count": 0,
+      "sophistication_tier": "intermediate",
+      "campaign_last_seen": null
+    },
+    "Strider": {
+      "technique_count": 3,
+      "software_count": 0,
+      "sophistication_tier": "minimal",
+      "campaign_last_seen": null
+    },
+    "Suckfly": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "TA459": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "TA505": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "TA577": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Threat Group-3390": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Thrip": {
+      "technique_count": 147,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Tonto Team": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Transparent Tribe": {
+      "technique_count": 14,
+      "software_count": 0,
+      "sophistication_tier": "intermediate",
+      "campaign_last_seen": null
+    },
+    "Tropic Trooper": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Turla": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "UNC3886": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "VOID MANTICORE": {
+      "technique_count": 234,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Volt Typhoon": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Winter Vivern": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "Wizard Spider": {
+      "technique_count": 292,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "ZIRCONIUM": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "admin@338": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
+    },
+    "menuPass": {
+      "technique_count": 288,
+      "software_count": 0,
+      "sophistication_tier": "expert",
+      "campaign_last_seen": null
     }
   }
 }

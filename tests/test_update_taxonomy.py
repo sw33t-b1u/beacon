@@ -207,6 +207,87 @@ class TestBuildTaxonomy:
         )
 
 
+class TestExtractKillChainPhases:
+    def test_single_phase_ttp(self):
+        phases = _mod.extract_kill_chain_phases(SAMPLE_BUNDLE)
+        assert phases["T1190"] == ["initial-access"]
+        assert phases["T1566"] == ["initial-access"]
+        assert phases["T1003.001"] == ["credential-access"]
+        assert phases["T1486"] == ["impact"]
+
+    def test_multiphase_ttp(self):
+        phases = _mod.extract_kill_chain_phases(SAMPLE_BUNDLE)
+        # T1078 (Valid Accounts) spans four tactics in ATT&CK Enterprise
+        assert phases["T1078"] == sorted(
+            ["defense-evasion", "initial-access", "persistence", "privilege-escalation"]
+        )
+
+    def test_empty_bundle_returns_empty(self):
+        assert _mod.extract_kill_chain_phases({"objects": []}) == {}
+
+    def test_attack_pattern_without_kill_chain_omitted(self):
+        bundle = {
+            "objects": [
+                {
+                    "type": "attack-pattern",
+                    "id": "attack-pattern--no-kc",
+                    "external_references": [
+                        {"source_name": "mitre-attack", "external_id": "T9999"}
+                    ],
+                }
+            ]
+        }
+        phases = _mod.extract_kill_chain_phases(bundle)
+        assert "T9999" not in phases
+
+
+class TestExtractGroupSoftwareCounts:
+    def test_software_count_from_fixture(self):
+        counts = _mod.extract_group_software_counts(SAMPLE_BUNDLE)
+        # APT10 uses Mimikatz (malware), APT41 uses Cobalt Strike (tool),
+        # Lazarus Group uses Mimikatz (malware)
+        assert counts["APT10"] == 1
+        assert counts["APT41"] == 1
+        assert counts["Lazarus Group"] == 1
+
+    def test_technique_relationships_not_counted_as_software(self):
+        # attack-pattern targets must NOT be counted as software
+        counts = _mod.extract_group_software_counts(SAMPLE_BUNDLE)
+        # APT10 has 2 technique (uses → attack-pattern) relationships but
+        # software_count must reflect only malware/tool targets
+        assert counts.get("APT10") == 1
+
+    def test_group_without_software_not_in_result(self):
+        counts = _mod.extract_group_software_counts(SAMPLE_BUNDLE)
+        # NewThreatGroup2024 has no software relationships in fixture
+        assert counts.get("NewThreatGroup2024", 0) == 0
+
+    def test_empty_bundle_returns_empty(self):
+        assert _mod.extract_group_software_counts({"objects": []}) == {}
+
+
+class TestSophisticationTier:
+    def test_expert_at_boundary(self):
+        assert _mod._sophistication_tier(50) == "expert"
+        assert _mod._sophistication_tier(51) == "expert"
+        assert _mod._sophistication_tier(100) == "expert"
+
+    def test_advanced_range(self):
+        assert _mod._sophistication_tier(20) == "advanced"
+        assert _mod._sophistication_tier(35) == "advanced"
+        assert _mod._sophistication_tier(49) == "advanced"
+
+    def test_intermediate_range(self):
+        assert _mod._sophistication_tier(5) == "intermediate"
+        assert _mod._sophistication_tier(10) == "intermediate"
+        assert _mod._sophistication_tier(19) == "intermediate"
+
+    def test_minimal_range(self):
+        assert _mod._sophistication_tier(0) == "minimal"
+        assert _mod._sophistication_tier(1) == "minimal"
+        assert _mod._sophistication_tier(4) == "minimal"
+
+
 class TestDiffTaxonomy:
     def test_no_diff_same_input(self):
         sample = _mod.build_taxonomy(
