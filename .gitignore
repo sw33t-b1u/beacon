@@ -71,6 +71,9 @@ temp/
 Thumbs.db
 TODO.md
 
+# Local-only external CTI bundle cache (MITRE / MISP), not VCS-managed
+cache/
+
 # Web session files (runtime-generated)
 /tmp/beacon_session_*.json
 

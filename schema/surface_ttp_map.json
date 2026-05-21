@@ -155,7 +155,7 @@
         "ttp_id": "T1562.001",
         "ttp_name": "Disable or Modify Tools",
         "kill_chain_phase": "defense-evasion",
-        "citation": "ref/m-trends-2026-en.md:4443 — 'T1562.001: Disable or Modify Tools  10.2%'"
+        "citation": "ref/m-trends-2026-en.md:4442 — 'T1562: Impair Defenses  16.5% T1562.001: Disable or Modify Tools  10.2%'"
       }
     ],
     "ot": [
