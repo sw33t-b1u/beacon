@@ -62,7 +62,13 @@ def map_threats(
     elements: ExtractedElements,
     taxonomy: dict | None = None,
 ) -> ThreatProfile:
-    """Derive threat profile from industry + geography using MISP-derived taxonomy."""
+    """Derive threat profile from industry + geography using MISP-derived taxonomy.
+
+    Actor-level prioritization (I×C×O likelihood scores per actor) is handled by
+    `beacon.analysis.actor_triage.prioritize_actors()` and wired at the PIR
+    generation layer (`beacon.generator.pir_builder.build_pirs()`). This function
+    returns category-level threat tags; actor_triage adds per-actor ranked output.
+    """
     if taxonomy is None:
         taxonomy = load_taxonomy()
 

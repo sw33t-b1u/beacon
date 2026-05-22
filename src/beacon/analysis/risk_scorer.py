@@ -47,6 +47,7 @@ def score(
     config=None,
     use_sage: bool = False,
     sage_client=None,
+    top_actor_likelihood: float = 0.0,
 ) -> RiskScore:
     """Compute risk score from extracted elements and threat profile.
 
@@ -66,6 +67,12 @@ def score(
     # LLM scoring assist: only when dictionary provided no matched categories
     if use_llm and not threat.matched_categories:
         likelihood = _llm_assist_likelihood(elements, threat, likelihood, config)
+
+    # Actor triage boost — top-ranked actor with meaningful likelihood raises alarm.
+    # Threshold 0.05 filters noise from near-zero product-form scores.
+    if top_actor_likelihood >= 0.05:
+        likelihood = min(likelihood + 1, 5)
+        logger.info("risk_actor_triage_boost", top_actor_likelihood=top_actor_likelihood)
 
     # SAGE observation boost
     sage_observation_count = 0

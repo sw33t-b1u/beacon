@@ -6,14 +6,19 @@ import json
 from datetime import date, timedelta
 from pathlib import Path
 
+from beacon.analysis.actor_triage import PrioritizedActor, prioritize_actors
 from beacon.analysis.asset_mapper import load_asset_tags, map_asset_tags
 from beacon.analysis.element_extractor import extract
 from beacon.analysis.risk_scorer import RiskScore, score
 from beacon.analysis.threat_mapper import load_taxonomy, map_threats
 from beacon.generator.pir_builder import PIROutput, build_pirs
+from beacon.ingest.misp_client import MispClient
 from beacon.ingest.schema import BusinessContext
 
 FIXTURES = Path(__file__).parent / "fixtures"
+SCHEMA_DIR = Path(__file__).parent.parent / "schema"
+_TRIAGE_MISP_FIXTURE = FIXTURES / "actor_triage_misp_fixture.json"
+_FINANCE_CONTEXT = FIXTURES / "sample_context_finance_banking.json"
 
 
 def _load_ctx(filename: str) -> BusinessContext:
@@ -130,3 +135,135 @@ class TestValidUntilCalculation:
         from beacon.generator.pir_builder import _VALIDITY_DAYS
 
         assert _VALIDITY_DAYS["tactical"] == 30
+
+
+# ---------------------------------------------------------------------------
+# Phase 4 — prioritized_actors integration tests
+# ---------------------------------------------------------------------------
+
+
+class TestPrioritizedActorsField:
+    """PIROutput.prioritized_actors is always present (may be empty)."""
+
+    def setup_method(self):
+        ctx = BusinessContext.model_validate(
+            json.loads(_FINANCE_CONTEXT.read_text(encoding="utf-8"))
+        )
+        elements = extract(ctx)
+        taxonomy = load_taxonomy()
+        asset_tags_dict = load_asset_tags()
+        asset_tag_list = map_asset_tags(elements, asset_tags_dict)
+        threat = map_threats(elements, taxonomy)
+        self.risk = score(elements, threat)
+        self.elements = elements
+        self.threat = threat
+        self.asset_tag_list = asset_tag_list
+        self.asset_tags_dict = asset_tags_dict
+
+    def _build(self, actors: list[PrioritizedActor] | None = None) -> list[PIROutput]:
+        return build_pirs(
+            self.elements,
+            self.threat,
+            self.risk,
+            self.asset_tag_list,
+            self.asset_tags_dict,
+            prioritized_actors=actors,
+        )
+
+    def test_prioritized_actors_present_when_not_provided(self):
+        pirs = self._build(actors=None)
+        assert len(pirs) >= 1
+        assert hasattr(pirs[0], "prioritized_actors")
+        assert isinstance(pirs[0].prioritized_actors, list)
+
+    def test_prioritized_actors_empty_when_none_passed(self):
+        pirs = self._build(actors=None)
+        assert pirs[0].prioritized_actors == []
+
+    def test_prioritized_actors_embedded_when_provided(self):
+        ctx = BusinessContext.model_validate(
+            json.loads(_FINANCE_CONTEXT.read_text(encoding="utf-8"))
+        )
+        taxonomy = load_taxonomy()
+        surface_map = json.loads((SCHEMA_DIR / "surface_ttp_map.json").read_text())
+        misp = MispClient(cache_path=_TRIAGE_MISP_FIXTURE)
+        actors = prioritize_actors(ctx, taxonomy, surface_map, misp)
+
+        pirs = self._build(actors=actors)
+        assert len(pirs) >= 1
+        # All PIRs share the same organisation-level actor list
+        for pir in pirs:
+            assert len(pir.prioritized_actors) == len(actors)
+
+    def test_prioritized_actors_likelihood_raw_float(self):
+        """likelihood field is raw [0,1] float, not rescaled to percentage."""
+        ctx = BusinessContext.model_validate(
+            json.loads(_FINANCE_CONTEXT.read_text(encoding="utf-8"))
+        )
+        taxonomy = load_taxonomy()
+        surface_map = json.loads((SCHEMA_DIR / "surface_ttp_map.json").read_text())
+        misp = MispClient(cache_path=_TRIAGE_MISP_FIXTURE)
+        actors = prioritize_actors(ctx, taxonomy, surface_map, misp)
+        pirs = self._build(actors=actors)
+
+        for actor in pirs[0].prioritized_actors:
+            assert 0.0 <= actor.likelihood <= 1.0, (
+                f"{actor.name}: likelihood {actor.likelihood} must be raw [0,1] float"
+            )
+
+    def test_pir_serializes_with_prioritized_actors(self):
+        """model_dump() round-trip preserves prioritized_actors structure."""
+        ctx = BusinessContext.model_validate(
+            json.loads(_FINANCE_CONTEXT.read_text(encoding="utf-8"))
+        )
+        taxonomy = load_taxonomy()
+        surface_map = json.loads((SCHEMA_DIR / "surface_ttp_map.json").read_text())
+        misp = MispClient(cache_path=_TRIAGE_MISP_FIXTURE)
+        actors = prioritize_actors(ctx, taxonomy, surface_map, misp)
+        pirs = self._build(actors=actors)
+
+        dumped = pirs[0].model_dump()
+        assert "prioritized_actors" in dumped
+        assert isinstance(dumped["prioritized_actors"], list)
+        if dumped["prioritized_actors"]:
+            first = dumped["prioritized_actors"][0]
+            assert "actor_id" in first
+            assert "name" in first
+            assert "likelihood" in first
+            assert "score_breakdown" in first
+            assert "rationale" in first
+
+
+class TestPrioritizedActorsSchemaValidation:
+    """pir_output.schema.json must accept valid PIR output with prioritized_actors."""
+
+    def _load_schema(self) -> dict:
+        return json.loads((SCHEMA_DIR / "pir_output.schema.json").read_text())
+
+    def test_prioritized_actors_in_required(self):
+        schema = self._load_schema()
+        assert "prioritized_actors" in schema.get("required", [])
+
+    def test_prioritized_actors_defined_as_array(self):
+        schema = self._load_schema()
+        pa_prop = schema["properties"]["prioritized_actors"]
+        assert pa_prop["type"] == "array"
+
+    def test_prioritized_actor_def_has_required_fields(self):
+        schema = self._load_schema()
+        pa_def = schema["$defs"]["PrioritizedActor"]
+        required = pa_def.get("required", [])
+        for field in ("actor_id", "name", "likelihood", "score_breakdown", "rationale"):
+            assert field in required, f"PrioritizedActor missing required field: {field}"
+
+    def test_likelihood_has_bounds(self):
+        schema = self._load_schema()
+        lh = schema["$defs"]["PrioritizedActor"]["properties"]["likelihood"]
+        assert lh.get("minimum") == 0.0
+        assert lh.get("maximum") == 1.0
+
+    def test_capability_component_uses_canonical_field_names(self):
+        schema = self._load_schema()
+        cap_props = schema["$defs"]["CapabilityComponent"]["properties"]
+        assert "ttp_count_norm" in cap_props, "Must use canonical name ttp_count_norm"
+        assert "recency_active_campaigns_90d" in cap_props

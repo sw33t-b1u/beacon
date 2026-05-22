@@ -13,6 +13,7 @@ from typing import Literal
 import structlog
 from pydantic import BaseModel, Field
 
+from beacon.analysis.actor_triage import PrioritizedActor
 from beacon.analysis.asset_mapper import get_criticality_multipliers
 from beacon.analysis.element_extractor import ExtractedElements
 from beacon.analysis.pir_clusterer import PIRCluster, build_clusters
@@ -52,6 +53,9 @@ class PIROutput(BaseModel):
     valid_until: str
     risk_score: RiskScoreModel
     source_elements: list[str] = Field(default_factory=list)
+    # Actor triage — list of I×C×O-scored actors for this organisation.
+    # Always present; empty when triage data is unavailable (plan §3.3 failure semantics).
+    prioritized_actors: list[PrioritizedActor] = Field(default_factory=list)
 
 
 def build_pirs(
@@ -65,6 +69,7 @@ def build_pirs(
     *,
     use_llm: bool = False,
     config=None,
+    prioritized_actors: list[PrioritizedActor] | None = None,
 ) -> list[PIROutput]:
     """Build a list of narrow, per-decision-point PIRs.
 
@@ -90,6 +95,7 @@ def build_pirs(
         else f"entire company ({elements.org_unit_type})"
     )
 
+    _actors = prioritized_actors or []
     clusters = build_clusters(elements, threat, asset_tags)
     pirs: list[PIROutput] = []
 
@@ -148,6 +154,7 @@ def build_pirs(
                     composite=risk.composite,
                 ),
                 source_elements=cluster.source_element_ids,
+                prioritized_actors=_actors,
             )
         )
         logger.info(

@@ -97,3 +97,50 @@ class TestIntelligenceLevelRecommendation:
     def test_no_escalation_when_no_triggers(self):
         r = self._make_risk(2, 3, [])  # composite=6, no triggers → tactical
         assert r.intelligence_level == "tactical"
+
+
+# ---------------------------------------------------------------------------
+# Phase 4 — top_actor_likelihood boost tests
+# ---------------------------------------------------------------------------
+
+
+class TestActorTriageBoost:
+    """risk_scorer.score() boosts likelihood by +1 when top_actor_likelihood >= 0.05."""
+
+    def setup_method(self):
+        ctx = json.loads(
+            (FIXTURES / "sample_context_manufacturing.json").read_text(encoding="utf-8")
+        )
+        from beacon.ingest.schema import BusinessContext  # noqa: PLC0415
+
+        self.elements = extract(BusinessContext.model_validate(ctx))
+        self.threat = map_threats(self.elements, load_taxonomy())
+
+    def test_no_boost_below_threshold(self):
+        baseline = score(self.elements, self.threat, top_actor_likelihood=0.0)
+        boosted = score(self.elements, self.threat, top_actor_likelihood=0.04)
+        assert boosted.likelihood == baseline.likelihood
+
+    def test_boost_at_threshold(self):
+        baseline = score(self.elements, self.threat, top_actor_likelihood=0.0)
+        boosted = score(self.elements, self.threat, top_actor_likelihood=0.05)
+        if baseline.likelihood < 5:
+            assert boosted.likelihood == baseline.likelihood + 1
+        else:
+            assert boosted.likelihood == 5  # capped
+
+    def test_boost_above_threshold(self):
+        baseline = score(self.elements, self.threat, top_actor_likelihood=0.0)
+        boosted = score(self.elements, self.threat, top_actor_likelihood=0.9)
+        assert boosted.likelihood == min(baseline.likelihood + 1, 5)
+
+    def test_boost_capped_at_five(self):
+        """Even with a very high actor likelihood, risk likelihood stays ≤ 5."""
+        boosted = score(self.elements, self.threat, top_actor_likelihood=1.0)
+        assert boosted.likelihood <= 5
+
+    def test_backward_compat_zero_default(self):
+        """Calling score() without top_actor_likelihood is backward-compatible."""
+        without = score(self.elements, self.threat)
+        with_zero = score(self.elements, self.threat, top_actor_likelihood=0.0)
+        assert without.likelihood == with_zero.likelihood

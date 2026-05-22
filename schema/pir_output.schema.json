@@ -1,5 +1,179 @@
 {
   "$defs": {
+    "CapabilityComponent": {
+      "additionalProperties": true,
+      "properties": {
+        "score": {
+          "title": "Score",
+          "type": "number"
+        },
+        "sophistication_score": {
+          "title": "Sophistication Score",
+          "type": "number"
+        },
+        "ttp_count_norm": {
+          "title": "Ttp Count Norm",
+          "type": "number"
+        },
+        "recency_active_campaigns_90d": {
+          "title": "Recency Active Campaigns 90D",
+          "type": "number"
+        }
+      },
+      "required": [
+        "score",
+        "sophistication_score",
+        "ttp_count_norm",
+        "recency_active_campaigns_90d"
+      ],
+      "title": "CapabilityComponent",
+      "type": "object"
+    },
+    "DataQualityComponent": {
+      "properties": {
+        "degraded": {
+          "default": false,
+          "title": "Degraded",
+          "type": "boolean"
+        },
+        "missing_sources": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Missing Sources",
+          "type": "array"
+        }
+      },
+      "title": "DataQualityComponent",
+      "type": "object"
+    },
+    "IntentComponent": {
+      "additionalProperties": true,
+      "properties": {
+        "score": {
+          "title": "Score",
+          "type": "number"
+        },
+        "motivation_alignment": {
+          "title": "Motivation Alignment",
+          "type": "number"
+        },
+        "industry_match": {
+          "title": "Industry Match",
+          "type": "number"
+        }
+      },
+      "required": [
+        "score",
+        "motivation_alignment",
+        "industry_match"
+      ],
+      "title": "IntentComponent",
+      "type": "object"
+    },
+    "OpportunityComponent": {
+      "additionalProperties": true,
+      "properties": {
+        "score": {
+          "title": "Score",
+          "type": "number"
+        },
+        "victimology_match": {
+          "title": "Victimology Match",
+          "type": "number"
+        },
+        "geographic_match": {
+          "title": "Geographic Match",
+          "type": "number"
+        },
+        "surface_ttp_coverage": {
+          "title": "Surface Ttp Coverage",
+          "type": "number"
+        }
+      },
+      "required": [
+        "score",
+        "victimology_match",
+        "geographic_match",
+        "surface_ttp_coverage"
+      ],
+      "title": "OpportunityComponent",
+      "type": "object"
+    },
+    "PrioritizedActor": {
+      "properties": {
+        "actor_id": {
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "aliases": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Aliases",
+          "type": "array"
+        },
+        "likelihood": {
+          "title": "Likelihood",
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "score_breakdown": {
+          "$ref": "#/$defs/ScoreBreakdown"
+        },
+        "rationale": {
+          "$ref": "#/$defs/Rationale"
+        }
+      },
+      "required": [
+        "actor_id",
+        "name",
+        "likelihood",
+        "score_breakdown",
+        "rationale"
+      ],
+      "title": "PrioritizedActor",
+      "type": "object"
+    },
+    "Rationale": {
+      "properties": {
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "intent_factors": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Intent Factors",
+          "type": "object"
+        },
+        "capability_factors": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Capability Factors",
+          "type": "object"
+        },
+        "opportunity_factors": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Opportunity Factors",
+          "type": "object"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "title": "Rationale",
+      "type": "object"
+    },
     "RiskScoreModel": {
       "properties": {
         "likelihood": {
@@ -21,6 +195,30 @@
         "composite"
       ],
       "title": "RiskScoreModel",
+      "type": "object"
+    },
+    "ScoreBreakdown": {
+      "properties": {
+        "intent": {
+          "$ref": "#/$defs/IntentComponent"
+        },
+        "capability": {
+          "$ref": "#/$defs/CapabilityComponent"
+        },
+        "opportunity": {
+          "$ref": "#/$defs/OpportunityComponent"
+        },
+        "data_quality": {
+          "$ref": "#/$defs/DataQualityComponent"
+        }
+      },
+      "required": [
+        "intent",
+        "capability",
+        "opportunity",
+        "data_quality"
+      ],
+      "title": "ScoreBreakdown",
       "type": "object"
     }
   },
@@ -104,6 +302,13 @@
       },
       "title": "Source Elements",
       "type": "array"
+    },
+    "prioritized_actors": {
+      "items": {
+        "$ref": "#/$defs/PrioritizedActor"
+      },
+      "title": "Prioritized Actors",
+      "type": "array"
     }
   },
   "required": [
@@ -119,7 +324,8 @@
     "collection_focus",
     "valid_from",
     "valid_until",
-    "risk_score"
+    "risk_score",
+    "prioritized_actors"
   ],
   "title": "PIROutput",
   "type": "object"

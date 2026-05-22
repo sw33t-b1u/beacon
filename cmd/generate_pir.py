@@ -69,6 +69,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     # Lazy imports to keep startup fast
+    from beacon.analysis.actor_triage import prioritize_actors  # noqa: PLC0415
     from beacon.analysis.asset_mapper import (
         load_asset_tags,
         map_asset_tags,
@@ -79,6 +80,7 @@ def main(argv: list[str] | None = None) -> int:
     from beacon.generator.pir_builder import build_pirs
     from beacon.generator.report_builder import build_collection_plan, write_collection_plan
     from beacon.ingest.context_parser import parse
+    from beacon.ingest.misp_client import MispClient  # noqa: PLC0415
 
     context_path = Path(args.context)
     if not context_path.exists():
@@ -126,8 +128,39 @@ def main(argv: list[str] | None = None) -> int:
     elements = extract(ctx)
     asset_tag_list = map_asset_tags(elements, asset_tags_dict)
     threat = map_threats(elements, taxonomy)
-    risk = score(elements, threat, use_llm=use_llm, use_sage=use_sage, sage_client=sage_client)
-    pirs = build_pirs(elements, threat, risk, asset_tag_list, asset_tags_dict, use_llm=use_llm)
+
+    # Actor triage — rank threat actors via I×C×O triad (plan §3.2).
+    # surface_ttp_map and MISP cache are loaded from default paths; absent files
+    # are handled gracefully (empty surface map / degraded MISP mode).
+    _beacon_root = Path(__file__).resolve().parent.parent
+    _surface_map_path = _beacon_root / "schema" / "surface_ttp_map.json"
+    _surface_ttp_map: dict = (
+        json.loads(_surface_map_path.read_text(encoding="utf-8"))
+        if _surface_map_path.exists()
+        else {}
+    )
+    _misp_cache = _beacon_root / "cache" / "misp-threat-actor.json"
+    _misp_client = MispClient(cache_path=_misp_cache if _misp_cache.exists() else None)
+    _actors = prioritize_actors(ctx, taxonomy, _surface_ttp_map, _misp_client)
+    _top_likelihood = max((a.likelihood for a in _actors), default=0.0)
+
+    risk = score(
+        elements,
+        threat,
+        use_llm=use_llm,
+        use_sage=use_sage,
+        sage_client=sage_client,
+        top_actor_likelihood=_top_likelihood,
+    )
+    pirs = build_pirs(
+        elements,
+        threat,
+        risk,
+        asset_tag_list,
+        asset_tags_dict,
+        use_llm=use_llm,
+        prioritized_actors=_actors,
+    )
 
     if args.output is None:
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
