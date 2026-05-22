@@ -23,6 +23,9 @@ dev = [
     "pip-audit>=2.7.0",
     "pip>=26.1",  # CVE-2026-6357 fix; transitive via pip-audit -> pip-api
 ]
+misp = [
+    "pymisp>=2.4",
+]
 
 [tool.ruff]
 line-length = 100

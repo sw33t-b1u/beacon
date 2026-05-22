@@ -1,0 +1,46 @@
+{
+  "authors": ["MISP Project"],
+  "category": "actor",
+  "description": "Minimal fixture for MispClient unit tests.",
+  "name": "Threat Actor",
+  "type": "threat-actor",
+  "uuid": "test-uuid-minimal-root",
+  "values": [
+    {
+      "uuid": "test-apt28-uuid",
+      "value": "APT28",
+      "description": "Russian state-sponsored espionage actor.",
+      "meta": {
+        "country": "RU",
+        "cfr-suspected-state-sponsor": "Russian Federation",
+        "cfr-suspected-victims": ["United States", "Germany", "France"],
+        "cfr-target-category": ["Government", "Military"],
+        "cfr-type-of-incident": "Espionage",
+        "sophistication": "advanced",
+        "synonyms": ["Fancy Bear", "STRONTIUM", "Pawn Storm", "Sofacy"]
+      }
+    },
+    {
+      "uuid": "test-fin7-uuid",
+      "value": "FIN7",
+      "description": "Financially motivated cybercrime actor.",
+      "meta": {
+        "cfr-suspected-victims": ["United States", "Australia"],
+        "cfr-target-category": ["Private sector"],
+        "cfr-type-of-incident": "Financial Crime",
+        "motivation": "personal-gain",
+        "sophistication": "intermediate",
+        "synonyms": ["Carbanak Group", "Navigator Group"]
+      }
+    },
+    {
+      "uuid": "test-invalid-soph-uuid",
+      "value": "UnknownHacker",
+      "description": "Actor entry with a non-STIX-OV sophistication value.",
+      "meta": {
+        "sophistication": "godlike",
+        "synonyms": ["GodActor", "MythicalThreat"]
+      }
+    }
+  ]
+}

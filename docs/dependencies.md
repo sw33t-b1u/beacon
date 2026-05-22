@@ -15,6 +15,12 @@
 | `cryptography` | `>=46.0.7` | Transitive dependency of `google-genai` / `uvicorn`. Pinned to `>=46.0.7` to resolve CVE-2026-39892 in 46.0.6. No direct usage in BEACON code. | Apache-2.0 / BSD |
 | `python-dotenv` | `>=1.0` | Loads `.env` file into `os.environ` at startup, keeping secrets out of source code | BSD-3-Clause |
 
+## Optional Dependencies
+
+| Package | Version | Purpose | License |
+|---------|---------|---------|---------|
+| `pymisp` | `>=2.4` | Optional live MISP Galaxy fetch in `src/beacon/ingest/misp_client.py`. Install with `pip install 'beacon[misp]'`. Not required for offline / cache-based operation. | BSD-2-Clause |
+
 ## Development Dependencies
 
 | Package | Version | Purpose | License |
