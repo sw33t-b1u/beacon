@@ -91,25 +91,25 @@ _INDUSTRY_EXPECTED_MOTIVATIONS: dict[str, list[str]] = {
 
 class IntentComponent(BaseModel):
     model_config = ConfigDict(extra="allow")
-    score: float
-    motivation_alignment: float
-    industry_match: float
+    score: float = Field(ge=0.0, le=1.0)
+    motivation_alignment: float = Field(ge=0.0, le=1.0)
+    industry_match: float = Field(ge=0.0, le=1.0)
 
 
 class CapabilityComponent(BaseModel):
     model_config = ConfigDict(extra="allow")
-    score: float
-    sophistication_score: float
-    ttp_count_norm: float
-    recency_active_campaigns_90d: float
+    score: float = Field(ge=0.0, le=1.0)
+    sophistication_score: float = Field(ge=0.0, le=1.0)
+    ttp_count_norm: float = Field(ge=0.0, le=1.0)
+    recency_active_campaigns_90d: float = Field(ge=0.0, le=1.0)
 
 
 class OpportunityComponent(BaseModel):
     model_config = ConfigDict(extra="allow")
-    score: float
-    victimology_match: float
-    geographic_match: float
-    surface_ttp_coverage: float
+    score: float = Field(ge=0.0, le=1.0)
+    victimology_match: float = Field(ge=0.0, le=1.0)
+    geographic_match: float = Field(ge=0.0, le=1.0)
+    surface_ttp_coverage: float = Field(ge=0.0, le=1.0)
 
 
 class DataQualityComponent(BaseModel):
@@ -135,7 +135,7 @@ class PrioritizedActor(BaseModel):
     actor_id: str
     name: str
     aliases: list[str] = Field(default_factory=list)
-    likelihood: float
+    likelihood: float = Field(ge=0.0, le=1.0)
     score_breakdown: ScoreBreakdown
     rationale: Rationale
 

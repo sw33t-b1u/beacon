@@ -3,20 +3,28 @@
     "CapabilityComponent": {
       "additionalProperties": true,
       "properties": {
+        "recency_active_campaigns_90d": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Recency Active Campaigns 90D",
+          "type": "number"
+        },
         "score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
           "title": "Score",
           "type": "number"
         },
         "sophistication_score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
           "title": "Sophistication Score",
           "type": "number"
         },
         "ttp_count_norm": {
+          "maximum": 1.0,
+          "minimum": 0.0,
           "title": "Ttp Count Norm",
-          "type": "number"
-        },
-        "recency_active_campaigns_90d": {
-          "title": "Recency Active Campaigns 90D",
           "type": "number"
         }
       },
@@ -50,16 +58,22 @@
     "IntentComponent": {
       "additionalProperties": true,
       "properties": {
-        "score": {
-          "title": "Score",
+        "industry_match": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Industry Match",
           "type": "number"
         },
         "motivation_alignment": {
+          "maximum": 1.0,
+          "minimum": 0.0,
           "title": "Motivation Alignment",
           "type": "number"
         },
-        "industry_match": {
-          "title": "Industry Match",
+        "score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Score",
           "type": "number"
         }
       },
@@ -74,20 +88,28 @@
     "OpportunityComponent": {
       "additionalProperties": true,
       "properties": {
-        "score": {
-          "title": "Score",
-          "type": "number"
-        },
-        "victimology_match": {
-          "title": "Victimology Match",
-          "type": "number"
-        },
         "geographic_match": {
+          "maximum": 1.0,
+          "minimum": 0.0,
           "title": "Geographic Match",
           "type": "number"
         },
+        "score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Score",
+          "type": "number"
+        },
         "surface_ttp_coverage": {
+          "maximum": 1.0,
+          "minimum": 0.0,
           "title": "Surface Ttp Coverage",
+          "type": "number"
+        },
+        "victimology_match": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Victimology Match",
           "type": "number"
         }
       },
@@ -106,10 +128,6 @@
           "title": "Actor Id",
           "type": "string"
         },
-        "name": {
-          "title": "Name",
-          "type": "string"
-        },
         "aliases": {
           "items": {
             "type": "string"
@@ -118,16 +136,20 @@
           "type": "array"
         },
         "likelihood": {
-          "title": "Likelihood",
-          "type": "number",
+          "maximum": 1.0,
           "minimum": 0.0,
-          "maximum": 1.0
+          "title": "Likelihood",
+          "type": "number"
         },
-        "score_breakdown": {
-          "$ref": "#/$defs/ScoreBreakdown"
+        "name": {
+          "title": "Name",
+          "type": "string"
         },
         "rationale": {
           "$ref": "#/$defs/Rationale"
+        },
+        "score_breakdown": {
+          "$ref": "#/$defs/ScoreBreakdown"
         }
       },
       "required": [
@@ -142,9 +164,12 @@
     },
     "Rationale": {
       "properties": {
-        "text": {
-          "title": "Text",
-          "type": "string"
+        "capability_factors": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Capability Factors",
+          "type": "object"
         },
         "intent_factors": {
           "additionalProperties": {
@@ -153,19 +178,16 @@
           "title": "Intent Factors",
           "type": "object"
         },
-        "capability_factors": {
-          "additionalProperties": {
-            "type": "number"
-          },
-          "title": "Capability Factors",
-          "type": "object"
-        },
         "opportunity_factors": {
           "additionalProperties": {
             "type": "number"
           },
           "title": "Opportunity Factors",
           "type": "object"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
         }
       },
       "required": [
@@ -176,16 +198,16 @@
     },
     "RiskScoreModel": {
       "properties": {
-        "likelihood": {
-          "title": "Likelihood",
+        "composite": {
+          "title": "Composite",
           "type": "integer"
         },
         "impact": {
           "title": "Impact",
           "type": "integer"
         },
-        "composite": {
-          "title": "Composite",
+        "likelihood": {
+          "title": "Likelihood",
           "type": "integer"
         }
       },
@@ -199,17 +221,17 @@
     },
     "ScoreBreakdown": {
       "properties": {
-        "intent": {
-          "$ref": "#/$defs/IntentComponent"
-        },
         "capability": {
           "$ref": "#/$defs/CapabilityComponent"
         },
-        "opportunity": {
-          "$ref": "#/$defs/OpportunityComponent"
-        },
         "data_quality": {
           "$ref": "#/$defs/DataQualityComponent"
+        },
+        "intent": {
+          "$ref": "#/$defs/IntentComponent"
+        },
+        "opportunity": {
+          "$ref": "#/$defs/OpportunityComponent"
         }
       },
       "required": [
@@ -223,53 +245,6 @@
     }
   },
   "properties": {
-    "pir_id": {
-      "title": "Pir Id",
-      "type": "string"
-    },
-    "intelligence_level": {
-      "enum": [
-        "strategic",
-        "operational",
-        "tactical"
-      ],
-      "title": "Intelligence Level",
-      "type": "string"
-    },
-    "organizational_scope": {
-      "title": "Organizational Scope",
-      "type": "string"
-    },
-    "decision_point": {
-      "title": "Decision Point",
-      "type": "string"
-    },
-    "description": {
-      "title": "Description",
-      "type": "string"
-    },
-    "rationale": {
-      "title": "Rationale",
-      "type": "string"
-    },
-    "recommended_action": {
-      "title": "Recommended Action",
-      "type": "string"
-    },
-    "threat_actor_tags": {
-      "items": {
-        "type": "string"
-      },
-      "title": "Threat Actor Tags",
-      "type": "array"
-    },
-    "notable_groups": {
-      "items": {
-        "type": "string"
-      },
-      "title": "Notable Groups",
-      "type": "array"
-    },
     "asset_weight_rules": {
       "items": {
         "additionalProperties": true,
@@ -285,12 +260,51 @@
       "title": "Collection Focus",
       "type": "array"
     },
-    "valid_from": {
-      "title": "Valid From",
+    "decision_point": {
+      "title": "Decision Point",
       "type": "string"
     },
-    "valid_until": {
-      "title": "Valid Until",
+    "description": {
+      "title": "Description",
+      "type": "string"
+    },
+    "intelligence_level": {
+      "enum": [
+        "strategic",
+        "operational",
+        "tactical"
+      ],
+      "title": "Intelligence Level",
+      "type": "string"
+    },
+    "notable_groups": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notable Groups",
+      "type": "array"
+    },
+    "organizational_scope": {
+      "title": "Organizational Scope",
+      "type": "string"
+    },
+    "pir_id": {
+      "title": "Pir Id",
+      "type": "string"
+    },
+    "prioritized_actors": {
+      "items": {
+        "$ref": "#/$defs/PrioritizedActor"
+      },
+      "title": "Prioritized Actors",
+      "type": "array"
+    },
+    "rationale": {
+      "title": "Rationale",
+      "type": "string"
+    },
+    "recommended_action": {
+      "title": "Recommended Action",
       "type": "string"
     },
     "risk_score": {
@@ -303,12 +317,20 @@
       "title": "Source Elements",
       "type": "array"
     },
-    "prioritized_actors": {
+    "threat_actor_tags": {
       "items": {
-        "$ref": "#/$defs/PrioritizedActor"
+        "type": "string"
       },
-      "title": "Prioritized Actors",
+      "title": "Threat Actor Tags",
       "type": "array"
+    },
+    "valid_from": {
+      "title": "Valid From",
+      "type": "string"
+    },
+    "valid_until": {
+      "title": "Valid Until",
+      "type": "string"
     }
   },
   "required": [

@@ -3,10 +3,6 @@
     "AccountOnAsset": {
       "description": "User-account ↔ host asset edge.\n\nComposite key (user_account_id, asset_id). Same login on two hosts\nyields two edges. Lifecycle dates (first_seen / last_seen) support\nISO/IEC 27001 A.5.16 identity lifecycle review.",
       "properties": {
-        "user_account_id": {
-          "title": "User Account Id",
-          "type": "string"
-        },
         "asset_id": {
           "title": "Asset Id",
           "type": "string"
@@ -20,6 +16,10 @@
           "default": "",
           "title": "Last Seen",
           "type": "string"
+        },
+        "user_account_id": {
+          "title": "User Account Id",
+          "type": "string"
         }
       },
       "required": [
@@ -32,14 +32,14 @@
     "BusinessContinuity": {
       "description": "Backup / IR-plan / recovery-test posture for the ransomware\nresilience gap trigger.",
       "properties": {
-        "backup_strategy_documented": {
-          "default": false,
-          "title": "Backup Strategy Documented",
-          "type": "boolean"
-        },
         "backup_offsite_or_immutable": {
           "default": false,
           "title": "Backup Offsite Or Immutable",
+          "type": "boolean"
+        },
+        "backup_strategy_documented": {
+          "default": false,
+          "title": "Backup Strategy Documented",
           "type": "boolean"
         },
         "incident_response_plan_documented": {
@@ -59,18 +59,6 @@
           "default": null,
           "title": "Recovery Test Cadence Days"
         },
-        "rto_target_hours": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Rto Target Hours"
-        },
         "rpo_target_hours": {
           "anyOf": [
             {
@@ -82,6 +70,18 @@
           ],
           "default": null,
           "title": "Rpo Target Hours"
+        },
+        "rto_target_hours": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rto Target Hours"
         }
       },
       "title": "BusinessContinuity",
@@ -90,60 +90,6 @@
     "CriticalAsset": {
       "description": "Detailed technical asset record — from the Critical Assets section of context.md.",
       "properties": {
-        "id": {
-          "title": "Id",
-          "type": "string"
-        },
-        "name": {
-          "title": "Name",
-          "type": "string"
-        },
-        "type": {
-          "default": "other",
-          "enum": [
-            "server",
-            "database",
-            "network_device",
-            "application",
-            "endpoint",
-            "storage",
-            "identity_system",
-            "ot_device",
-            "cloud_service",
-            "other"
-          ],
-          "title": "Type",
-          "type": "string"
-        },
-        "function": {
-          "default": "",
-          "title": "Function",
-          "type": "string"
-        },
-        "hostname": {
-          "default": "",
-          "title": "Hostname",
-          "type": "string"
-        },
-        "os_platform": {
-          "default": "",
-          "title": "Os Platform",
-          "type": "string"
-        },
-        "network_zone": {
-          "default": "unknown",
-          "enum": [
-            "internet",
-            "dmz",
-            "corporate",
-            "ot",
-            "cloud",
-            "restricted",
-            "unknown"
-          ],
-          "title": "Network Zone",
-          "type": "string"
-        },
         "criticality": {
           "default": "high",
           "enum": [
@@ -162,16 +108,6 @@
           "title": "Data Types",
           "type": "array"
         },
-        "managing_vendor": {
-          "default": "",
-          "title": "Managing Vendor",
-          "type": "string"
-        },
-        "supply_chain_role": {
-          "default": "",
-          "title": "Supply Chain Role",
-          "type": "string"
-        },
         "dependencies": {
           "items": {
             "type": "string"
@@ -189,6 +125,70 @@
           ],
           "title": "Exposure Risk",
           "type": "string"
+        },
+        "function": {
+          "default": "",
+          "title": "Function",
+          "type": "string"
+        },
+        "hostname": {
+          "default": "",
+          "title": "Hostname",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "managing_vendor": {
+          "default": "",
+          "title": "Managing Vendor",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "network_zone": {
+          "default": "unknown",
+          "enum": [
+            "internet",
+            "dmz",
+            "corporate",
+            "ot",
+            "cloud",
+            "restricted",
+            "unknown"
+          ],
+          "title": "Network Zone",
+          "type": "string"
+        },
+        "os_platform": {
+          "default": "",
+          "title": "Os Platform",
+          "type": "string"
+        },
+        "supply_chain_role": {
+          "default": "",
+          "title": "Supply Chain Role",
+          "type": "string"
+        },
+        "type": {
+          "default": "other",
+          "enum": [
+            "server",
+            "database",
+            "network_device",
+            "application",
+            "endpoint",
+            "storage",
+            "identity_system",
+            "ot_device",
+            "cloud_service",
+            "other"
+          ],
+          "title": "Type",
+          "type": "string"
         }
       },
       "required": [
@@ -200,19 +200,6 @@
     },
     "CrownJewel": {
       "properties": {
-        "id": {
-          "title": "Id",
-          "type": "string"
-        },
-        "name": {
-          "title": "Name",
-          "type": "string"
-        },
-        "system": {
-          "default": "",
-          "title": "System",
-          "type": "string"
-        },
         "business_impact": {
           "default": "high",
           "enum": [
@@ -233,6 +220,19 @@
             "critical"
           ],
           "title": "Exposure Risk",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "system": {
+          "default": "",
+          "title": "System",
           "type": "string"
         }
       },
@@ -286,14 +286,6 @@
     "HasAccess": {
       "description": "Identity-to-asset access edge.\n\n``identity_id`` references an entry in ``BusinessContext.identities``;\n``asset_id`` references ``CriticalAsset.id`` (cross-file reference is\nenforced by TRACE's validate_identity_assets, not here).",
       "properties": {
-        "identity_id": {
-          "title": "Identity Id",
-          "type": "string"
-        },
-        "asset_id": {
-          "title": "Asset Id",
-          "type": "string"
-        },
         "access_level": {
           "default": "read",
           "enum": [
@@ -305,9 +297,8 @@
           "title": "Access Level",
           "type": "string"
         },
-        "role": {
-          "default": "",
-          "title": "Role",
+        "asset_id": {
+          "title": "Asset Id",
           "type": "string"
         },
         "granted_at": {
@@ -315,9 +306,18 @@
           "title": "Granted At",
           "type": "string"
         },
+        "identity_id": {
+          "title": "Identity Id",
+          "type": "string"
+        },
         "revoked_at": {
           "default": "",
           "title": "Revoked At",
+          "type": "string"
+        },
+        "role": {
+          "default": "",
+          "title": "Role",
           "type": "string"
         }
       },
@@ -331,12 +331,13 @@
     "Identity": {
       "description": "Person / role / group / organization granted access to assets.\n\nMaps onto a STIX 2.1 §4.4 identity SDO when emitted to SAGE. ``id`` is\nBEACON-internal (stable string the analyst chooses); SAGE assigns the\nfinal ``identity--<uuid>`` STIX id at ingest.",
       "properties": {
-        "id": {
-          "title": "Id",
+        "description": {
+          "default": "",
+          "title": "Description",
           "type": "string"
         },
-        "name": {
-          "title": "Name",
+        "id": {
+          "title": "Id",
           "type": "string"
         },
         "identity_class": {
@@ -352,12 +353,21 @@
           "title": "Identity Class",
           "type": "string"
         },
-        "sectors": {
+        "impersonation_risk_factors": {
           "items": {
             "type": "string"
           },
-          "title": "Sectors",
+          "title": "Impersonation Risk Factors",
           "type": "array"
+        },
+        "is_high_value_impersonation_target": {
+          "default": false,
+          "title": "Is High Value Impersonation Target",
+          "type": "boolean"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
         },
         "roles": {
           "items": {
@@ -366,21 +376,11 @@
           "title": "Roles",
           "type": "array"
         },
-        "description": {
-          "default": "",
-          "title": "Description",
-          "type": "string"
-        },
-        "is_high_value_impersonation_target": {
-          "default": false,
-          "title": "Is High Value Impersonation Target",
-          "type": "boolean"
-        },
-        "impersonation_risk_factors": {
+        "sectors": {
           "items": {
             "type": "string"
           },
-          "title": "Impersonation Risk Factors",
+          "title": "Sectors",
           "type": "array"
         }
       },
@@ -394,6 +394,11 @@
     "IdentityManagement": {
       "description": "MFA / PIM-PAM / SSO / helpdesk-auth posture for the\nidentity_credential_exposure trigger.",
       "properties": {
+        "helpdesk_authentication_documented": {
+          "default": false,
+          "title": "Helpdesk Authentication Documented",
+          "type": "boolean"
+        },
         "mfa_coverage_percent": {
           "anyOf": [
             {
@@ -405,6 +410,11 @@
           ],
           "default": null,
           "title": "Mfa Coverage Percent"
+        },
+        "pim_or_pam_deployed": {
+          "default": false,
+          "title": "Pim Or Pam Deployed",
+          "type": "boolean"
         },
         "privileged_account_count": {
           "anyOf": [
@@ -418,11 +428,6 @@
           "default": null,
           "title": "Privileged Account Count"
         },
-        "pim_or_pam_deployed": {
-          "default": false,
-          "title": "Pim Or Pam Deployed",
-          "type": "boolean"
-        },
         "sso_coverage_percent": {
           "anyOf": [
             {
@@ -434,11 +439,6 @@
           ],
           "default": null,
           "title": "Sso Coverage Percent"
-        },
-        "helpdesk_authentication_documented": {
-          "default": false,
-          "title": "Helpdesk Authentication Documented",
-          "type": "boolean"
         }
       },
       "title": "IdentityManagement",
@@ -446,25 +446,17 @@
     },
     "Organization": {
       "properties": {
-        "name": {
-          "title": "Name",
-          "type": "string"
-        },
-        "unit_name": {
+        "employee_count_range": {
           "default": "",
-          "title": "Unit Name",
+          "title": "Employee Count Range",
           "type": "string"
         },
-        "unit_type": {
-          "default": "company",
-          "enum": [
-            "company",
-            "division",
-            "department",
-            "team"
-          ],
-          "title": "Unit Type",
-          "type": "string"
+        "geography": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Geography",
+          "type": "array"
         },
         "industry": {
           "enum": [
@@ -482,24 +474,16 @@
           "title": "Industry",
           "type": "string"
         },
-        "sub_industries": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Sub Industries",
-          "type": "array"
-        },
-        "geography": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Geography",
-          "type": "array"
-        },
-        "employee_count_range": {
-          "default": "",
-          "title": "Employee Count Range",
+        "name": {
+          "title": "Name",
           "type": "string"
+        },
+        "regulatory_context": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Regulatory Context",
+          "type": "array"
         },
         "revenue_range_usd": {
           "default": "",
@@ -511,12 +495,28 @@
           "title": "Stock Listed",
           "type": "boolean"
         },
-        "regulatory_context": {
+        "sub_industries": {
           "items": {
             "type": "string"
           },
-          "title": "Regulatory Context",
+          "title": "Sub Industries",
           "type": "array"
+        },
+        "unit_name": {
+          "default": "",
+          "title": "Unit Name",
+          "type": "string"
+        },
+        "unit_type": {
+          "default": "company",
+          "enum": [
+            "company",
+            "division",
+            "department",
+            "team"
+          ],
+          "title": "Unit Type",
+          "type": "string"
         }
       },
       "required": [
@@ -528,43 +528,6 @@
     },
     "Project": {
       "properties": {
-        "id": {
-          "title": "Id",
-          "type": "string"
-        },
-        "name": {
-          "title": "Name",
-          "type": "string"
-        },
-        "status": {
-          "default": "in_progress",
-          "enum": [
-            "planned",
-            "in_progress",
-            "completed",
-            "cancelled"
-          ],
-          "title": "Status",
-          "type": "string"
-        },
-        "sensitivity": {
-          "default": "medium",
-          "enum": [
-            "low",
-            "medium",
-            "high",
-            "critical"
-          ],
-          "title": "Sensitivity",
-          "type": "string"
-        },
-        "involved_vendors": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Involved Vendors",
-          "type": "array"
-        },
         "cloud_providers": {
           "items": {
             "type": "string"
@@ -578,62 +541,20 @@
           },
           "title": "Data Types",
           "type": "array"
-        }
-      },
-      "required": [
-        "id",
-        "name"
-      ],
-      "title": "Project",
-      "type": "object"
-    },
-    "RecentIncident": {
-      "properties": {
-        "year": {
-          "title": "Year",
-          "type": "integer"
         },
-        "type": {
-          "title": "Type",
-          "type": "string"
-        },
-        "impact": {
-          "default": "low",
-          "enum": [
-            "low",
-            "medium",
-            "high",
-            "critical"
-          ],
-          "title": "Impact",
-          "type": "string"
-        }
-      },
-      "required": [
-        "year",
-        "type"
-      ],
-      "title": "RecentIncident",
-      "type": "object"
-    },
-    "StrategicObjective": {
-      "properties": {
         "id": {
           "title": "Id",
           "type": "string"
         },
-        "title": {
-          "title": "Title",
-          "type": "string"
+        "involved_vendors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Involved Vendors",
+          "type": "array"
         },
-        "description": {
-          "default": "",
-          "title": "Description",
-          "type": "string"
-        },
-        "timeline": {
-          "default": "",
-          "title": "Timeline",
+        "name": {
+          "title": "Name",
           "type": "string"
         },
         "sensitivity": {
@@ -647,12 +568,91 @@
           "title": "Sensitivity",
           "type": "string"
         },
+        "status": {
+          "default": "in_progress",
+          "enum": [
+            "planned",
+            "in_progress",
+            "completed",
+            "cancelled"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "Project",
+      "type": "object"
+    },
+    "RecentIncident": {
+      "properties": {
+        "impact": {
+          "default": "low",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "title": "Impact",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "year": {
+          "title": "Year",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "year",
+        "type"
+      ],
+      "title": "RecentIncident",
+      "type": "object"
+    },
+    "StrategicObjective": {
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
         "key_decisions": {
           "items": {
             "type": "string"
           },
           "title": "Key Decisions",
           "type": "array"
+        },
+        "sensitivity": {
+          "default": "medium",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "title": "Sensitivity",
+          "type": "string"
+        },
+        "timeline": {
+          "default": "",
+          "title": "Timeline",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
         }
       },
       "required": [
@@ -664,18 +664,18 @@
     },
     "SupplyChain": {
       "properties": {
-        "critical_vendors": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Critical Vendors",
-          "type": "array"
-        },
         "cloud_providers": {
           "items": {
             "type": "string"
           },
           "title": "Cloud Providers",
+          "type": "array"
+        },
+        "critical_vendors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Critical Vendors",
           "type": "array"
         },
         "ot_connectivity": {
@@ -690,17 +690,8 @@
     "UserAccount": {
       "description": "An individual login account on internal hosts.\n\n``account_type`` strictly follows STIX 2.1 §6.4 ``account-type-ov``.\nEmpty string is the documented default for \"unspecified / no\nsuitable spec value\". 0.12.1 dropped operationally-named extensions\n(``service`` / ``other`` / ``unix-account`` / ``azure-ad`` etc) —\noperational distinctions move to:\n\n- ``is_service_account: bool`` (STIX 2.1 §6.4 native property) for\n  service / automation accounts.\n- ``description`` for free-form context (e.g. \"Azure AD tenant\n  contoso.onmicrosoft.com\") when STIX has no suitable\n  ``account_type`` value.\n\nMigration (existing user_accounts.json):\n- ``unix-account`` → ``unix`` (rename to spec value)\n- ``service`` → empty string + ensure ``is_service_account: true``\n- ``other`` → empty string\n- ``azure-ad`` / ``google-workspace`` / ``saas`` / ``kerberos`` →\n  empty string (STIX has no spec value); add note in\n  ``description``.",
       "properties": {
-        "id": {
-          "title": "Id",
-          "type": "string"
-        },
         "account_login": {
           "title": "Account Login",
-          "type": "string"
-        },
-        "display_name": {
-          "default": "",
-          "title": "Display Name",
           "type": "string"
         },
         "account_type": {
@@ -723,6 +714,25 @@
           "title": "Account Type",
           "type": "string"
         },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "display_name": {
+          "default": "",
+          "title": "Display Name",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "identity_id": {
+          "default": "",
+          "title": "Identity Id",
+          "type": "string"
+        },
         "is_privileged": {
           "default": false,
           "title": "Is Privileged",
@@ -732,16 +742,6 @@
           "default": false,
           "title": "Is Service Account",
           "type": "boolean"
-        },
-        "identity_id": {
-          "default": "",
-          "title": "Identity Id",
-          "type": "string"
-        },
-        "description": {
-          "default": "",
-          "title": "Description",
-          "type": "string"
         }
       },
       "required": [
@@ -753,29 +753,23 @@
     }
   },
   "properties": {
-    "organization": {
-      "$ref": "#/$defs/Organization"
-    },
-    "strategic_objectives": {
+    "account_on_asset": {
       "items": {
-        "$ref": "#/$defs/StrategicObjective"
+        "$ref": "#/$defs/AccountOnAsset"
       },
-      "title": "Strategic Objectives",
+      "title": "Account On Asset",
       "type": "array"
     },
-    "projects": {
-      "items": {
-        "$ref": "#/$defs/Project"
-      },
-      "title": "Projects",
-      "type": "array"
-    },
-    "crown_jewels": {
-      "items": {
-        "$ref": "#/$defs/CrownJewel"
-      },
-      "title": "Crown Jewels",
-      "type": "array"
+    "business_continuity": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BusinessContinuity"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "critical_assets": {
       "items": {
@@ -784,42 +778,11 @@
       "title": "Critical Assets",
       "type": "array"
     },
-    "supply_chain": {
-      "$ref": "#/$defs/SupplyChain"
-    },
-    "recent_incidents": {
+    "crown_jewels": {
       "items": {
-        "$ref": "#/$defs/RecentIncident"
+        "$ref": "#/$defs/CrownJewel"
       },
-      "title": "Recent Incidents",
-      "type": "array"
-    },
-    "identities": {
-      "items": {
-        "$ref": "#/$defs/Identity"
-      },
-      "title": "Identities",
-      "type": "array"
-    },
-    "has_access": {
-      "items": {
-        "$ref": "#/$defs/HasAccess"
-      },
-      "title": "Has Access",
-      "type": "array"
-    },
-    "user_accounts": {
-      "items": {
-        "$ref": "#/$defs/UserAccount"
-      },
-      "title": "User Accounts",
-      "type": "array"
-    },
-    "account_on_asset": {
-      "items": {
-        "$ref": "#/$defs/AccountOnAsset"
-      },
-      "title": "Account On Asset",
+      "title": "Crown Jewels",
       "type": "array"
     },
     "geopolitical_exposure": {
@@ -833,16 +796,19 @@
       ],
       "default": null
     },
-    "business_continuity": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/BusinessContinuity"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
+    "has_access": {
+      "items": {
+        "$ref": "#/$defs/HasAccess"
+      },
+      "title": "Has Access",
+      "type": "array"
+    },
+    "identities": {
+      "items": {
+        "$ref": "#/$defs/Identity"
+      },
+      "title": "Identities",
+      "type": "array"
     },
     "identity_management": {
       "anyOf": [
@@ -854,6 +820,40 @@
         }
       ],
       "default": null
+    },
+    "organization": {
+      "$ref": "#/$defs/Organization"
+    },
+    "projects": {
+      "items": {
+        "$ref": "#/$defs/Project"
+      },
+      "title": "Projects",
+      "type": "array"
+    },
+    "recent_incidents": {
+      "items": {
+        "$ref": "#/$defs/RecentIncident"
+      },
+      "title": "Recent Incidents",
+      "type": "array"
+    },
+    "strategic_objectives": {
+      "items": {
+        "$ref": "#/$defs/StrategicObjective"
+      },
+      "title": "Strategic Objectives",
+      "type": "array"
+    },
+    "supply_chain": {
+      "$ref": "#/$defs/SupplyChain"
+    },
+    "user_accounts": {
+      "items": {
+        "$ref": "#/$defs/UserAccount"
+      },
+      "title": "User Accounts",
+      "type": "array"
     }
   },
   "required": [

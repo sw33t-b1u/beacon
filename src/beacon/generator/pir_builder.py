@@ -11,7 +11,7 @@ from datetime import date, timedelta
 from typing import Literal
 
 import structlog
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from beacon.analysis.actor_triage import PrioritizedActor
 from beacon.analysis.asset_mapper import get_criticality_multipliers
@@ -37,7 +37,21 @@ class RiskScoreModel(BaseModel):
     composite: int
 
 
+def _pir_output_schema_extra(schema: dict) -> None:
+    """Pydantic json_schema_extra hook: include prioritized_actors in required[].
+
+    PIROutput always serialises prioritized_actors (default=[]) so it is
+    semantically required on the wire even though it has a Python default.
+    Pydantic omits fields with defaults from required[]; this hook restores
+    the correct on-wire contract without patching generate_schemas.py.
+    """
+    req = schema.get("required", [])
+    if "prioritized_actors" not in req:
+        schema["required"] = [*req, "prioritized_actors"]
+
+
 class PIROutput(BaseModel):
+    model_config = ConfigDict(json_schema_extra=_pir_output_schema_extra)
     pir_id: str
     intelligence_level: IntelligenceLevel
     organizational_scope: str
