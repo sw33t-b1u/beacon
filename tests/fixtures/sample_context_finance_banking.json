@@ -1,0 +1,66 @@
+{
+  "organization": {
+    "name": "Acme Finance Corp",
+    "unit_name": "Information Security",
+    "unit_type": "department",
+    "industry": "finance",
+    "sub_industries": ["banking", "retail-banking"],
+    "geography": ["Japan", "United States", "Singapore"],
+    "employee_count_range": "1000-5000",
+    "revenue_range_usd": "1B-10B",
+    "stock_listed": true,
+    "regulatory_context": ["APPI", "FISC", "PCI-DSS"]
+  },
+  "strategic_objectives": [
+    {
+      "id": "OBJ-001",
+      "title": "Core Banking Cloud Migration",
+      "description": "Migrate core banking systems to hybrid-cloud (Azure) by 2027.",
+      "timeline": "2025-2027",
+      "sensitivity": "critical",
+      "key_decisions": ["vendor selection", "data residency"]
+    }
+  ],
+  "projects": [],
+  "crown_jewels": [
+    {
+      "id": "CJ-001",
+      "name": "Customer Transaction Records",
+      "system": "Core Banking Platform",
+      "business_impact": "critical",
+      "exposure_risk": "high"
+    }
+  ],
+  "critical_assets": [
+    {
+      "id": "ASSET-001",
+      "name": "Core Banking Server",
+      "type": "server",
+      "function": "Processes all retail banking transactions",
+      "network_zone": "corporate",
+      "criticality": "critical",
+      "data_types": ["financial", "pii"],
+      "exposure_risk": "medium"
+    },
+    {
+      "id": "ASSET-002",
+      "name": "Internet Banking Portal",
+      "type": "application",
+      "function": "Customer-facing web banking application",
+      "network_zone": "internet",
+      "criticality": "high",
+      "data_types": ["financial", "pii"],
+      "exposure_risk": "high"
+    }
+  ],
+  "supply_chain": {
+    "critical_vendors": ["SWIFT", "Temenos"],
+    "cloud_providers": ["Azure"],
+    "ot_connectivity": false
+  },
+  "recent_incidents": [],
+  "identities": [],
+  "has_access": [],
+  "user_accounts": [],
+  "account_on_asset": []
+}

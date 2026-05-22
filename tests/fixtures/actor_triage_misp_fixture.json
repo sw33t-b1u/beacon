@@ -1,0 +1,47 @@
+{
+  "authors": ["MISP Project"],
+  "category": "actor",
+  "description": "Minimal MISP Galaxy fixture for actor_triage unit and integration tests.",
+  "name": "Threat Actor",
+  "type": "threat-actor",
+  "uuid": "test-actor-triage-root",
+  "values": [
+    {
+      "uuid": "test-apt29-triage",
+      "value": "APT29",
+      "description": "Russian state-sponsored espionage actor.",
+      "meta": {
+        "country": "RU",
+        "cfr-suspected-state-sponsor": "Russian Federation",
+        "cfr-suspected-victims": ["United States", "Japan", "Germany"],
+        "cfr-target-category": ["Government", "Private sector"],
+        "sophistication": "expert",
+        "synonyms": ["COZY BEAR", "The Dukes", "Nobelium"]
+      }
+    },
+    {
+      "uuid": "test-fin7-triage",
+      "value": "FIN7",
+      "description": "Financially motivated cybercrime actor.",
+      "meta": {
+        "cfr-suspected-victims": ["United States", "Australia"],
+        "cfr-target-category": ["Private sector"],
+        "motivation": "personal-gain",
+        "sophistication": "advanced",
+        "synonyms": ["Carbanak Group", "Navigator Group"]
+      }
+    },
+    {
+      "uuid": "test-ghost-actor-triage",
+      "value": "GhostActor",
+      "description": "Synthetic actor for Intent-gate test: military-only, coercion motive.",
+      "meta": {
+        "cfr-target-category": ["Military"],
+        "cfr-suspected-victims": ["North Korea", "Syria"],
+        "motivation": "coercion",
+        "sophistication": "minimal",
+        "synonyms": ["GhostUnit"]
+      }
+    }
+  ]
+}
