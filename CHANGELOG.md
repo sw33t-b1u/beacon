@@ -16,6 +16,84 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
   to the new path. `docs/structure.md` / `docs/structure.ja.md` updated
   to reflect the relocation.
 
+## [0.15.0] — 2026-05-22
+
+Paired release with TRACE 1.8.0 and SAGE 0.10.0.
+
+### Added — actor triage (I × C × O likelihood scoring)
+
+- **Actor triage core** (`src/beacon/analysis/actor_triage.py`):
+  `Likelihood = Intent × Capability × Opportunity` (product form).
+  Intent acts as a hard-gate: Intent = 0 excludes the actor from
+  `prioritized_actors[]` entirely (not emitted with score 0).
+  Sub-components are also product-form (plan §3.2 strict):
+  `Intent = clip01(motivation_alignment × industry_match)`,
+  `Capability = clip01(ttp_count_norm × sophistication_score × recency_active_campaigns_90d)`,
+  `Opportunity = clip01(victimology_match × geographic_match × surface_ttp_coverage)`
+  (Sign-off 2 revision — three-factor Opportunity, 2026-05-22).
+- **MISP Galaxy client** (`src/beacon/ingest/misp_client.py`):
+  `MispClient` with local-cache (offline/sandbox) primary path and
+  optional live-MISP path via `pymisp` (optional dep, graceful on
+  `ImportError`). `ActorAttributes` Pydantic model with STIX OV
+  validation; invalid motivation/sophistication values normalize to
+  `None` (no emission of invalid OV strings).
+- **`schema/surface_ttp_map.json`**: SAGE asset-tag → MITRE ATT&CK
+  Enterprise TTP mapping. 35 entries across 6 surfaces
+  (external-facing, email_gateway, vpn_remote_access, cloud, ot,
+  domain_controller). All entries verbatim-cited from `ref/` md
+  sources (m-trends-2026-en.md, ENISA_Threat_Landscape_2025_v1.2.md,
+  Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md).
+- **MITRE ATT&CK STIX parser expansion** (`cmd/update_taxonomy.py`):
+  `kill_chain_phases` extraction per attack-pattern, `software_count`
+  and `technique_count` per group from `uses` relationships,
+  `sophistication_tier` heuristic, `campaign_last_seen` via
+  `attributed-to` relationships. New keys in `threat_taxonomy.json`:
+  `intrusion_set_profiles` (189 entries) and `kill_chain_phases_map`
+  (858 entries). Schema version bumped to `2.0.0`.
+- **`prioritized_actors[]` in PIR output**
+  (`src/beacon/generator/pir_builder.py`): top-level required field;
+  `likelihood` is raw `[0, 1]` float (no rescale; UI display layer
+  may ×100 separately). Pydantic `Field(ge=0.0, le=1.0)` constraints
+  on `likelihood` and all 11 sub-factor floats.
+- **`cmd/generate_schemas.py` — reproducible schema generation**:
+  `sort_keys=True` + trailing newline produce byte-identical output
+  on repeated invocations (idempotent; plan §7 Phase 4.5).
+- `src/beacon/ingest/misp_client.py` declared as `[project.optional-
+  dependencies] misp = ["pymisp>=2.4"]`.
+
+### Changed
+
+- **`risk_scorer`** (`src/beacon/analysis/risk_scorer.py`):
+  accepts `top_actor_likelihood: float = 0.0`; applies `+1` boost to
+  the base likelihood score when `top_actor_likelihood ≥ 0.05`
+  (backward-compatible default = 0.0 → no change).
+- **`pir_builder`** (`src/beacon/generator/pir_builder.py`):
+  always emits `prioritized_actors[]` (empty array when no actors
+  have Intent > 0 or triage is unavailable). Field is listed in
+  top-level `required[]` of `pir_output.schema.json` via Pydantic
+  `json_schema_extra` hook — no post-processing in
+  `generate_schemas.py`.
+- **`pir_output.schema.json`** regenerated from `PIROutput.model_json_schema()`.
+  Now includes `$defs` for `PrioritizedActor`, `ScoreBreakdown`,
+  `IntentComponent`, `CapabilityComponent`, `OpportunityComponent`,
+  `DataQualityComponent`, and `Rationale`. Output is byte-deterministic.
+
+### Citations / References
+
+- **SANS I-O-C framework** (`ref/SANS_blog.md:L18`):
+  "To understand, differentiate, and properly respond to threats, it is
+  helpful to divide this concept into a further three components:
+  Intent, Opportunity, and Capability (IOC)." BEACON applies this
+  Threat-decomposition triad to compute a Likelihood-shaped actor
+  priority score.
+- **NIST SP 800-30 r1 Appendix D** (`ref/nistspecialpublication800-30r1.md:L1767–1768`):
+  Table D-3 (Capability scale) and Table D-4 (Intent scale) inform
+  the sub-factor normalization design.
+- **STIX 2.1 open vocabularies**: `threat-actor-motivation-ov`
+  (10 values) and `threat-actor-sophistication-ov` (7 values) are
+  the only accepted inputs; invalid values normalize to `None`
+  per `[[feedback_stix_strict_compliance]]`.
+
 ## [0.14.0] — 2026-05-13
 
 ### Added — three new business triggers (BEACON now has 10)
