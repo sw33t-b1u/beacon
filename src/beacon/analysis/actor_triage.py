@@ -409,7 +409,20 @@ def prioritize_actors(
             expected_motivations,
         )
         _ind = industry_match(actor_industries, business_sectors)
-        intent_score = (_mot + _ind) / 2
+        # Plan §3.2: product form — both sub-factors must be non-zero.
+        intent_score = min(max(_mot * _ind, 0.0), 1.0)
+
+        # ------ Intent hard gate (Plan §3.2 verbatim) ------
+        # "Intent=0 is a hard gate that short-circuits the actor out of
+        # prioritized_actors[]" — excluded, not emitted with score 0.
+        if intent_score == 0.0:
+            _log.debug(
+                "actor_triage_intent_gate",
+                actor=actor_name,
+                motivation_alignment=_mot,
+                industry_match=_ind,
+            )
+            continue
 
         # ------ Capability ------
         _soph = sophistication_score(stix_soph)
@@ -417,34 +430,20 @@ def prioritize_actors(
         # Phase 2 residual note #2 — derive recency from taxonomy campaign_last_seen,
         # NOT ActorAttributes.active (which is always None at the MISP client layer).
         _rec = recency_active_campaigns_90d(profile.get("campaign_last_seen"), reference=_now)
-        capability_score = (_soph + _ttp_n + _rec) / 3
+        capability_score = min(max(_soph * _ttp_n * _rec, 0.0), 1.0)
 
         # ------ Opportunity ------
         _vic = victimology_match(actor_industries, business_sectors)
         _geo = geographic_match(actor_geos, business_geos)
         _surf = _surface_ttp_coverage(cat_ttps, all_surface_ttps)
-        opportunity_score = (_vic + _geo + _surf) / 3
+        opportunity_score = min(max(_vic * _geo * _surf, 0.0), 1.0)
 
-        # ------ Likelihood (product form; Intent hard gate) ------
-        if intent_score == 0.0:
-            likelihood = 0.0
-            rationale_text = (
-                "Intent gate failed: actor motivation and industry alignment "
-                "are both zero for this organisation."
-            )
-            _log.debug(
-                "actor_triage_intent_gate",
-                actor=actor_name,
-                motivation_alignment=_mot,
-                industry_match=_ind,
-            )
-        else:
-            likelihood = min(intent_score * capability_score * opportunity_score, 1.0)
-            rationale_text = (
-                f"Likelihood = Intent({intent_score:.3f}) × "
-                f"Capability({capability_score:.3f}) × "
-                f"Opportunity({opportunity_score:.3f}) = {likelihood:.4f}"
-            )
+        likelihood = min(intent_score * capability_score * opportunity_score, 1.0)
+        rationale_text = (
+            f"Likelihood = Intent({intent_score:.3f}) × "
+            f"Capability({capability_score:.3f}) × "
+            f"Opportunity({opportunity_score:.3f}) = {likelihood:.4f}"
+        )
 
         actor_id = actor_name.lower().replace(" ", "-").replace(".", "-")
 

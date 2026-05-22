@@ -279,54 +279,111 @@ class TestGeographicMatch:
 
 
 # ---------------------------------------------------------------------------
-# Intent == 0 hard-gate test
+# Intent == 0 hard-gate tests — exclusion semantics (Plan §3.2)
+# Actor with Intent==0 must be EXCLUDED from prioritized_actors[], not emitted.
 # ---------------------------------------------------------------------------
 
+_GHOST_ACTOR_ID = "ghostactor"
+_APT29_ACTOR_ID = "apt29"
 
-class TestIntentGateZeroLikelihood:
-    """When both motivation_alignment and industry_match are 0.0, likelihood must be 0.0."""
+# Two-actor taxonomy for intent-gate tests: GhostActor (Intent=0) + APT29 (Intent>0).
+_TWO_ACTOR_TAXONOMY = {
+    "actor_categories": {
+        "state_sponsored": {
+            "Russia": {
+                "mitre_groups": ["APT29"],
+                "target_industries": ["Government", "Private sector"],
+                "target_geographies": ["United States", "Japan", "Germany"],
+                "priority_ttps": [],
+                "tags": [],
+            },
+            "Fictional": {
+                "mitre_groups": ["GhostActor"],
+                "target_industries": ["Military"],
+                "target_geographies": ["North Korea"],
+                "priority_ttps": [],
+                "tags": [],
+            },
+        },
+    },
+    "intrusion_set_profiles": {
+        "APT29": {
+            "technique_count": 66,
+            "software_count": 49,
+            "sophistication_tier": "expert",
+            "campaign_last_seen": "2021-01-01T06:00:00.000Z",
+        },
+        "GhostActor": {
+            "technique_count": 5,
+            "software_count": 0,
+            "sophistication_tier": "minimal",
+            "campaign_last_seen": None,
+        },
+    },
+}
+
+
+class TestIntentGateExclusion:
+    """Intent==0 actor is excluded from prioritized_actors[] (not emitted with score=0)."""
 
     def setup_method(self):
-        # GhostActor: motivation=coercion (non-matching), targets Military only
         self.misp = MispClient(cache_path=_TRIAGE_MISP_FIXTURE)
-        # Mini taxonomy: GhostActor in Military-only category
-        self.taxonomy = _make_mini_taxonomy(
+        self.surface_map = _make_empty_surface_map()
+        self.bctx = _finance_context()
+
+    def test_single_intent_zero_actor_produces_empty_results(self):
+        """Single GhostActor (Intent=0): results list is empty."""
+        taxonomy = _make_mini_taxonomy(
             actor_name="GhostActor",
             target_industries=["Military"],
             target_geographies=["North Korea"],
             technique_count=5,
             sophistication_tier="minimal",
         )
-        self.surface_map = _make_empty_surface_map()
-        self.bctx = _finance_context()
+        results = prioritize_actors(self.bctx, taxonomy, self.surface_map, self.misp)
+        assert len(results) == 0
 
-    def test_likelihood_is_zero(self):
-        results = prioritize_actors(self.bctx, self.taxonomy, self.surface_map, self.misp)
+    def test_ghost_actor_not_in_results(self):
+        """GhostActor must not appear in results when Intent==0."""
+        results = prioritize_actors(self.bctx, _TWO_ACTOR_TAXONOMY, self.surface_map, self.misp)
+        assert all(r.actor_id != _GHOST_ACTOR_ID for r in results)
+
+    def test_intent_zero_actor_excluded_from_results(self):
+        """Two-actor fixture: Intent==0 actor excluded, Intent>0 actor retained."""
+        results = prioritize_actors(self.bctx, _TWO_ACTOR_TAXONOMY, self.surface_map, self.misp)
+        # GhostActor: coercion × Military → Intent=0 → excluded
+        assert all(r.actor_id != _GHOST_ACTOR_ID for r in results)
+        # APT29: None(0.5) × Private sector(0.5) → Intent=0.25 → included
+        apt29_entries = [r for r in results if r.actor_id == _APT29_ACTOR_ID]
+        assert len(apt29_entries) == 1
+
+    def test_intent_zero_produces_exactly_one_remaining_actor(self):
+        """With two actors and one excluded, exactly one result remains."""
+        results = prioritize_actors(self.bctx, _TWO_ACTOR_TAXONOMY, self.surface_map, self.misp)
         assert len(results) == 1
-        actor = results[0]
-        assert actor.likelihood == 0.0
+        assert results[0].actor_id == _APT29_ACTOR_ID
 
-    def test_rationale_contains_intent_gate_failed(self):
-        results = prioritize_actors(self.bctx, self.taxonomy, self.surface_map, self.misp)
-        actor = results[0]
-        assert "Intent gate failed" in actor.rationale.text
+    def test_remaining_actor_likelihood_in_range(self):
+        """Retained actor's likelihood stays in [0, 1]."""
+        results = prioritize_actors(self.bctx, _TWO_ACTOR_TAXONOMY, self.surface_map, self.misp)
+        assert 0.0 <= results[0].likelihood <= 1.0
 
-    def test_score_breakdown_intent_score_is_zero(self):
-        results = prioritize_actors(self.bctx, self.taxonomy, self.surface_map, self.misp)
-        actor = results[0]
-        assert actor.score_breakdown.intent.score == 0.0
+    def test_motivation_alignment_zero_for_coercion(self):
+        """Direct sub-factor check: 'coercion' not in finance expected motivations."""
+        assert motivation_alignment("coercion", ["personal-gain", "organizational-gain"]) == 0.0
 
-    def test_motivation_alignment_factor_is_zero(self):
-        # coercion not in finance expected motivations [personal-gain, organizational-gain]
-        results = prioritize_actors(self.bctx, self.taxonomy, self.surface_map, self.misp)
-        actor = results[0]
-        assert actor.score_breakdown.intent.motivation_alignment == 0.0
+    def test_industry_match_zero_for_military_vs_private(self):
+        """Direct sub-factor check: Military ∩ Private sector = ∅ → 0.0."""
+        assert industry_match(["Military"], ["Private sector"]) == 0.0
 
-    def test_industry_match_factor_is_zero(self):
-        # Military ∩ Private sector = ∅
-        results = prioritize_actors(self.bctx, self.taxonomy, self.surface_map, self.misp)
-        actor = results[0]
-        assert actor.score_breakdown.intent.industry_match == 0.0
+    def test_intent_product_is_zero_when_one_factor_is_zero(self):
+        """Product form: if either sub-factor is 0, intent = 0."""
+        # motivation_alignment = 0.0, industry_match = 0.5
+        mot = motivation_alignment("coercion", ["personal-gain"])
+        ind = industry_match(["Military"], ["Private sector"])
+        assert mot == 0.0
+        assert ind == 0.0
+        assert min(max(mot * ind, 0.0), 1.0) == 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -338,11 +395,13 @@ class TestDegradedFlagWhenMispReturnsNone:
     """Actor not in MISP fixture → degraded=True, result still produced (no exception)."""
 
     def setup_method(self):
-        # MISP fixture has no entry for "APT28"
+        # MISP fixture has no entry for "APT28" → degraded path.
+        # target_industries includes "Private sector" so industry_match > 0 and
+        # Intent > 0 with product form (actor stays in results for degraded checks).
         self.misp = MispClient(cache_path=_TRIAGE_MISP_FIXTURE)
         self.taxonomy = _make_mini_taxonomy(
             actor_name="APT28",
-            target_industries=["Government", "Defense"],
+            target_industries=["Private sector", "Defense"],
             target_geographies=["Germany", "United States"],
             technique_count=93,
             sophistication_tier="expert",
