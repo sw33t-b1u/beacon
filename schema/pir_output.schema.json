@@ -24,10 +24,10 @@
           "title": "Evasion Capability",
           "type": "number"
         },
-        "recency_active_campaigns_90d": {
+        "recency_active_campaigns": {
           "maximum": 1.0,
           "minimum": 0.0,
-          "title": "Recency Active Campaigns 90D",
+          "title": "Recency Active Campaigns",
           "type": "number"
         },
         "score": {
@@ -67,7 +67,7 @@
         "score",
         "sophistication_score",
         "ttp_count_norm",
-        "recency_active_campaigns_90d"
+        "recency_active_campaigns"
       ],
       "title": "CapabilityComponent",
       "type": "object"
@@ -438,7 +438,7 @@
       "type": "object"
     }
   },
-  "description": "Top-level envelope for pir_output.json (BEACON 0.16.0+).\n\nschema_version lets downstream consumers gate on the contract version\nwithout inspecting field presence; pirs holds the ordered list of\nper-decision-point records.",
+  "description": "Top-level envelope for pir_output.json (BEACON 0.17.0+).\n\nschema_version lets downstream consumers gate on the contract version\nwithout inspecting field presence; pirs holds the ordered list of\nper-decision-point records.",
   "properties": {
     "pirs": {
       "items": {
@@ -448,7 +448,7 @@
       "type": "array"
     },
     "schema_version": {
-      "default": "0.16.0",
+      "default": "0.17.0",
       "description": "Semantic version of the pir_output schema (set by BEACON at emit time).",
       "title": "Schema Version",
       "type": "string"

@@ -50,6 +50,13 @@ class Config:
     # SAGE Analysis API
     sage_api_url: str = field(default_factory=lambda: os.environ.get("SAGE_API_URL", ""))
 
+    # Activity window for Capability recency scoring (env: ACTIVITY_WINDOW_DAYS, default 90).
+    # Controls the "actively campaigning" bucket threshold in recency_active_campaigns().
+    # SAGE uses its own SAGE_ACTIVITY_WINDOW_DAYS (falls back to this value).
+    activity_window_days: int = field(
+        default_factory=lambda: int(os.environ.get("ACTIVITY_WINDOW_DAYS", "90"))
+    )
+
 
 def load_config() -> Config:
     return Config()

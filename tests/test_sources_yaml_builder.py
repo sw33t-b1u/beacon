@@ -149,7 +149,7 @@ class TestHeaderContent:
     def setup_method(self):
         self.elements, self.pirs = _build_pipeline("sample_context_finance_banking.json")
         self.yaml_str = build_sources_candidate_yaml(
-            self.pirs, self.elements, schema_version="0.16.0", generated_at=_FIXED_DT
+            self.pirs, self.elements, schema_version="0.17.0", generated_at=_FIXED_DT
         )
 
     def test_activity_window_warning_present(self):
@@ -171,7 +171,7 @@ class TestHeaderContent:
         assert "docs/citations.md" in self.yaml_str
 
     def test_schema_version_in_header(self):
-        assert "schema_version: 0.16.0" in self.yaml_str
+        assert "schema_version: 0.17.0" in self.yaml_str
 
     def test_generated_timestamp_in_header(self):
         assert "2026-04-04T00:00:00Z" in self.yaml_str

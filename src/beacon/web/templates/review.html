@@ -91,7 +91,7 @@
           <tr>
             <td>Capability</td>
             <td>{{ "%.3f"|format(sb.capability.score | default(0.0)) }}</td>
-            <td>depth={{ "%.3f"|format(sb.capability.depth | default(0.0)) }}, breadth={{ "%.3f"|format(sb.capability.breadth | default(0.0)) }} | soph={{ "%.3f"|format(sb.capability.sophistication_score | default(0.0)) }}, ttp={{ "%.3f"|format(sb.capability.ttp_count_norm | default(0.0)) }}, rec={{ "%.3f"|format(sb.capability.recency_active_campaigns_90d | default(0.0)) }}, tool={{ "%.3f"|format(sb.capability.tool_sophistication | default(0.0)) }}, pers={{ "%.3f"|format(sb.capability.targeting_persistence | default(0.0)) }}, evas={{ "%.3f"|format(sb.capability.evasion_capability | default(0.0)) }}</td>
+            <td>depth={{ "%.3f"|format(sb.capability.depth | default(0.0)) }}, breadth={{ "%.3f"|format(sb.capability.breadth | default(0.0)) }} | soph={{ "%.3f"|format(sb.capability.sophistication_score | default(0.0)) }}, ttp={{ "%.3f"|format(sb.capability.ttp_count_norm | default(0.0)) }}, rec={{ "%.3f"|format(sb.capability.recency_active_campaigns | default(0.0)) }}, tool={{ "%.3f"|format(sb.capability.tool_sophistication | default(0.0)) }}, pers={{ "%.3f"|format(sb.capability.targeting_persistence | default(0.0)) }}, evas={{ "%.3f"|format(sb.capability.evasion_capability | default(0.0)) }}</td>
           </tr>
           <tr>
             <td>Opportunity</td>

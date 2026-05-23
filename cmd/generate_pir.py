@@ -154,7 +154,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     _misp_cache = _beacon_root / "cache" / "misp-threat-actor.json"
     _misp_client = MispClient(cache_path=_misp_cache if _misp_cache.exists() else None)
-    _actors = prioritize_actors(ctx, taxonomy, _surface_ttp_map, _misp_client)
+    _actors = prioritize_actors(
+        ctx, taxonomy, _surface_ttp_map, _misp_client, window_days=cfg.activity_window_days
+    )
     _top_likelihood = max((a.likelihood for a in _actors), default=0.0)
 
     risk = score(

@@ -115,7 +115,7 @@ class CapabilityComponent(BaseModel):
     # Phase 0 (Initiative D) factors
     sophistication_score: float = Field(ge=0.0, le=1.0)
     ttp_count_norm: float = Field(ge=0.0, le=1.0)
-    recency_active_campaigns_90d: float = Field(ge=0.0, le=1.0)
+    recency_active_campaigns: float = Field(ge=0.0, le=1.0)
     # Phase 1 (Initiative E) extension — Depth × Breadth aggregation
     tool_sophistication: float = Field(default=0.0, ge=0.0, le=1.0)
     targeting_persistence: float = Field(default=0.0, ge=0.0, le=1.0)
@@ -229,10 +229,11 @@ def ttp_count_norm(technique_count: int) -> float:
     return min(technique_count / 100, 1.0)
 
 
-def recency_active_campaigns_90d(
+def recency_active_campaigns(
     campaign_last_seen: str | None,
     *,
     reference: datetime | None = None,
+    window_days: int = 90,
 ) -> float:
     """Time-decay score derived from intrusion_set_profiles.campaign_last_seen.
 
@@ -242,11 +243,14 @@ def recency_active_campaigns_90d(
     Reference date: datetime.now(UTC) unless overridden (override used
     only in tests for deterministic behaviour).
 
+    window_days controls the "actively campaigning" bucket threshold (env:
+    ACTIVITY_WINDOW_DAYS, default 90).
+
     Buckets:
-      ≤ 90 days  → 1.0  (actively campaigning)
-      ≤ 365 days → 0.5  (recent activity)
-      ≤ 1095 days (3 years) → 0.25  (historically active)
-      older or None → 0.0
+      ≤ window_days      → 1.0  (actively campaigning)
+      ≤ 365 days         → 0.5  (recent activity)
+      ≤ 1095 days (3yr)  → 0.25 (historically active)
+      older or None      → 0.0
     """
     if not campaign_last_seen:
         return 0.0
@@ -255,7 +259,7 @@ def recency_active_campaigns_90d(
         return 0.0
     ref = reference or datetime.now(UTC)
     days = (ref - last).days
-    if days <= 90:
+    if days <= window_days:
         return 1.0
     if days <= 365:
         return 0.5
@@ -430,6 +434,8 @@ def prioritize_actors(
     taxonomy: dict,
     surface_ttp_map: dict,
     misp_client: MispClient,
+    *,
+    window_days: int = 90,
 ) -> list[PrioritizedActor]:
     """Score and rank threat actors using the I × C × O likelihood triad.
 
@@ -509,7 +515,9 @@ def prioritize_actors(
         _ttp_n = ttp_count_norm(profile.get("technique_count", 0))
         # Phase 2 residual note #2 — derive recency from taxonomy campaign_last_seen,
         # NOT ActorAttributes.active (which is always None at the MISP client layer).
-        _rec = recency_active_campaigns_90d(profile.get("campaign_last_seen"), reference=_now)
+        _rec = recency_active_campaigns(
+            profile.get("campaign_last_seen"), reference=_now, window_days=window_days
+        )
         _tool = tool_sophistication_score(profile.get("software_count", 0))
         _pers = targeting_persistence_score(
             profile.get("campaign_count", 0),
@@ -552,7 +560,7 @@ def prioritize_actors(
                         score=capability_score,
                         sophistication_score=_soph,
                         ttp_count_norm=_ttp_n,
-                        recency_active_campaigns_90d=_rec,
+                        recency_active_campaigns=_rec,
                         tool_sophistication=_tool,
                         targeting_persistence=_pers,
                         evasion_capability=_evas,
@@ -579,7 +587,7 @@ def prioritize_actors(
                     capability_factors={
                         "sophistication_score": _soph,
                         "ttp_count_norm": _ttp_n,
-                        "recency_active_campaigns_90d": _rec,
+                        "recency_active_campaigns": _rec,
                         "tool_sophistication": _tool,
                         "targeting_persistence": _pers,
                         "evasion_capability": _evas,

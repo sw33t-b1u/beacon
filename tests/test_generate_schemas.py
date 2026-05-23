@@ -94,7 +94,7 @@ class TestPirSchemaConstraints:
     def test_capability_sub_factors_bounded(self):
         """All CapabilityComponent sub-factors carry [0,1] bounds."""
         props = self.schema["$defs"]["CapabilityComponent"]["properties"]
-        for field in ("sophistication_score", "ttp_count_norm", "recency_active_campaigns_90d"):
+        for field in ("sophistication_score", "ttp_count_norm", "recency_active_campaigns"):
             assert props[field].get("minimum") == 0.0, f"{field} missing minimum"
             assert props[field].get("maximum") == 1.0, f"{field} missing maximum"
 
@@ -115,7 +115,7 @@ class TestPirSchemaConstraints:
         """Canonical Phase 3 field names (ttp_count_norm, etc.) are in schema."""
         cap_props = self.schema["$defs"]["CapabilityComponent"]["properties"]
         assert "ttp_count_norm" in cap_props
-        assert "recency_active_campaigns_90d" in cap_props
+        assert "recency_active_campaigns" in cap_props
         assert "sophistication_score" in cap_props
 
     def test_generate_schemas_has_no_post_processing(self):

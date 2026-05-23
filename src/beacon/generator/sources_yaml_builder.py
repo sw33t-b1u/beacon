@@ -54,7 +54,7 @@ def _build_gir_hint(
 def build_sources_candidate_yaml(
     pirs: list[PIROutput],
     elements: ExtractedElements,
-    schema_version: str = "0.16.0",
+    schema_version: str = "0.17.0",
     generated_at: datetime | None = None,
     content_path: Path | None = None,
 ) -> str:

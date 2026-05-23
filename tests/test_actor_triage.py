@@ -17,7 +17,7 @@ from beacon.analysis.actor_triage import (
     industry_match,
     motivation_alignment,
     prioritize_actors,
-    recency_active_campaigns_90d,
+    recency_active_campaigns,
     sophistication_score,
     targeting_persistence_score,
     tool_sophistication_score,
@@ -200,42 +200,65 @@ class TestTtpCountNorm:
 
 
 # ---------------------------------------------------------------------------
-# Unit tests: recency_active_campaigns_90d
+# Unit tests: recency_active_campaigns (window_days default=90)
 # ---------------------------------------------------------------------------
 
 _REF = datetime(2026, 5, 22, 12, 0, 0, tzinfo=UTC)
 
 
-class TestRecencyActiveCampaigns90d:
+class TestRecencyActiveCampaigns:
     def test_none_returns_zero(self):
-        assert recency_active_campaigns_90d(None, reference=_REF) == 0.0
+        assert recency_active_campaigns(None, reference=_REF) == 0.0
 
     def test_within_90_days_returns_one(self):
         # 30 days before _REF = 2026-04-22
-        assert recency_active_campaigns_90d("2026-04-22T00:00:00Z", reference=_REF) == 1.0
+        assert recency_active_campaigns("2026-04-22T00:00:00Z", reference=_REF) == 1.0
 
     def test_exactly_90_days_returns_one(self):
         # 90 days before _REF = 2026-02-21
-        assert recency_active_campaigns_90d("2026-02-21T00:00:00Z", reference=_REF) == 1.0
+        assert recency_active_campaigns("2026-02-21T00:00:00Z", reference=_REF) == 1.0
 
     def test_within_365_days_returns_half(self):
         # 200 days before _REF = 2025-11-03
-        assert recency_active_campaigns_90d("2025-11-03T00:00:00Z", reference=_REF) == 0.5
+        assert recency_active_campaigns("2025-11-03T00:00:00Z", reference=_REF) == 0.5
 
     def test_within_3_years_returns_quarter(self):
         # ~500 days before _REF = 2025-01-07
-        assert recency_active_campaigns_90d("2025-01-07T00:00:00Z", reference=_REF) == 0.25
+        assert recency_active_campaigns("2025-01-07T00:00:00Z", reference=_REF) == 0.25
 
     def test_older_than_3_years_returns_zero(self):
         # 4 years ago = 2022-05-22
-        assert recency_active_campaigns_90d("2022-05-22T00:00:00Z", reference=_REF) == 0.0
+        assert recency_active_campaigns("2022-05-22T00:00:00Z", reference=_REF) == 0.0
 
     def test_handles_milliseconds_in_timestamp(self):
         # ATT&CK STIX bundle format
-        assert recency_active_campaigns_90d("2026-04-22T00:00:00.000Z", reference=_REF) == 1.0
+        assert recency_active_campaigns("2026-04-22T00:00:00.000Z", reference=_REF) == 1.0
 
     def test_malformed_timestamp_returns_zero(self):
-        assert recency_active_campaigns_90d("not-a-date", reference=_REF) == 0.0
+        assert recency_active_campaigns("not-a-date", reference=_REF) == 0.0
+
+    # Window=180 tests — 2025-12-15 is 158 days before _REF (between 90 and 180)
+    def test_window_180_activates_for_158_day_old_campaign(self):
+        # 158d < 180 → 1.0 with window=180; 0.5 with default window=90
+        assert (
+            recency_active_campaigns("2025-12-15T00:00:00Z", reference=_REF, window_days=180) == 1.0
+        )
+
+    def test_window_90_returns_half_for_158_day_old_campaign(self):
+        # Same date, default window=90 → 0.5
+        assert recency_active_campaigns("2025-12-15T00:00:00Z", reference=_REF) == 0.5
+
+    def test_window_180_boundary_at_180_days(self):
+        # Exactly 180 days before _REF = 2025-11-23 (180d boundary → 1.0)
+        assert (
+            recency_active_campaigns("2025-11-23T00:00:00Z", reference=_REF, window_days=180) == 1.0
+        )
+
+    def test_window_180_beyond_boundary_returns_half(self):
+        # 200d before ref = 2025-11-03 → > 180 window → 0.5
+        assert (
+            recency_active_campaigns("2025-11-03T00:00:00Z", reference=_REF, window_days=180) == 0.5
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -602,7 +625,7 @@ class TestCapabilityGoldenAPT28:
         assert ttp_count_norm(self.p["technique_count"]) == pytest.approx(0.93)
 
     def test_recency(self):
-        assert recency_active_campaigns_90d(
+        assert recency_active_campaigns(
             self.p["campaign_last_seen"], reference=_REF_DATE
         ) == pytest.approx(0.25)
 
@@ -636,7 +659,7 @@ class TestCapabilityGoldenAPT28:
             self.p["campaign_first_seen"],
             self.p["campaign_last_seen"],
         )
-        _rec = recency_active_campaigns_90d(self.p["campaign_last_seen"], reference=_REF_DATE)
+        _rec = recency_active_campaigns(self.p["campaign_last_seen"], reference=_REF_DATE)
         breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
         assert breadth == pytest.approx(0.3807, abs=1e-3)
 
@@ -650,7 +673,7 @@ class TestCapabilityGoldenAPT28:
             self.p["campaign_first_seen"],
             self.p["campaign_last_seen"],
         )
-        _rec = recency_active_campaigns_90d(self.p["campaign_last_seen"], reference=_REF_DATE)
+        _rec = recency_active_campaigns(self.p["campaign_last_seen"], reference=_REF_DATE)
         depth = (_soph * _tool * _evas) ** (1 / 3)
         breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
         assert depth * breadth == pytest.approx(0.2678, abs=1e-3)
@@ -686,7 +709,7 @@ class TestCapabilityGoldenAPT41:
 
     def test_recency(self):
         # last=2024-06-30 → ~692d → 0.25
-        assert recency_active_campaigns_90d(
+        assert recency_active_campaigns(
             self.p["campaign_last_seen"], reference=_REF_DATE
         ) == pytest.approx(0.25)
 
@@ -707,7 +730,7 @@ class TestCapabilityGoldenAPT41:
             self.p["campaign_first_seen"],
             self.p["campaign_last_seen"],
         )
-        _rec = recency_active_campaigns_90d(self.p["campaign_last_seen"], reference=_REF_DATE)
+        _rec = recency_active_campaigns(self.p["campaign_last_seen"], reference=_REF_DATE)
         depth = (_soph * _tool * _evas) ** (1 / 3)
         breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
         assert depth * breadth == pytest.approx(0.3153, abs=1e-3)
@@ -743,7 +766,7 @@ class TestCapabilityGoldenMustangPanda:
 
     def test_recency(self):
         # last=2024-12-01 → ~538d → 0.25
-        assert recency_active_campaigns_90d(
+        assert recency_active_campaigns(
             self.p["campaign_last_seen"], reference=_REF_DATE
         ) == pytest.approx(0.25)
 
@@ -764,7 +787,153 @@ class TestCapabilityGoldenMustangPanda:
             self.p["campaign_first_seen"],
             self.p["campaign_last_seen"],
         )
-        _rec = recency_active_campaigns_90d(self.p["campaign_last_seen"], reference=_REF_DATE)
+        _rec = recency_active_campaigns(self.p["campaign_last_seen"], reference=_REF_DATE)
         depth = (_soph * _tool * _evas) ** (1 / 3)
         breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
         assert depth * breadth == pytest.approx(0.2234, abs=1e-3)
+
+
+# ---------------------------------------------------------------------------
+# window_days=180 golden tests — synthetic actor with campaign 158 days ago
+# Reference date: _REF_DATE = 2026-05-23 UTC
+# 2025-12-16T00:00:00Z is 158 days before ref → between 90 and 180.
+# With window=90: recency=0.5; with window=180: recency=1.0.
+# tc=50, sw=10, de=10, campaigns=2, first=2023-01-01, last=2025-12-16.
+# ---------------------------------------------------------------------------
+
+_WINDOW_ACTOR_PROFILE = {
+    "technique_count": 50,
+    "software_count": 10,
+    "defense_evasion_ttp_count": 10,
+    "campaign_count": 2,
+    "campaign_first_seen": "2023-01-01T00:00:00Z",
+    "campaign_last_seen": "2025-12-16T00:00:00Z",
+}
+# 2025-12-16 → 158 days before 2026-05-23
+
+
+class TestCapabilityGoldenWindow180:
+    """Synthetic actor with campaign 158 days before ref — shows window=90 vs 180 split."""
+
+    def test_recency_window90_returns_half(self):
+        assert recency_active_campaigns(
+            _WINDOW_ACTOR_PROFILE["campaign_last_seen"], reference=_REF_DATE
+        ) == pytest.approx(0.5)
+
+    def test_recency_window180_returns_one(self):
+        assert recency_active_campaigns(
+            _WINDOW_ACTOR_PROFILE["campaign_last_seen"],
+            reference=_REF_DATE,
+            window_days=180,
+        ) == pytest.approx(1.0)
+
+    def test_breadth_window90(self):
+        # _rec=0.5, _ttp_n=0.5, _pers=(0.4+span_norm)/2 ≈ 0.3478
+        # breadth = (0.5*0.3478*0.5)^(1/3) ≈ 0.443
+        _ttp_n = ttp_count_norm(50)
+        _pers = targeting_persistence_score(
+            _WINDOW_ACTOR_PROFILE["campaign_count"],
+            _WINDOW_ACTOR_PROFILE["campaign_first_seen"],
+            _WINDOW_ACTOR_PROFILE["campaign_last_seen"],
+        )
+        _rec = recency_active_campaigns(
+            _WINDOW_ACTOR_PROFILE["campaign_last_seen"], reference=_REF_DATE
+        )
+        breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
+        assert breadth == pytest.approx(0.4430, abs=1e-3)
+
+    def test_breadth_window180(self):
+        # Same as above but _rec=1.0 instead of 0.5 → breadth ≈ 0.558
+        _ttp_n = ttp_count_norm(50)
+        _pers = targeting_persistence_score(
+            _WINDOW_ACTOR_PROFILE["campaign_count"],
+            _WINDOW_ACTOR_PROFILE["campaign_first_seen"],
+            _WINDOW_ACTOR_PROFILE["campaign_last_seen"],
+        )
+        _rec = recency_active_campaigns(
+            _WINDOW_ACTOR_PROFILE["campaign_last_seen"],
+            reference=_REF_DATE,
+            window_days=180,
+        )
+        breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
+        assert breadth == pytest.approx(0.5582, abs=1e-3)
+
+    def test_breadth_window180_exceeds_window90(self):
+        _ttp_n = ttp_count_norm(50)
+        _pers = targeting_persistence_score(
+            _WINDOW_ACTOR_PROFILE["campaign_count"],
+            _WINDOW_ACTOR_PROFILE["campaign_first_seen"],
+            _WINDOW_ACTOR_PROFILE["campaign_last_seen"],
+        )
+        breadth90 = (
+            _ttp_n
+            * _pers
+            * recency_active_campaigns(
+                _WINDOW_ACTOR_PROFILE["campaign_last_seen"], reference=_REF_DATE
+            )
+        ) ** (1 / 3)
+        breadth180 = (
+            _ttp_n
+            * _pers
+            * recency_active_campaigns(
+                _WINDOW_ACTOR_PROFILE["campaign_last_seen"],
+                reference=_REF_DATE,
+                window_days=180,
+            )
+        ) ** (1 / 3)
+        assert breadth180 > breadth90
+
+
+# ---------------------------------------------------------------------------
+# Config: activity_window_days reads ACTIVITY_WINDOW_DAYS env var
+# ---------------------------------------------------------------------------
+
+
+class TestActivityWindowDaysConfig:
+    def test_default_is_90(self, monkeypatch):
+        monkeypatch.delenv("ACTIVITY_WINDOW_DAYS", raising=False)
+        from beacon.config import load_config
+
+        cfg = load_config()
+        assert cfg.activity_window_days == 90
+
+    def test_env_var_overrides_to_180(self, monkeypatch):
+        monkeypatch.setenv("ACTIVITY_WINDOW_DAYS", "180")
+        from beacon.config import load_config
+
+        cfg = load_config()
+        assert cfg.activity_window_days == 180
+
+    def test_prioritize_actors_uses_window_days_param(self):
+        # Synthetic one-actor taxonomy: campaign_last_seen 158 days before a reference date.
+        # window=90 → recency=0.5; window=180 → recency=1.0 → capability differs.
+        misp = MispClient(cache_path=_TRIAGE_MISP_FIXTURE)
+        taxonomy = _make_mini_taxonomy(
+            actor_name="WindowTestActor",
+            target_industries=["Private sector"],
+            target_geographies=["Japan"],
+            technique_count=50,
+            sophistication_tier="intermediate",
+            campaign_last_seen="2025-12-16T00:00:00Z",
+        )
+        # Add remaining fields so Capability > 0 (campaign_count > 0 required for _pers > 0)
+        taxonomy["intrusion_set_profiles"]["WindowTestActor"].update(
+            {
+                "software_count": 10,
+                "defense_evasion_ttp_count": 10,
+                "campaign_count": 2,
+                "campaign_first_seen": "2023-01-01T00:00:00Z",
+            }
+        )
+        surface_map = _make_empty_surface_map()
+        bctx = _finance_context()
+
+        results90 = prioritize_actors(bctx, taxonomy, surface_map, misp, window_days=90)
+        results180 = prioritize_actors(bctx, taxonomy, surface_map, misp, window_days=180)
+
+        assert len(results90) == 1
+        assert len(results180) == 1
+        # window=180 should yield higher recency → higher breadth → higher capability
+        cap90 = results90[0].score_breakdown.capability.score
+        cap180 = results180[0].score_breakdown.capability.score
+        assert cap180 > cap90, f"Expected cap180 ({cap180}) > cap90 ({cap90})"
