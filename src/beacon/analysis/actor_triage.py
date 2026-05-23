@@ -9,10 +9,23 @@ NIST SP 800-30 r1 operationalization (ref/nistspecialpublication800-30r1.md L176
   "Assess adversary capability (see Table D-3, as tailored by the organization)."
   "Assess adversary intent (see Table D-4, as tailored by the organization)."
 
+MITRE Cyber Prep methodology (Bodeau, Fabius-Greene, Graubart,
+ref/mitre_threat.md L141–149):
+  Cyber Prep characterizes the cyber threat in terms of an adversary's
+  Capability ("resources, skill or expertise, knowledge, and opportunity"),
+  Intent ("goals or outcomes the adversary seeks; consequences the
+  adversary seeks to avoid"), and Targeting ("how broadly or narrowly
+  and how persistently the adversary targets a specific organization").
+  BEACON's `Opportunity` maps to MITRE Cyber Prep's `Targeting`; the
+  three-factor decomposition `Likelihood = Intent × Capability ×
+  Opportunity` is methodologically aligned with this framework.
+
 Formula (product form, sign-off 1):
   Likelihood = Intent × Capability × Opportunity
   Intent == 0 hard gate: actor is emitted with likelihood=0.0 and
   rationale "Intent gate failed".
+
+See docs/citations.md for license terms governing each reference.
 """
 
 from __future__ import annotations
