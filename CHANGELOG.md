@@ -16,6 +16,99 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
   to the new path. `docs/structure.md` / `docs/structure.ja.md` updated
   to reflect the relocation.
 
+## [0.17.0] — 2026-05-24
+
+Initiative F (Temporal Window + Collection Plan + Summary API + RSS)
+release — paired with TRACE 1.10.0 + SAGE 0.12.0.
+
+### Added
+
+- **Collection plan covers all P1-P4 priorities** (Phase 1, `ebabb3f`):
+  `report_builder.collection_plan` now emits a unified document with
+  every generated PIR (P1/P2) plus watch items (P3/P4) carrying
+  priority badge, intelligence level, collection_focus, and a
+  recommended-sources section.
+- **MITRE ATT&CK source mapping derivation script** (Phase 1.6,
+  `d57a76b`): `scripts/derive_source_groups.py` reads MITRE ATT&CK
+  Enterprise STIX bundle ($ATTACK_BUNDLE_PATH, default
+  `ref/enterprise-attack-19.1.json`), groups
+  `intrusion-set.external_references` by `source_name`, and emits
+  byte-deterministic `schema/source_attack_groups.derived.json`
+  (1258 source entries). MITRE ATT&CK Terms of Use attribution
+  preserved in derived JSON `_comment` field.
+- **Multi-dimensional `content_ja.json` redesign** (Phase 1.7,
+  `db5d593`): new `intelligence_requirements` (CU-GIR Framework
+  decimal IDs + 5W1H EEI + mitre_attack_groups) and `sources` (tier +
+  region + industry_focus + evidence_attack_groups + tlp +
+  requires_membership + evidence_derivation) sections. Old flat
+  `source_map` and `default_sources` removed. CU-GIR Framework
+  decimal IDs reference Intel 471 CU-GIR (GitHub STIX JSON), under
+  the Intel 471 CU-GIR Framework License (permits derivative works +
+  distribution; preserves proprietary notices; prohibits competing
+  CTI products — BEACON is open-source PIR tooling, not a CTI feed
+  vendor).
+- **`source_matcher.select_sources()` API** (Phase 1.7, `db5d593`):
+  4-criterion intersection logic (tier ∈ intelligence_levels;
+  org.region ∈ source.region ∪ {GLOBAL}; org.industry ∈
+  industry_focus ∪ {cross-sector}; evidence_attack_groups ∩
+  pir.mitre_attack_groups ≠ ∅ OR evidence_derivation =
+  industry_consensus).
+- **`docs/citations.md`** (Phase 1.7 + Phase 1.8): inventory of every
+  external reference BEACON uses with license + attribution + usage
+  policy. Covers MITRE ATT&CK, Intel 471 CU-GIR Framework, NIST SP
+  family (800-30r1/37r2/53/61r3/82r3/161r1/207), MITRE Cyber Prep,
+  Diamond Model paper, SANS, Verizon DBIR, IBM Cost-of-Data-Breach,
+  ENISA, and other annual threat reports. Documents the 2026-05-23
+  policy: external references must be cited (filename+line); verbatim
+  text reproduction from proprietary reports is prohibited (paraphrase
+  + attribution preferred). NIST docs and Diamond Model paper
+  ("Approved for public release; distribution is unlimited") permit
+  verbatim quotation; CC-BY-NC-ND CU-GIRH PDF handbook is explicitly
+  NOT used.
+- **MITRE Cyber Prep methodology citation in `actor_triage.py`**
+  (Phase 1.8, `291f20b`): docstring extended to cite Bodeau et al.
+  alongside existing SANS + NIST SP 800-30r1 citations, anchoring
+  BEACON's `Likelihood = Intent × Capability × Opportunity` formula
+  in MITRE's capability/intent/targeting framework. BEACON's
+  `Opportunity` maps to MITRE Cyber Prep's `Targeting`.
+- **`sources_yaml_builder.build_sources_candidate_yaml()`** (Phase 3,
+  `7cd296e`): emits `output/sources_candidate.yaml` per-PIR with
+  header annotations (tier/region/industry/evidence_attack_groups)
+  and a top-of-file Capability-window warning. URL field is
+  `<TODO: fill from candidate>` (operator-filled per F-2 decision).
+  Operator manually merges into TRACE `input/sources.yaml` (does NOT
+  overwrite). Output validates against TRACE `schema/sources.schema.json`.
+- **`cmd/generate_pir.py --sources-candidate`** flag (Phase 3,
+  `7cd296e`): wires `sources_candidate.yaml` emission after PIR
+  generation.
+- **`activity_window_days` config field** (Phase 5, `ecda9e0`):
+  general BEACON-wide setting via `ACTIVITY_WINDOW_DAYS` env var
+  (default 90). Operators set 180 in env to enable the 6-month
+  trend workflow.
+
+### Changed (BREAKING)
+
+- **`CapabilityComponent.recency_active_campaigns_90d` →
+  `recency_active_campaigns`** (Phase 5, `ecda9e0`): suffix dropped;
+  window value now sourced from `ACTIVITY_WINDOW_DAYS` env var
+  (default 90). No alias — schema_version gate enforces clean
+  transition.
+- **`schema_version` bumped to `"0.17.0"`** in emitted PIR documents.
+  TRACE 1.10.0 validator accepts `{"0.16.0", "0.17.0"}`; consumers
+  unable to upgrade must read the old name.
+- **`schema/source_attack_groups.derived.json`** committed (auto-
+  generated artifact, byte-deterministic).
+- **`schema/content_ja.json` schema is a hard redesign**: callers
+  reading `source_map` or `default_sources` will see KeyError /
+  empty fallback. Use the new `intelligence_requirements` /
+  `sources` sections + `source_matcher.select_sources()` API.
+
+### Removed
+
+- Legacy `_SOURCE_MAP` / `_DEFAULT_SOURCES` / `_SOURCES_PLACEHOLDER`
+  constants from `generator/report_builder.py` (Phase 2, `718480f`).
+  Use `source_matcher.select_sources()` instead.
+
 ## [0.16.0] — 2026-05-23
 
 Initiative E (Actor Triage Phase 2) release — paired with TRACE 1.9.0 + SAGE 0.11.0.
