@@ -16,6 +16,66 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
   to the new path. `docs/structure.md` / `docs/structure.ja.md` updated
   to reflect the relocation.
 
+## [0.16.0] — 2026-05-23
+
+Initiative E (Actor Triage Phase 2) release — paired with TRACE 1.9.0 + SAGE 0.11.0.
+
+### Added
+
+- **Capability 6-factor scoring with Depth x Breadth aggregation**
+  (Phase 1, 4fa9744): `CapabilityComponent` extended with 3 new sub-factors
+  (`tool_sophistication`, `targeting_persistence`, `evasion_capability`) plus 2
+  computed aggregates (`depth`, `breadth`). Aggregation:
+  ```
+  Depth   = (sophistication × tool_sophistication × evasion_capability)^(1/3)
+  Breadth = (ttp_count_norm × targeting_persistence × recency_active_campaigns_90d)^(1/3)
+  Capability = Depth × Breadth
+  ```
+  Same actor input now produces a different (more conservative) Likelihood
+  value compared to 0.15.x. `update_taxonomy.py` extracts the new fields from
+  MITRE ATT&CK STIX (campaign `first_seen` + count, defense-evasion TTP set).
+  Golden regression tests lock numerics for APT28, APT41, Mustang Panda.
+
+- **MISP cache refresh script** (Phase 2, 4afaf1f):
+  `cmd/refresh_misp_cache.py` — idempotent atomic-write refresher for
+  `beacon/cache/misp-threat-actor.json`. `docs/operations.md` documents
+  cron entry, failure semantics, and alerting guidance.
+
+- **`schema_version` top-level field** (Phase 3, cd11e30): `pir_output.json`
+  now wraps PIR list in `PIROutputDocument` with required top-level
+  `schema_version: "0.16.0"` field. Consumers MUST acknowledge schema
+  version. Coordinated with TRACE 1.9.0 `from_payload` backward-compat path.
+
+- **Web UI: `prioritized_actors` view and edit** (Phase 7, 96df7c4):
+  `/review` shows top-5 `prioritized_actors` per PIR as collapsible cards
+  with full sub-factor breakdown. `/review/save` accepts actor-level
+  edits: exclude with reason, manual Likelihood override, append analyst
+  rationale. `PrioritizedActor` gains 4 new fields: `excluded_by_analyst`,
+  `exclusion_reason`, `manual_likelihood_override`,
+  `analyst_rationale_append`. Edits persist in session; export reflects.
+
+### Changed
+
+- `schema_version` gate is a BREAKING change for direct PIR consumers:
+  a bare `list[PIR]` is no longer the root shape. `PIROutputDocument` carries
+  the list under `pirs`. TRACE 1.9.0 added backward-compat
+  `from_payload` dispatch; other consumers must adapt similarly.
+- Capability numerics shift due to Depth x Breadth aggregation. Same
+  actor data → different Likelihood. Expected and documented.
+
+### Fixed
+
+(none — bug fixes shipped in 0.15.2 patch)
+
+### Security
+
+(none — security pin shipped in 0.15.2; `idna` and `starlette` pins inherited)
+
+### Infrastructure
+
+- `.githooks/pre-commit` exports `UV_CACHE_DIR` to handle sandbox env
+  without writable global cache (Phase 7).
+
 ## [0.15.2] — 2026-05-23
 
 ### Security
