@@ -1,8 +1,13 @@
-"""Phase 3: Collection Plan — generate collection_plan.md for P3/P4 priority items.
+"""Collection Plan — generate collection_plan.md covering all P1-P4 entries.
 
-Produces a Markdown document listing threat watch items and trigger-based collection
-actions for areas that did not meet the P1/P2 PIR threshold (composite < 12), or
-as supplemental monitoring guidance alongside generated PIRs.
+Produces a Markdown document with:
+  - Priority Intelligence Requirements (P1/P2): generated PIRs with badge,
+    intelligence level, collection_focus bullets, and a placeholder
+    recommended-sources section (wired in Phase 2).
+  - Threat Watch Items (P3/P4): threat categories below the PIR threshold,
+    each with a priority badge, intelligence level, collection focus, and
+    the same placeholder recommended-sources line.
+  - Trigger-Based Collection Actions and a collection frequency table.
 
 Japanese display strings are loaded from schema/content_ja.json to keep source code
 language-neutral (Rule 11).
@@ -40,6 +45,24 @@ _LEVEL_FREQUENCY: dict[str, str] = _CONTENT["level_frequency"]
 # Collection frequency table labels
 _TABLE: dict[str, str] = _CONTENT["table"]
 
+# Placeholder text emitted until Phase 2 wires source_matcher + CU-GIRH IDs.
+_SOURCES_PLACEHOLDER = "_pending Phase 2 wiring_"
+
+
+def _priority_badge(composite: int) -> str:
+    """Map a composite risk score to a PIR priority badge P1–P4.
+
+    P1 ≥ 20 (strategic), P2 ≥ 12 (operational),
+    P3 ≥ 6 (watch — elevated), P4 < 6 (watch — low).
+    """
+    if composite >= 20:
+        return "P1"
+    if composite >= 12:
+        return "P2"
+    if composite >= 6:
+        return "P3"
+    return "P4"
+
 
 def build_collection_plan(
     elements: ExtractedElements,
@@ -48,13 +71,15 @@ def build_collection_plan(
     pirs: list[PIROutput] | None = None,
     generated_on: date | None = None,
 ) -> str:
-    """Build a Markdown collection plan document.
+    """Build a Markdown collection plan document covering all P1-P4 entries.
 
     Args:
         elements: Extracted business elements.
         threat: Resolved threat profile.
         risk: Computed risk score.
-        pirs: PIRs already generated (P1/P2). Used to label covered categories.
+        pirs: PIRs already generated (P1/P2). Each is rendered with its
+            priority badge, intelligence level, collection_focus bullets,
+            and a placeholder recommended-sources line.
         generated_on: Report date (defaults to today).
 
     Returns:
@@ -64,6 +89,8 @@ def build_collection_plan(
     pirs = pirs or []
 
     lines: list[str] = []
+
+    # ── Header ────────────────────────────────────────────────────────────────
     lines.append("# Collection Plan")
     lines.append("")
     lines.append(f"Generated: {today.isoformat()}")
@@ -77,7 +104,7 @@ def build_collection_plan(
     lines.append("---")
     lines.append("")
 
-    # Monitoring status
+    # ── Monitoring Status ──────────────────────────────────────────────────────
     lines.append("## Monitoring Status")
     lines.append("")
     if pirs:
@@ -92,7 +119,6 @@ def build_collection_plan(
         )
     lines.append("")
 
-    # Active business triggers
     if threat.active_triggers:
         lines.append("**Active Business Triggers:**")
         for t in threat.active_triggers:
@@ -102,7 +128,31 @@ def build_collection_plan(
     lines.append("---")
     lines.append("")
 
-    # Threat watch items
+    # ── Priority Intelligence Requirements (P1/P2 generated PIRs) ─────────────
+    if pirs:
+        lines.append("## Priority Intelligence Requirements")
+        lines.append("")
+        lines.append(f"{len(pirs)} PIR(s) generated — active collection required.")
+        lines.append("")
+        for pir in pirs:
+            badge = _priority_badge(pir.risk_score.composite)
+            lines.append(f"### [{badge}] {pir.pir_id}")
+            lines.append("")
+            lines.append(f"**Intelligence Level:** {pir.intelligence_level}")
+            lines.append(f"**Decision Point:** {pir.decision_point}")
+            lines.append(f"**Valid:** {pir.valid_from} → {pir.valid_until}")
+            lines.append("")
+            if pir.collection_focus:
+                lines.append("**Collection Focus:**")
+                for item in pir.collection_focus:
+                    lines.append(f"- {item}")
+                lines.append("")
+            lines.append(f"**Recommended Sources:** {_SOURCES_PLACEHOLDER}")
+            lines.append("")
+        lines.append("---")
+        lines.append("")
+
+    # ── Threat Watch Items (P3/P4) ─────────────────────────────────────────────
     lines.append("## Threat Watch Items")
     lines.append("")
     if pirs:
@@ -120,27 +170,39 @@ def build_collection_plan(
     if threat.matched_categories:
         pir_covered_categories: set[str] = set()
         if pirs:
-            # Any category that contributed to a generated PIR is "covered"
             pir_covered_categories = set(threat.matched_categories)
 
         for cat in threat.matched_categories:
             covered = cat in pir_covered_categories and bool(pirs)
-            label = " **[PIR COVERED]**" if covered else " **[WATCH]**"
-            lines.append(f"### {cat}{label}")
-            lines.append("")
-
-            sources = _SOURCE_MAP.get(cat, _DEFAULT_SOURCES)
-            # Threat tags for this category
-            lines.append("**Recommended collection sources:**")
-            for src in sources:
-                lines.append(f"- {src}")
-            lines.append("")
+            if covered:
+                lines.append(f"### {cat} **[PIR COVERED]**")
+                lines.append("")
+                lines.append(
+                    "_Collection focus documented in Priority Intelligence Requirements above._"
+                )
+                lines.append("")
+            else:
+                watch_badge = _priority_badge(risk.composite)
+                lines.append(f"### {cat} [{watch_badge}] **[WATCH]**")
+                lines.append("")
+                lines.append(f"**Intelligence Level:** {risk.intelligence_level}")
+                lines.append("")
+                sources = _SOURCE_MAP.get(cat, _DEFAULT_SOURCES)
+                lines.append("**Collection Focus:**")
+                for src in sources:
+                    lines.append(f"- {src}")
+                lines.append("")
+                lines.append(f"**Recommended Sources:** {_SOURCES_PLACEHOLDER}")
+                lines.append("")
     else:
         lines.append("No specific threat categories matched the dictionary for this profile.")
         lines.append("")
-        lines.append("**General watch — Recommended sources:**")
+        watch_badge = _priority_badge(risk.composite)
+        lines.append(f"**General watch [{watch_badge}] — Collection Focus:**")
         for src in _DEFAULT_SOURCES:
             lines.append(f"- {src}")
+        lines.append("")
+        lines.append(f"**Recommended Sources:** {_SOURCES_PLACEHOLDER}")
         lines.append("")
 
     # Notable groups
@@ -154,7 +216,7 @@ def build_collection_plan(
     lines.append("---")
     lines.append("")
 
-    # Trigger-based collection
+    # ── Trigger-Based Collection ───────────────────────────────────────────────
     if threat.active_triggers:
         lines.append("## Trigger-Based Collection Actions")
         lines.append("")
@@ -173,13 +235,12 @@ def build_collection_plan(
         lines.append("---")
         lines.append("")
 
-    # Collection frequency
+    # ── Collection Frequency ──────────────────────────────────────────────────
     lines.append("## Recommended Collection Frequency")
     lines.append("")
     lines.append("| Item | Frequency | Owner |")
     lines.append("|------|-----------|-------|")
 
-    # Determine frequency based on intelligence level
     freq = _LEVEL_FREQUENCY.get(risk.intelligence_level, _LEVEL_FREQUENCY["default"])
     lines.append(f"| {_TABLE['feed_collection_item']} | {freq} | {_TABLE['cti_team']} |")
 
