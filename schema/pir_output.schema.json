@@ -279,11 +279,54 @@
           "title": "Aliases",
           "type": "array"
         },
+        "analyst_rationale_append": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Analyst Rationale Append"
+        },
+        "excluded_by_analyst": {
+          "default": false,
+          "title": "Excluded By Analyst",
+          "type": "boolean"
+        },
+        "exclusion_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exclusion Reason"
+        },
         "likelihood": {
           "maximum": 1.0,
           "minimum": 0.0,
           "title": "Likelihood",
           "type": "number"
+        },
+        "manual_likelihood_override": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manual Likelihood Override"
         },
         "name": {
           "title": "Name",

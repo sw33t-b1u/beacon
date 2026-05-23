@@ -16,6 +16,7 @@
 </div>
 
 {% for pir in pirs %}
+{% set pir_idx = loop.index0 %}
 <div class="card">
   <div style="display:flex; align-items:center; gap:1rem; margin-bottom:0.75rem; flex-wrap:wrap;">
     <strong>{{ pir.pir_id }}</strong>
@@ -34,7 +35,7 @@
 
   <form action="/review/save" method="post" style="margin-top:1rem;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <input type="hidden" name="pir_index" value="{{ loop.index0 }}">
+    <input type="hidden" name="pir_index" value="{{ pir_idx }}">
 
     <div style="margin-bottom:0.75rem;">
       <label>Description</label>
@@ -61,6 +62,91 @@
 
     <button type="submit" class="btn btn-secondary">Save Changes</button>
   </form>
+
+  {% if pir.prioritized_actors %}
+  <div style="margin-top:1.5rem;">
+    <h2>Prioritized Actors</h2>
+    {% for actor in pir.prioritized_actors %}
+    {% set actor_idx = loop.index0 %}
+    <div {% if actor_idx >= 5 %}class="actor-extra-{{ pir_idx }}" style="display:none;"{% endif %}>
+    <details style="background:#f9f9f9; border:1px solid #ddd; border-radius:4px; margin-bottom:0.5rem; padding:0.75rem;">
+      <summary style="cursor:pointer; display:flex; align-items:center; gap:0.5rem; font-weight:600; list-style:none; -webkit-appearance:none;">
+        <span>&#9654;</span>
+        <span>{{ actor.name }}</span>
+        {% if actor.aliases %}<small style="font-weight:400; color:#666;">({{ actor.aliases[:3] | join(', ') }}{% if actor.aliases | length > 3 %}&hellip;{% endif %})</small>{% endif %}
+        <span style="margin-left:auto; font-weight:700;">{{ "%.0f"|format(actor.likelihood * 100) }}%</span>
+        {% if actor.excluded_by_analyst %}<span class="badge" style="background:#c0392b; color:#fff; margin-left:0.25rem;">Excluded</span>{% endif %}
+        {% if actor.manual_likelihood_override is not none %}<span class="badge" style="background:#2980b9; color:#fff; margin-left:0.25rem;">Override</span>{% endif %}
+      </summary>
+
+      <div style="margin-top:0.75rem; font-size:0.88rem;">
+        {% set sb = actor.score_breakdown %}
+        <table style="margin-bottom:0.75rem; width:100%;">
+          <tr><th>Component</th><th>Score</th><th>Sub-factors</th></tr>
+          <tr>
+            <td>Intent</td>
+            <td>{{ "%.3f"|format(sb.intent.score | default(0.0)) }}</td>
+            <td>motivation={{ "%.3f"|format(sb.intent.motivation_alignment | default(0.0)) }}, industry={{ "%.3f"|format(sb.intent.industry_match | default(0.0)) }}</td>
+          </tr>
+          <tr>
+            <td>Capability</td>
+            <td>{{ "%.3f"|format(sb.capability.score | default(0.0)) }}</td>
+            <td>depth={{ "%.3f"|format(sb.capability.depth | default(0.0)) }}, breadth={{ "%.3f"|format(sb.capability.breadth | default(0.0)) }} | soph={{ "%.3f"|format(sb.capability.sophistication_score | default(0.0)) }}, ttp={{ "%.3f"|format(sb.capability.ttp_count_norm | default(0.0)) }}, rec={{ "%.3f"|format(sb.capability.recency_active_campaigns_90d | default(0.0)) }}, tool={{ "%.3f"|format(sb.capability.tool_sophistication | default(0.0)) }}, pers={{ "%.3f"|format(sb.capability.targeting_persistence | default(0.0)) }}, evas={{ "%.3f"|format(sb.capability.evasion_capability | default(0.0)) }}</td>
+          </tr>
+          <tr>
+            <td>Opportunity</td>
+            <td>{{ "%.3f"|format(sb.opportunity.score | default(0.0)) }}</td>
+            <td>victimology={{ "%.3f"|format(sb.opportunity.victimology_match | default(0.0)) }}, geo={{ "%.3f"|format(sb.opportunity.geographic_match | default(0.0)) }}, ttp_cov={{ "%.3f"|format(sb.opportunity.surface_ttp_coverage | default(0.0)) }}</td>
+          </tr>
+        </table>
+        {% if sb.data_quality and sb.data_quality.degraded %}
+        <p style="color:#e67e22; font-size:0.82rem; margin-bottom:0.5rem;">&#9888; Degraded data: {{ sb.data_quality.missing_sources | join(', ') }}</p>
+        {% endif %}
+
+        <p style="margin-bottom:0.5rem;"><strong>Rationale:</strong> {{ actor.rationale.text }}</p>
+        {% if actor.analyst_rationale_append %}
+        <p style="color:#555; margin-bottom:0.5rem; border-left:3px solid #2980b9; padding-left:0.5rem;"><strong>Analyst note:</strong> {{ actor.analyst_rationale_append }}</p>
+        {% endif %}
+
+        <form action="/review/save" method="post" style="border-top:1px solid #ddd; padding-top:0.75rem; margin-top:0.5rem;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <input type="hidden" name="pir_index" value="{{ pir_idx }}">
+          <input type="hidden" name="actor_index" value="{{ actor_idx }}">
+
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+            <input type="checkbox" name="actor_excluded" value="1" id="excl-{{ pir_idx }}-{{ actor_idx }}" {% if actor.excluded_by_analyst %}checked{% endif %}>
+            <label for="excl-{{ pir_idx }}-{{ actor_idx }}" style="display:inline; font-weight:normal; margin:0;">Exclude this actor</label>
+          </div>
+          <div style="margin-bottom:0.5rem;">
+            <label>Exclusion Reason (required when excluded)</label>
+            <input type="text" name="actor_exclusion_reason" value="{{ actor.exclusion_reason or '' }}">
+          </div>
+          <div style="margin-bottom:0.5rem;">
+            <label>Likelihood Override (0.0–1.0, blank to clear)</label>
+            <input type="text" name="actor_manual_likelihood" value="{{ '' if actor.manual_likelihood_override is none else actor.manual_likelihood_override }}">
+          </div>
+          <div style="margin-bottom:0.5rem;">
+            <label>Append to Rationale</label>
+            <textarea name="actor_rationale_append" rows="2">{{ actor.analyst_rationale_append or '' }}</textarea>
+          </div>
+          <button type="submit" class="btn btn-secondary">Save Actor</button>
+        </form>
+      </div>
+    </details>
+    </div>
+    {% endfor %}
+
+    {% if pir.prioritized_actors | length > 5 %}
+    <button type="button" class="btn btn-secondary" style="margin-top:0.5rem;"
+      data-pir="{{ pir_idx }}"
+      data-count="{{ pir.prioritized_actors | length }}"
+      data-shown="0"
+      onclick="var els=document.querySelectorAll('.actor-extra-'+this.dataset.pir); var shown=this.dataset.shown==='1'; els.forEach(function(e){e.style.display=shown?'none':'block';}); this.dataset.shown=shown?'0':'1'; this.textContent=shown?'Show all '+this.dataset.count+' actors':'Hide extra actors';">
+      Show all {{ pir.prioritized_actors | length }} actors
+    </button>
+    {% endif %}
+  </div>
+  {% endif %}
 </div>
 {% endfor %}
 

@@ -201,8 +201,13 @@ async def review_save(
     rationale: str = Form(default=""),
     collection_focus: str = Form(default=""),
     csrf_token: str = Form(default=""),
+    actor_index: str = Form(default=""),
+    actor_excluded: str = Form(default=""),
+    actor_exclusion_reason: str = Form(default=""),
+    actor_manual_likelihood: str = Form(default=""),
+    actor_rationale_append: str = Form(default=""),
 ):
-    """Update editable fields for a PIR in the session."""
+    """Update editable fields for a PIR or a prioritized actor in the session."""
     _verify_csrf(beacon_csrf, csrf_token)
 
     if not beacon_session:
@@ -215,12 +220,63 @@ async def review_save(
     if pir_index < 0 or pir_index >= len(pirs):
         return JSONResponse({"error": "Invalid PIR index"}, status_code=400)
 
-    pirs[pir_index]["description"] = description
-    pirs[pir_index]["rationale"] = rationale
-    # collection_focus is stored as a list; split on newlines
-    pirs[pir_index]["collection_focus"] = [
-        line.strip() for line in collection_focus.splitlines() if line.strip()
-    ]
+    if actor_index != "":
+        # Actor-level edit
+        try:
+            actor_idx = int(actor_index)
+        except ValueError:
+            return JSONResponse({"error": "Invalid actor index"}, status_code=400)
+
+        actors = pirs[pir_index].get("prioritized_actors", [])
+        if actor_idx < 0 or actor_idx >= len(actors):
+            return JSONResponse({"error": "Invalid actor index"}, status_code=400)
+
+        excluded = actor_excluded in ("1", "true", "on")
+        reason = actor_exclusion_reason.strip() or None
+
+        manual_likelihood = None
+        if actor_manual_likelihood.strip():
+            try:
+                val = float(actor_manual_likelihood)
+            except ValueError:
+                return JSONResponse(
+                    {"error": "actor_manual_likelihood must be a number"}, status_code=400
+                )
+            if not (0.0 <= val <= 1.0):
+                return JSONResponse(
+                    {"error": "actor_manual_likelihood must be between 0.0 and 1.0"},
+                    status_code=400,
+                )
+            manual_likelihood = val
+
+        rationale_app = actor_rationale_append.strip() or None
+
+        updated = dict(actors[actor_idx])
+        updated["excluded_by_analyst"] = excluded
+        updated["exclusion_reason"] = reason
+        updated["manual_likelihood_override"] = manual_likelihood
+        updated["analyst_rationale_append"] = rationale_app
+
+        from pydantic import ValidationError  # noqa: PLC0415
+
+        from beacon.analysis.actor_triage import PrioritizedActor  # noqa: PLC0415
+
+        try:
+            PrioritizedActor.model_validate(updated)
+        except ValidationError as exc:
+            return JSONResponse({"error": str(exc)}, status_code=400)
+
+        actors[actor_idx] = updated
+        pirs[pir_index]["prioritized_actors"] = actors
+    else:
+        # PIR-level edit (existing behavior, unchanged)
+        pirs[pir_index]["description"] = description
+        pirs[pir_index]["rationale"] = rationale
+        # collection_focus is stored as a list; split on newlines
+        pirs[pir_index]["collection_focus"] = [
+            line.strip() for line in collection_focus.splitlines() if line.strip()
+        ]
+
     session["pirs"] = pirs
     save_session(beacon_session, session)
 

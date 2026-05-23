@@ -20,7 +20,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import structlog
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from beacon.ingest.misp_client import ActorAttributes, MispClient
 from beacon.ingest.schema import BusinessContext
@@ -145,6 +145,17 @@ class PrioritizedActor(BaseModel):
     likelihood: float = Field(ge=0.0, le=1.0)
     score_breakdown: ScoreBreakdown
     rationale: Rationale
+    # Analyst annotations (Phase 7 — session-only persistence, no SAGE write-back).
+    excluded_by_analyst: bool = False
+    exclusion_reason: str | None = None
+    manual_likelihood_override: float | None = Field(default=None, ge=0.0, le=1.0)
+    analyst_rationale_append: str | None = None
+
+    @model_validator(mode="after")
+    def _check_exclusion_reason(self) -> PrioritizedActor:
+        if self.excluded_by_analyst and not self.exclusion_reason:
+            raise ValueError("exclusion_reason is required when excluded_by_analyst is True")
+        return self
 
 
 # ---------------------------------------------------------------------------

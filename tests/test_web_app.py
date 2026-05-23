@@ -26,6 +26,58 @@ SAMPLE_PIR = {
 SAMPLE_CONTEXT_PATH = FIXTURES / "sample_context_manufacturing.json"
 
 
+def _make_actor(i: int) -> dict:
+    """Return a minimal PrioritizedActor-compatible dict with index-based likelihood."""
+    return {
+        "actor_id": f"actor-{i}",
+        "name": f"Actor {i}",
+        "aliases": [f"alias-{i}"],
+        "likelihood": max(0.0, round(1.0 - i * 0.08, 2)),
+        "score_breakdown": {
+            "intent": {"score": 0.8, "motivation_alignment": 0.8, "industry_match": 1.0},
+            "capability": {
+                "score": 0.5,
+                "sophistication_score": 0.5,
+                "ttp_count_norm": 0.4,
+                "recency_active_campaigns_90d": 0.5,
+                "tool_sophistication": 0.3,
+                "targeting_persistence": 0.2,
+                "evasion_capability": 0.4,
+                "depth": 0.39,
+                "breadth": 0.31,
+            },
+            "opportunity": {
+                "score": 0.7,
+                "victimology_match": 0.7,
+                "geographic_match": 0.8,
+                "surface_ttp_coverage": 0.5,
+            },
+            "data_quality": {"degraded": False, "missing_sources": []},
+        },
+        "rationale": {
+            "text": f"Rationale for Actor {i}",
+            "intent_factors": {},
+            "capability_factors": {},
+            "opportunity_factors": {},
+        },
+        "excluded_by_analyst": False,
+        "exclusion_reason": None,
+        "manual_likelihood_override": None,
+        "analyst_rationale_append": None,
+    }
+
+
+def _create_session_with_actors_csrf(n_actors: int = 8) -> tuple[str, dict[str, str]]:
+    """Create a session with a PIR having n_actors prioritized_actors; return (sid, cookies)."""
+    from beacon.web.session import create_session  # noqa: PLC0415
+
+    actors = [_make_actor(i) for i in range(n_actors)]
+    pir = {**SAMPLE_PIR, "prioritized_actors": actors}
+    session_id = create_session({"pirs": [pir], "collection_plan": ""})
+    csrf_token, _ = _get_csrf()
+    return session_id, {"beacon_session": session_id, "beacon_csrf": csrf_token}
+
+
 def _make_pipeline_mock(pirs=None, plan="## Collection Plan\n- item1"):
     """Return a mock for _run_pipeline that returns sample data."""
     if pirs is None:
@@ -285,3 +337,177 @@ class TestAPIPirRoute:
         resp = session_client.get("/api/pir")
         assert resp.status_code == 200
         assert len(resp.json()["pirs"]) > 0
+
+
+# ---------------------------------------------------------------------------
+# Helpers shared by actor-related test classes
+# ---------------------------------------------------------------------------
+
+
+def _actor_session_client(n_actors: int = 8) -> tuple[TestClient, dict[str, str], str]:
+    """Return (client, cookies, csrf_token) for a session with n_actors.
+
+    Calls GET /review to obtain the fresh CSRF token the save form expects.
+    """
+    _, cookies = _create_session_with_actors_csrf(n_actors)
+    pre_client = TestClient(app, cookies=cookies)
+    review_resp = pre_client.get("/review")
+    csrf = review_resp.cookies.get("beacon_csrf", cookies.get("beacon_csrf", ""))
+    cookies = {**cookies, "beacon_csrf": csrf}
+    return TestClient(app, cookies=cookies), cookies, csrf
+
+
+class TestPrioritizedActorView:
+    def test_review_shows_top_5_prioritized_actors(self):
+        _, cookies = _create_session_with_actors_csrf(n_actors=8)
+        session_client = TestClient(app, cookies=cookies)
+        resp = session_client.get("/review")
+        assert resp.status_code == 200
+        # All 8 actors must be rendered in the HTML
+        for i in range(8):
+            assert f"Actor {i}".encode() in resp.content
+        # Actors beyond index 4 are in a hidden wrapper
+        assert b'class="actor-extra-0"' in resp.content
+        # "Show all N actors" toggle button appears
+        assert b"Show all 8 actors" in resp.content
+
+
+class TestReviewSaveActorRoute:
+    def test_review_save_actor_exclude(self):
+        sc, cookies, csrf = _actor_session_client(n_actors=3)
+        resp = sc.post(
+            "/review/save",
+            data={
+                "pir_index": "0",
+                "actor_index": "0",
+                "actor_excluded": "1",
+                "actor_exclusion_reason": "False positive — no finance targeting observed",
+                "csrf_token": csrf,
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+        actors = sc.get("/api/pir").json()["pirs"][0]["prioritized_actors"]
+        assert actors[0]["excluded_by_analyst"] is True
+        assert actors[0]["exclusion_reason"] == "False positive — no finance targeting observed"
+
+    def test_review_save_actor_exclude_requires_reason(self):
+        sc, cookies, csrf = _actor_session_client(n_actors=1)
+        resp = sc.post(
+            "/review/save",
+            data={
+                "pir_index": "0",
+                "actor_index": "0",
+                "actor_excluded": "1",
+                # actor_exclusion_reason intentionally omitted
+                "csrf_token": csrf,
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 400
+
+    def test_review_save_actor_likelihood_override(self):
+        sc, cookies, csrf = _actor_session_client(n_actors=1)
+        resp = sc.post(
+            "/review/save",
+            data={
+                "pir_index": "0",
+                "actor_index": "0",
+                "actor_manual_likelihood": "0.75",
+                "csrf_token": csrf,
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+        actors = sc.get("/api/pir").json()["pirs"][0]["prioritized_actors"]
+        assert abs(actors[0]["manual_likelihood_override"] - 0.75) < 1e-9
+
+    def test_review_save_actor_likelihood_override_out_of_range(self):
+        sc, cookies, csrf = _actor_session_client(n_actors=1)
+        resp = sc.post(
+            "/review/save",
+            data={
+                "pir_index": "0",
+                "actor_index": "0",
+                "actor_manual_likelihood": "1.5",
+                "csrf_token": csrf,
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 400
+
+    def test_review_save_actor_rationale_append(self):
+        sc, cookies, csrf = _actor_session_client(n_actors=1)
+        resp = sc.post(
+            "/review/save",
+            data={
+                "pir_index": "0",
+                "actor_index": "0",
+                "actor_rationale_append": "Additional analyst context here.",
+                "csrf_token": csrf,
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+        actors = sc.get("/api/pir").json()["pirs"][0]["prioritized_actors"]
+        assert actors[0]["analyst_rationale_append"] == "Additional analyst context here."
+
+    def test_review_export_reflects_actor_edits(self):
+        sc, cookies, csrf = _actor_session_client(n_actors=2)
+        sc.post(
+            "/review/save",
+            data={
+                "pir_index": "0",
+                "actor_index": "1",
+                "actor_excluded": "1",
+                "actor_exclusion_reason": "Out of geographic scope",
+                "actor_rationale_append": "Confirmed by IR team 2026-05-23",
+                "csrf_token": csrf,
+            },
+            follow_redirects=False,
+        )
+        export_resp = sc.get("/review/export")
+        assert export_resp.status_code == 200
+        data = export_resp.json()
+        assert isinstance(data, list)
+        actor = data[0]["prioritized_actors"][1]
+        assert actor["excluded_by_analyst"] is True
+        assert actor["exclusion_reason"] == "Out of geographic scope"
+        assert actor["analyst_rationale_append"] == "Confirmed by IR team 2026-05-23"
+
+    def test_review_save_existing_pir_fields_still_work(self):
+        sc, cookies, csrf = _actor_session_client(n_actors=2)
+        resp = sc.post(
+            "/review/save",
+            data={
+                "pir_index": "0",
+                "description": "Updated via regression test",
+                "rationale": "Regression rationale",
+                "collection_focus": "Track IOC X\nTrack IOC Y",
+                "csrf_token": csrf,
+                # actor_index absent → PIR-level edit
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+        pirs = sc.get("/api/pir").json()["pirs"]
+        assert pirs[0]["description"] == "Updated via regression test"
+        assert "Track IOC X" in pirs[0]["collection_focus"]
+
+    def test_review_save_csrf_still_enforced(self):
+        _, cookies = _create_session_with_actors_csrf(n_actors=1)
+        # Deliberately mismatched CSRF cookie vs form token
+        bad_cookies = {**cookies, "beacon_csrf": "legitimate-looking-cookie-token"}
+        sc = TestClient(app, cookies=bad_cookies)
+        resp = sc.post(
+            "/review/save",
+            data={
+                "pir_index": "0",
+                "actor_index": "0",
+                "actor_excluded": "1",
+                "actor_exclusion_reason": "Test",
+                "csrf_token": "different-form-token",
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 403
