@@ -32,9 +32,9 @@ logger = structlog.get_logger(__name__)
 _CONTENT_PATH = Path(__file__).parents[3] / "schema" / "content_ja.json"
 _CONTENT: dict = json.loads(_CONTENT_PATH.read_text(encoding="utf-8"))
 
-# Recommended collection sources per threat category
-_SOURCE_MAP: dict[str, list[str]] = _CONTENT["source_map"]
-_DEFAULT_SOURCES: list[str] = _CONTENT["default_sources"]
+# Legacy category → source list; removed in v2 schema (Phase 2 wires source_matcher instead).
+_SOURCE_MAP: dict[str, list[str]] = _CONTENT.get("source_map", {})
+_DEFAULT_SOURCES: list[str] = _CONTENT.get("default_sources", [])
 
 # Trigger-specific collection actions
 _TRIGGER_ACTIONS: dict[str, str] = _CONTENT["trigger_actions"]

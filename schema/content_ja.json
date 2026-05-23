@@ -1,45 +1,249 @@
 {
-  "source_map": {
-    "state_sponsored.China": [
-      "MITRE ATT&CK Groups: APT10, APT41, MirrorFace, Mustang Panda",
-      "JPCERT/CC 情報共有 (OSINT)",
-      "CISA/FBI Joint Advisories (中国系APT)",
-      "台湾 CERT / 地域 ISAC 情報共有"
-    ],
-    "state_sponsored.Russia": [
-      "MITRE ATT&CK Groups: APT28, APT29, Sandworm",
-      "CERT-UA / EU-CERT 情報共有",
-      "NCSC (UK) / NSA Advisories",
-      "Cybersecurity Coalition ロシア脅威情報"
-    ],
-    "state_sponsored.NorthKorea": [
-      "MITRE ATT&CK Groups: Lazarus, Kimsuky, APT38",
-      "CISA / FBI Advisories (北朝鮮APT)",
-      "金融 ISAC 情報共有 (APT38 金融標的)",
-      "OFAC 制裁関連情報"
-    ],
-    "state_sponsored.Iran": [
-      "MITRE ATT&CK Groups: APT33, APT34, MuddyWater",
-      "CISA Advisories (イラン系APT)",
-      "製造・エネルギー ISAC 情報共有",
-      "ICS-CERT OT 脅威情報"
-    ],
-    "ransomware": [
-      "Ransomware Tracker (各社 CTI フィード)",
-      "FBI Flash / CISA Ransomware Advisories",
-      "業種 ISAC ランサムウェアアラート",
-      "VirusTotal / MalwareBazaar 検体情報"
-    ],
-    "hacktivist": [
-      "ソーシャルメディアモニタリング (Telegram, X)",
-      "DDoS 観測フィード (Cloudflare Radar 等)",
-      "ハクティビスト Telegram チャンネル追跡"
-    ]
-  },
-  "default_sources": [
-    "業種 ISAC 情報共有",
-    "OSINT 脅威インテリジェンスフィード",
-    "JPCERT/CC 注意喚起"
+  "_comment": "BEACON content map v2 — multi-dimensional source/IR schema. intelligence_requirements: CU-GIR-compatible decimal IDs (Intel 471 CU-GIR Framework License; see docs/citations.md). sources: tier/region/industry_focus/evidence_attack_groups derived from MITRE ATT&CK (MITRE ATT&CK Terms of Use; see docs/citations.md). trigger_actions, level_frequency, table: preserved from v1.",
+  "intelligence_requirements": [
+    {
+      "gir_id": "6.1.3.1",
+      "name": "Banking and securities industry — China-nexus state espionage",
+      "eei": {
+        "who": "Which China-nexus state-sponsored threat groups (APT10, APT41, Mustang Panda, MirrorFace) are actively targeting Japanese financial institutions?",
+        "what": "What TTPs are being used for initial access, data exfiltration, and long-term persistence in banking and securities environments?",
+        "when": "When are campaigns active and how do attack tempo patterns correlate with geopolitical events or financial reporting periods?",
+        "where": "Which Japanese retail banks, securities firms, and affiliated supply chain organisations are being targeted?",
+        "why": "What is the adversary's strategic objective — economic intelligence, technology transfer, or competitive advantage for state-affiliated entities?",
+        "how": "How are adversaries gaining initial access (spearphishing, edge-device exploitation, supply chain) and what malware families are deployed?"
+      },
+      "mitre_attack_groups": ["G0045", "G0096", "G0129", "G1054"]
+    },
+    {
+      "gir_id": "6.1.3.4",
+      "name": "Payment processing industry — DPRK financial crime and sanctions evasion",
+      "eei": {
+        "who": "Which DPRK-nexus groups (Lazarus, APT38/Bluenoroff) are conducting operations against SWIFT, cryptocurrency exchanges, and cross-border payment systems?",
+        "what": "What SWIFT messaging attacks, cryptocurrency theft techniques, and money laundering methods are being employed?",
+        "when": "When are heist operations executed and what pre-attack reconnaissance patterns are observable in advance?",
+        "where": "Which specific financial institutions, SWIFT member banks, and cryptocurrency platforms are targeted in the Asia-Pacific region?",
+        "why": "How are proceeds used to fund DPRK's weapons programs and circumvent international sanctions?",
+        "how": "What malware (e.g., FASTCash, AppleJeus) and social engineering techniques are used to compromise payment infrastructure?"
+      },
+      "mitre_attack_groups": ["G0032", "G0082"]
+    },
+    {
+      "gir_id": "1.2.2",
+      "name": "Ransomware-as-a-service (RaaS) campaigns targeting Japanese enterprises",
+      "eei": {
+        "who": "Which RaaS operators and affiliate groups are actively targeting Japanese organisations, including their recruitment and onboarding of Japanese-speaking affiliates?",
+        "what": "What ransomware families, precursor malware, and negotiation TTPs are being observed in incidents affecting Japanese enterprises?",
+        "when": "What is the typical dwell time from initial access to ransomware deployment, and are there seasonal attack patterns?",
+        "where": "Which industry verticals and organisation sizes are being targeted; are there signs of targeting lists circulating in underground forums?",
+        "why": "Are Japanese organisations targeted for their perceived willingness to pay, weak incident response, or specific data value?",
+        "how": "What initial access brokers and vulnerabilities are being exploited; how is data staging and exfiltration performed prior to encryption?"
+      },
+      "mitre_attack_groups": []
+    },
+    {
+      "gir_id": "5.5.6",
+      "name": "Hacktivist DDoS and defacement campaigns targeting Japanese finance",
+      "eei": {
+        "who": "Which hacktivist collectives (pro-Russia, pro-China, or domestic groups) are announcing or executing operations against Japanese financial targets?",
+        "what": "What attack modalities (DDoS amplification, web defacement, data leak threats) are being threatened or executed?",
+        "when": "What geopolitical triggers (G7/G8 summits, Japan-US alliance activities, diplomatic events) are preceding or correlating with campaign announcements?",
+        "where": "Which public-facing services (internet banking portals, ATM networks, payment gateways) are being listed as targets on Telegram or forums?",
+        "why": "What are the stated political motivations and are there secondary financial extortion dimensions?",
+        "how": "What DDoS-for-hire services, botnet infrastructure, or hacktivist toolkits are being utilised?"
+      },
+      "mitre_attack_groups": []
+    },
+    {
+      "gir_id": "5.5.5",
+      "name": "Supply chain attacks via third-party software and service compromise",
+      "eei": {
+        "who": "Which threat actors are conducting supply chain intrusions that could propagate to Japanese financial sector organisations through shared software or service providers?",
+        "what": "What software packages, managed service providers, or cloud service integrations are being targeted as vectors for downstream compromise?",
+        "when": "When are trojanised updates or compromised credentials from supplier breaches being weaponised against downstream targets?",
+        "where": "Which IT vendors, security software providers, or SaaS platforms commonly used by Japanese financial institutions are being targeted?",
+        "why": "Is the supply chain compromise intended for widespread espionage, financial theft, or establishing persistent access for future operations?",
+        "how": "What mechanisms (code signing abuse, build pipeline compromise, MSP remote access tooling) are being exploited?"
+      },
+      "mitre_attack_groups": ["G0045", "G0096"]
+    }
+  ],
+  "sources": [
+    {
+      "name": "JPCERT/CC Blog",
+      "tier": "strategic",
+      "region": ["JP"],
+      "industry_focus": ["cross-sector"],
+      "feed_url_hint": "https://blogs.jpcert.or.jp/en/atom.xml",
+      "tlp": "TLP:CLEAR",
+      "requires_membership": false,
+      "evidence_attack_groups": ["G0032", "G1049", "G1054"],
+      "evidence_derivation": "auto:scripts/derive_source_groups.py"
+    },
+    {
+      "name": "IPA Security Alerts",
+      "tier": "strategic",
+      "region": ["JP"],
+      "industry_focus": ["cross-sector"],
+      "feed_url_hint": "https://www.ipa.go.jp/security/alert-rss.rdf",
+      "tlp": "TLP:CLEAR",
+      "requires_membership": false,
+      "evidence_attack_groups": [],
+      "evidence_derivation": "industry_consensus"
+    },
+    {
+      "name": "CISA Advisories",
+      "tier": "strategic",
+      "region": ["US", "GLOBAL"],
+      "industry_focus": ["cross-sector"],
+      "feed_url_hint": null,
+      "tlp": "TLP:CLEAR",
+      "requires_membership": false,
+      "evidence_attack_groups": ["G0032", "G0035", "G0065", "G0074", "G0082", "G0094", "G0117", "G1003", "G1015", "G1017", "G1024", "G1033", "G1040", "G1051"],
+      "evidence_derivation": "auto:scripts/derive_source_groups.py"
+    },
+    {
+      "name": "JVN (Japan Vulnerability Notes)",
+      "tier": "operational",
+      "region": ["JP"],
+      "industry_focus": ["cross-sector"],
+      "feed_url_hint": "https://jvn.jp/en/rss/",
+      "tlp": "TLP:CLEAR",
+      "requires_membership": false,
+      "evidence_attack_groups": [],
+      "evidence_derivation": "industry_consensus"
+    },
+    {
+      "name": "FS-ISAC Threat Intelligence",
+      "tier": "operational",
+      "region": ["GLOBAL"],
+      "industry_focus": ["finance"],
+      "feed_url_hint": null,
+      "tlp": "TLP:AMBER",
+      "requires_membership": true,
+      "evidence_attack_groups": [],
+      "evidence_derivation": "industry_consensus"
+    },
+    {
+      "name": "金融ISAC (Japan Financial ISAC)",
+      "tier": "operational",
+      "region": ["JP"],
+      "industry_focus": ["finance"],
+      "feed_url_hint": null,
+      "tlp": "TLP:AMBER",
+      "requires_membership": true,
+      "evidence_attack_groups": [],
+      "evidence_derivation": "industry_consensus"
+    },
+    {
+      "name": "Mandiant / Google Cloud Threat Intelligence",
+      "tier": "operational",
+      "region": ["GLOBAL"],
+      "industry_focus": ["cross-sector"],
+      "feed_url_hint": "https://feeds.feedburner.com/threatintelligence/pvexyqv7v0v",
+      "tlp": "TLP:CLEAR",
+      "requires_membership": false,
+      "evidence_attack_groups": ["G0004", "G0006", "G0007", "G0008", "G0013", "G0016", "G0018", "G0021", "G0022", "G0023", "G0025", "G0032", "G0035", "G0037", "G0045", "G0046", "G0049", "G0050", "G0051", "G0053", "G0059", "G0061", "G0064", "G0065", "G0067", "G0069", "G0073", "G0082", "G0085", "G0087", "G0088", "G0094", "G0096", "G0102", "G0118", "G0130", "G0131", "G1003", "G1015", "G1016", "G1023", "G1044", "G1048", "G1049"],
+      "evidence_derivation": "auto:scripts/derive_source_groups.py"
+    },
+    {
+      "name": "Microsoft Threat Intelligence",
+      "tier": "operational",
+      "region": ["GLOBAL"],
+      "industry_focus": ["cross-sector"],
+      "feed_url_hint": "https://www.microsoft.com/en-us/security/blog/feed/",
+      "tlp": "TLP:CLEAR",
+      "requires_membership": false,
+      "evidence_attack_groups": ["G0004", "G0007", "G0010", "G0012", "G0016", "G0027", "G0030", "G0032", "G0034", "G0035", "G0037", "G0046", "G0047", "G0049", "G0050", "G0055", "G0056", "G0059", "G0064", "G0065", "G0068", "G0069", "G0082", "G0092", "G0093", "G0094", "G0096", "G0102", "G0117", "G0118", "G0119", "G0125", "G0128", "G0129", "G0138", "G1004", "G1005", "G1006", "G1009", "G1012", "G1015", "G1017", "G1020", "G1021", "G1023", "G1030", "G1033", "G1036", "G1041", "G1043", "G1046", "G1053"],
+      "evidence_derivation": "auto:scripts/derive_source_groups.py"
+    },
+    {
+      "name": "CrowdStrike Intelligence",
+      "tier": "operational",
+      "region": ["GLOBAL"],
+      "industry_focus": ["cross-sector"],
+      "feed_url_hint": null,
+      "tlp": "TLP:CLEAR",
+      "requires_membership": false,
+      "evidence_attack_groups": ["G0006", "G0007", "G0010", "G0016", "G0024", "G0032", "G0034", "G0037", "G0045", "G0046", "G0049", "G0065", "G0067", "G0080", "G0081", "G0082", "G0087", "G0091", "G0096", "G0102", "G0115", "G0117", "G0118", "G0119", "G0129", "G0130", "G0131", "G0134", "G0138", "G0143", "G1003", "G1015", "G1024"],
+      "evidence_derivation": "auto:scripts/derive_source_groups.py"
+    },
+    {
+      "name": "ESET Research",
+      "tier": "tactical",
+      "region": ["GLOBAL"],
+      "industry_focus": ["cross-sector"],
+      "feed_url_hint": null,
+      "tlp": "TLP:CLEAR",
+      "requires_membership": false,
+      "evidence_attack_groups": ["G0007", "G0010", "G0016", "G0047", "G0048", "G0050", "G0095", "G0120", "G0124", "G0129", "G0131", "G0133", "G0135", "G0141", "G1034", "G1035", "G1052", "G1054"],
+      "evidence_derivation": "auto:scripts/derive_source_groups.py"
+    },
+    {
+      "name": "Trend Micro Research",
+      "tier": "tactical",
+      "region": ["GLOBAL"],
+      "industry_focus": ["cross-sector"],
+      "feed_url_hint": null,
+      "tlp": "TLP:CLEAR",
+      "requires_membership": false,
+      "evidence_attack_groups": ["G0007", "G0027", "G0040", "G0047", "G0049", "G0060", "G0069", "G0081", "G0098", "G0129", "G0130", "G0131", "G0138", "G0139", "G0142", "G1006", "G1021", "G1040", "G1054"],
+      "evidence_derivation": "auto:scripts/derive_source_groups.py"
+    },
+    {
+      "name": "Kaspersky Threat Research",
+      "tier": "tactical",
+      "region": ["GLOBAL"],
+      "industry_focus": ["cross-sector"],
+      "feed_url_hint": null,
+      "tlp": "TLP:CLEAR",
+      "requires_membership": false,
+      "evidence_attack_groups": ["G0001", "G0007", "G0008", "G0010", "G0012", "G0020", "G0021", "G0027", "G0033", "G0036", "G0040", "G0041", "G0044", "G0063", "G0067", "G0082", "G0090", "G0091", "G0094", "G0095", "G0099", "G0100", "G0105", "G0121", "G0131", "G0133", "G0134", "G0136", "G0137", "G1001", "G1014", "G1022", "G1054"],
+      "evidence_derivation": "auto:scripts/derive_source_groups.py"
+    },
+    {
+      "name": "Palo Alto Unit 42",
+      "tier": "tactical",
+      "region": ["GLOBAL"],
+      "industry_focus": ["cross-sector"],
+      "feed_url_hint": null,
+      "tlp": "TLP:CLEAR",
+      "requires_membership": false,
+      "evidence_attack_groups": ["G0016", "G0040", "G0047", "G0049", "G0059", "G0069", "G0073", "G0078", "G0079", "G0081", "G0093", "G0100", "G0127", "G0129", "G0134", "G0139", "G1003", "G1004", "G1031"],
+      "evidence_derivation": "auto:scripts/derive_source_groups.py"
+    },
+    {
+      "name": "Secureworks Counter Threat Unit",
+      "tier": "tactical",
+      "region": ["GLOBAL"],
+      "industry_focus": ["cross-sector"],
+      "feed_url_hint": null,
+      "tlp": "TLP:CLEAR",
+      "requires_membership": false,
+      "evidence_attack_groups": ["G0007", "G0008", "G0010", "G0016", "G0027", "G0032", "G0034", "G0035", "G0045", "G0046", "G0047", "G0049", "G0059", "G0060", "G0065", "G0074", "G0080", "G0082", "G0102", "G0115", "G0122", "G0127", "G0129", "G0131", "G0134", "G1001", "G1017", "G1020", "G1021", "G1023", "G1024", "G1032"],
+      "evidence_derivation": "auto:scripts/derive_source_groups.py"
+    },
+    {
+      "name": "Dragos OT Threat Intelligence",
+      "tier": "tactical",
+      "region": ["GLOBAL"],
+      "industry_focus": ["OT"],
+      "feed_url_hint": null,
+      "tlp": "TLP:CLEAR",
+      "requires_membership": false,
+      "evidence_attack_groups": ["G0034", "G0035", "G0074", "G0077", "G0088", "G0117", "G1001", "G1017"],
+      "evidence_derivation": "auto:scripts/derive_source_groups.py"
+    },
+    {
+      "name": "Cloudflare Radar",
+      "tier": "tactical",
+      "region": ["GLOBAL"],
+      "industry_focus": ["cross-sector"],
+      "feed_url_hint": null,
+      "tlp": "TLP:CLEAR",
+      "requires_membership": false,
+      "evidence_attack_groups": ["G0047", "G0069", "G0094", "G0129", "G1017"],
+      "evidence_derivation": "auto:scripts/derive_source_groups.py"
+    }
   ],
   "trigger_actions": {
     "cloud_dependency": "CSP セキュリティアドバイザリ (GCP/AWS/Azure)・cloud IAM 設定ミス事例・cloud-native 攻撃キャンペーン",

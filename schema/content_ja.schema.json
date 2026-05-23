@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "beacon:content_ja.schema.json",
+  "title": "BEACON content_ja",
+  "description": "Schema for schema/content_ja.json — BEACON source map and intelligence requirement registry.",
+  "type": "object",
+  "required": [
+    "intelligence_requirements",
+    "sources",
+    "trigger_actions",
+    "level_frequency",
+    "table"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "_comment": {
+      "type": "string"
+    },
+    "intelligence_requirements": {
+      "type": "array",
+      "description": "CU-GIR-aligned intelligence requirement entries. gir_id uses decimal format matching the Intel 471 CU-GIR Framework (e.g. 6.1.3.1). BEACON-specific org-context overlays append a dash-separated suffix (e.g. 6.1.3.1-JP-FIN).",
+      "items": {
+        "$ref": "#/$defs/IntelligenceRequirement"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "description": "Intelligence source registry. Each entry carries tier/region/industry_focus/evidence_attack_groups for PIR → source candidate matching.",
+      "items": {
+        "$ref": "#/$defs/Source"
+      }
+    },
+    "trigger_actions": {
+      "type": "object",
+      "description": "Trigger-key → collection guidance text (Japanese). Keys match TriggerContext enum in src/beacon/analysis/threat_mapper.py.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "level_frequency": {
+      "type": "object",
+      "description": "Intelligence level → reporting cadence label (Japanese).",
+      "required": ["strategic", "operational", "tactical", "default"],
+      "additionalProperties": false,
+      "properties": {
+        "strategic": { "type": "string" },
+        "operational": { "type": "string" },
+        "tactical": { "type": "string" },
+        "default": { "type": "string" }
+      }
+    },
+    "table": {
+      "type": "object",
+      "description": "Collection plan table label tokens (Japanese).",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "IntelligenceRequirement": {
+      "type": "object",
+      "required": ["gir_id", "name", "eei", "mitre_attack_groups"],
+      "additionalProperties": false,
+      "properties": {
+        "gir_id": {
+          "type": "string",
+          "description": "CU-GIR decimal ID, optionally extended with a BEACON org-context suffix separated by a dash (e.g. '6.1.3.1' or '6.1.3.1-JP-FIN').",
+          "pattern": "^[1-9][0-9]*(\\.[0-9]+)*(-[A-Z0-9]+(-[A-Z0-9]+)*)?$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Short human-readable label for this intelligence requirement.",
+          "minLength": 1
+        },
+        "eei": {
+          "$ref": "#/$defs/EEI"
+        },
+        "mitre_attack_groups": {
+          "type": "array",
+          "description": "ATT&CK Group IDs (Gxxxx format) associated with this intelligence requirement. Empty list means the requirement is cross-actor (e.g. ransomware, hacktivism) and source matching falls back to tier/region/industry only.",
+          "items": {
+            "type": "string",
+            "pattern": "^G[0-9]{4}$"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "EEI": {
+      "type": "object",
+      "description": "Essential Elements of Information — 5W1H intelligence questions per CU-GIR convention.",
+      "required": ["who", "what", "when", "where", "why", "how"],
+      "additionalProperties": false,
+      "properties": {
+        "who":   { "type": "string", "minLength": 1 },
+        "what":  { "type": "string", "minLength": 1 },
+        "when":  { "type": "string", "minLength": 1 },
+        "where": { "type": "string", "minLength": 1 },
+        "why":   { "type": "string", "minLength": 1 },
+        "how":   { "type": "string", "minLength": 1 }
+      }
+    },
+    "Source": {
+      "type": "object",
+      "required": [
+        "name",
+        "tier",
+        "region",
+        "industry_focus",
+        "tlp",
+        "requires_membership",
+        "evidence_attack_groups",
+        "evidence_derivation"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Display name for the intelligence source.",
+          "minLength": 1
+        },
+        "tier": {
+          "type": "string",
+          "description": "Intelligence tier per hunt.io 4-tier model.",
+          "enum": ["strategic", "operational", "tactical", "technical"]
+        },
+        "region": {
+          "type": "array",
+          "description": "ISO 3166-1 alpha-2 country codes this source covers, plus 'GLOBAL' for worldwide coverage.",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$|^GLOBAL$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "industry_focus": {
+          "type": "array",
+          "description": "Industry verticals this source covers. 'cross-sector' means the source covers all industries.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "feed_url_hint": {
+          "type": ["string", "null"],
+          "description": "RSS/Atom feed URL hint for TRACE sources_candidate.yaml generation. Null when no public feed is available or URL requires Phase 3 verification."
+        },
+        "tlp": {
+          "type": "string",
+          "description": "Traffic Light Protocol marking for this source's publications.",
+          "enum": ["TLP:CLEAR", "TLP:AMBER"]
+        },
+        "requires_membership": {
+          "type": "boolean",
+          "description": "True when access requires paid membership or invitation."
+        },
+        "evidence_attack_groups": {
+          "type": "array",
+          "description": "ATT&CK Group IDs (Gxxxx) cited in publications from this source, auto-derived from MITRE ATT&CK external_references via scripts/derive_source_groups.py. Empty for sources using evidence_derivation='industry_consensus'.",
+          "items": {
+            "type": "string",
+            "pattern": "^G[0-9]{4}$"
+          },
+          "uniqueItems": true
+        },
+        "evidence_derivation": {
+          "type": "string",
+          "description": "How evidence_attack_groups was populated. 'auto:scripts/derive_source_groups.py' = ATT&CK bundle derivation. 'industry_consensus' = member-only or specialised source without ATT&CK citations; matches on region/industry criteria alone."
+        }
+      }
+    }
+  }
+}
