@@ -20,6 +20,47 @@ from typing import Any
 
 _SCHEMA_DIR = Path(__file__).parents[3] / "schema"
 _CONTENT_JA_PATH = _SCHEMA_DIR / "content_ja.json"
+_DERIVED_PATH = _SCHEMA_DIR / "source_attack_groups.derived.json"
+
+# Supplement: display names absent from ATT&CK source_name index → known Group IDs.
+# Covers groups added to ATT&CK after the current derived snapshot, vendor-specific
+# aliases, and Chinese-pinyin names not captured in English index entries.
+_GROUP_ID_SUPPLEMENT: dict[str, list[str]] = {
+    "MirrorFace": ["G1054"],
+    "APT5": ["G1023"],
+    "Volt Typhoon": ["G1017"],
+    "Salt Typhoon": ["G1045"],
+    "HAFNIUM": ["G0125"],
+    "Indrik Spider": ["G0119"],
+    "TA505": ["G0092"],
+    "Wizard Spider": ["G0102"],
+    "Star Blizzard": ["G1033"],
+    "Aoqin Dragon": ["G1007"],
+    "BlackTech": ["G0098"],
+    "Contagious Interview": ["G1052"],
+    "Daggerfly": ["G1034"],
+    "Ember Bear": ["G1003"],
+    "FIN13": ["G1016"],
+    "VOID MANTICORE": ["G1055"],
+    "APT42": ["G1044"],
+    "APT-C-23": ["G1028"],
+    "APT-C-36": ["G0099"],
+    "ZIRCONIUM": ["G0128"],
+    "Winter Vivern": ["G1035"],
+    "Agrius": ["G1030"],
+    "Ajax Security Team": ["G0130"],
+    "Cinnamon Tempest": ["G1041"],
+    "Earth Lusca": ["G1006"],
+    "Ferocious Kitten": ["G0100"],
+    "Fox Kitten": ["G0117"],
+    "Gelsemium": ["G0115"],
+    "HEXANE": ["G1001"],
+    "Higaisa": ["G0126"],
+    "Mofang": ["G0103"],
+    "Moses Staff": ["G1009"],
+    "Silent Librarian": ["G0122"],
+    "UNC3886": ["G1027"],
+}
 
 
 def load_sources(content_ja_path: Path | None = None) -> list[dict[str, Any]]:
@@ -27,6 +68,47 @@ def load_sources(content_ja_path: Path | None = None) -> list[dict[str, Any]]:
     path = content_ja_path or _CONTENT_JA_PATH
     data = json.loads(path.read_text(encoding="utf-8"))
     return data.get("sources", [])
+
+
+def resolve_group_ids(
+    names: list[str],
+    derived_path: Path | None = None,
+) -> list[str]:
+    """Resolve threat-actor display names to ATT&CK Group IDs.
+
+    Checks the supplement dict first (aliases not present in ATT&CK source_name
+    index), then falls back to source_attack_groups.derived.json for direct
+    source_name matches. Returns a deduplicated list preserving discovery order.
+
+    Args:
+        names: Threat-actor display names (e.g. ["MirrorFace", "APT41"]).
+        derived_path: Override path for source_attack_groups.derived.json.
+
+    Returns:
+        List of unique ATT&CK Group IDs (e.g. ["G1054", "G0096"]).
+    """
+    path = derived_path or _DERIVED_PATH
+    try:
+        derived: dict[str, dict] = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        derived = {}
+
+    seen: set[str] = set()
+    result: list[str] = []
+
+    def _add(gids: list[str]) -> None:
+        for gid in gids:
+            if gid not in seen:
+                seen.add(gid)
+                result.append(gid)
+
+    for name in names:
+        if name in _GROUP_ID_SUPPLEMENT:
+            _add(_GROUP_ID_SUPPLEMENT[name])
+        elif name in derived:
+            _add(derived[name].get("actor_groups", []))
+
+    return result
 
 
 def select_sources(

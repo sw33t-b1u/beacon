@@ -191,6 +191,13 @@
           "title": "Intelligence Level",
           "type": "string"
         },
+        "mitre_attack_groups": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Mitre Attack Groups",
+          "type": "array"
+        },
         "notable_groups": {
           "items": {
             "type": "string"

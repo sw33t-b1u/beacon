@@ -35,7 +35,14 @@ Risk Score: Likelihood=5, Impact=5, Composite=25
 - Monitor new TTPs and infrastructure for: FIN13 / FIN7
 - Vulnerability and exploitation reports targeting: financial
 
-**Recommended Sources:** _pending Phase 2 wiring_
+**Recommended Sources:**
+- IPA Security Alerts [strategic, JP, cross-sector] — cross-sector sector coverage
+- JVN (Japan Vulnerability Notes) [operational, JP, cross-sector] — cross-sector sector coverage
+- FS-ISAC Threat Intelligence [operational, GLOBAL, finance] — finance sector coverage
+- 金融ISAC (Japan Financial ISAC) [operational, JP, finance] — finance sector coverage
+- Mandiant / Google Cloud Threat Intelligence [operational, GLOBAL, cross-sector] — matches G0046, G1016 via MITRE ATT&CK external_references
+- Microsoft Threat Intelligence [operational, GLOBAL, cross-sector] — matches G0046 via MITRE ATT&CK external_references
+- CrowdStrike Intelligence [operational, GLOBAL, cross-sector] — matches G0046 via MITRE ATT&CK external_references
 
 ### [P1] PIR-2026-002
 
@@ -47,7 +54,16 @@ Risk Score: Likelihood=5, Impact=5, Composite=25
 - Monitor new TTPs and infrastructure for: APT-C-23 / APT-C-36 / APT1
 - Vulnerability and exploitation reports targeting: erp, pki
 
-**Recommended Sources:** _pending Phase 2 wiring_
+**Recommended Sources:**
+- JPCERT/CC Blog [strategic, JP, cross-sector] — matches G0032, G1054 via MITRE ATT&CK external_references
+- IPA Security Alerts [strategic, JP, cross-sector] — cross-sector sector coverage
+- CISA Advisories [strategic, US, GLOBAL, cross-sector] — matches G0032, G0094, G1017, G1033 via MITRE ATT&CK external_references
+- JVN (Japan Vulnerability Notes) [operational, JP, cross-sector] — cross-sector sector coverage
+- FS-ISAC Threat Intelligence [operational, GLOBAL, finance] — finance sector coverage
+- 金融ISAC (Japan Financial ISAC) [operational, JP, finance] — finance sector coverage
+- Mandiant / Google Cloud Threat Intelligence [operational, GLOBAL, cross-sector] — matches G0006, G0007, G0013, G0016 via MITRE ATT&CK external_references
+- Microsoft Threat Intelligence [operational, GLOBAL, cross-sector] — matches G0007, G0010, G0016, G0032 via MITRE ATT&CK external_references
+- CrowdStrike Intelligence [operational, GLOBAL, cross-sector] — matches G0006, G0007, G0010, G0016 via MITRE ATT&CK external_references
 
 ### [P1] PIR-2026-003
 
@@ -58,7 +74,15 @@ Risk Score: Likelihood=5, Impact=5, Composite=25
 **Collection Focus:**
 - Monitor new TTPs and infrastructure for: APT-C-23 / APT-C-36 / APT1
 
-**Recommended Sources:** _pending Phase 2 wiring_
+**Recommended Sources:**
+- JPCERT/CC Blog [strategic, JP, cross-sector] — matches G1054 via MITRE ATT&CK external_references
+- IPA Security Alerts [strategic, JP, cross-sector] — cross-sector sector coverage
+- JVN (Japan Vulnerability Notes) [operational, JP, cross-sector] — cross-sector sector coverage
+- FS-ISAC Threat Intelligence [operational, GLOBAL, finance] — finance sector coverage
+- 金融ISAC (Japan Financial ISAC) [operational, JP, finance] — finance sector coverage
+- Mandiant / Google Cloud Threat Intelligence [operational, GLOBAL, cross-sector] — matches G0006, G0007, G0013, G0016 via MITRE ATT&CK external_references
+- Microsoft Threat Intelligence [operational, GLOBAL, cross-sector] — matches G0007, G0010, G0016, G0050 via MITRE ATT&CK external_references
+- CrowdStrike Intelligence [operational, GLOBAL, cross-sector] — matches G0006, G0007, G0010, G0016 via MITRE ATT&CK external_references
 
 ---
 

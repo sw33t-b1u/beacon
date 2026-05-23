@@ -18,6 +18,7 @@ from beacon.analysis.asset_mapper import get_criticality_multipliers
 from beacon.analysis.element_extractor import ExtractedElements
 from beacon.analysis.pir_clusterer import PIRCluster, build_clusters
 from beacon.analysis.risk_scorer import RiskScore
+from beacon.analysis.source_matcher import resolve_group_ids
 from beacon.analysis.threat_mapper import ThreatProfile
 
 logger = structlog.get_logger(__name__)
@@ -67,6 +68,9 @@ class PIROutput(BaseModel):
     valid_until: str
     risk_score: RiskScoreModel
     source_elements: list[str] = Field(default_factory=list)
+    # ATT&CK Group IDs resolved from notable_groups via source_matcher.resolve_group_ids.
+    # Used by report_builder to select matching intelligence sources for this PIR.
+    mitre_attack_groups: list[str] = Field(default_factory=list)
     # Actor triage — list of I×C×O-scored actors for this organisation.
     # Always present; empty when triage data is unavailable (plan §3.3 failure semantics).
     prioritized_actors: list[PrioritizedActor] = Field(default_factory=list)
@@ -191,6 +195,7 @@ def build_pirs(
                     composite=risk.composite,
                 ),
                 source_elements=cluster.source_element_ids,
+                mitre_attack_groups=resolve_group_ids(cluster.notable_groups),
                 prioritized_actors=_actors,
             )
         )

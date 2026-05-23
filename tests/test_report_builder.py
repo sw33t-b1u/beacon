@@ -274,11 +274,12 @@ class TestPriorityIntelligenceRequirementsSection:
     def test_collection_focus_label_present(self):
         assert "**Collection Focus:**" in self.plan
 
-    def test_placeholder_sources_present(self):
-        assert "_pending Phase 2 wiring_" in self.plan
-
     def test_recommended_sources_label_present(self):
         assert "**Recommended Sources:**" in self.plan
+
+    def test_recommended_sources_has_content(self):
+        assert "**Recommended Sources:**" in self.plan
+        assert "_pending Phase 2 wiring_" not in self.plan
 
     def test_no_pir_section_when_no_pirs(self):
         plan_no_pirs = build_collection_plan(
@@ -308,8 +309,9 @@ class TestPriorityIntelligenceRequirementsSectionFinance:
     def test_collection_focus_bullets(self):
         assert "**Collection Focus:**" in self.plan
 
-    def test_placeholder_present(self):
-        assert "_pending Phase 2 wiring_" in self.plan
+    def test_recommended_sources_present(self):
+        assert "**Recommended Sources:**" in self.plan
+        assert "_pending Phase 2 wiring_" not in self.plan
 
     def test_pir_ids_present(self):
         assert "PIR-2026-" in self.plan
@@ -376,13 +378,13 @@ class TestWatchItemsPriorityBadge:
         plan = self._make_plan(4, ["hacktivist"])
         assert "**Intelligence Level:**" in plan
 
-    def test_collection_focus_label_in_watch_item(self):
+    def test_recommended_sources_label_in_watch_item(self):
         plan = self._make_plan(4, ["hacktivist"])
-        assert "**Collection Focus:**" in plan
+        assert "**Recommended Sources:**" in plan
 
-    def test_placeholder_in_watch_item(self):
+    def test_no_placeholder_in_watch_item(self):
         plan = self._make_plan(4, ["hacktivist"])
-        assert "_pending Phase 2 wiring_" in plan
+        assert "_pending Phase 2 wiring_" not in plan
 
     def test_no_pir_covered_label_for_watch_items(self):
         plan = self._make_plan(4, ["hacktivist"])

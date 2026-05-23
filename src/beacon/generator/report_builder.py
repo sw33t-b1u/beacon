@@ -23,6 +23,7 @@ import structlog
 
 from beacon.analysis.element_extractor import ExtractedElements
 from beacon.analysis.risk_scorer import RiskScore
+from beacon.analysis.source_matcher import load_sources, resolve_group_ids, select_sources
 from beacon.analysis.threat_mapper import ThreatProfile
 from beacon.generator.pir_builder import PIROutput
 
@@ -31,10 +32,6 @@ logger = structlog.get_logger(__name__)
 # Load Japanese display strings from schema/content_ja.json
 _CONTENT_PATH = Path(__file__).parents[3] / "schema" / "content_ja.json"
 _CONTENT: dict = json.loads(_CONTENT_PATH.read_text(encoding="utf-8"))
-
-# Legacy category → source list; removed in v2 schema (Phase 2 wires source_matcher instead).
-_SOURCE_MAP: dict[str, list[str]] = _CONTENT.get("source_map", {})
-_DEFAULT_SOURCES: list[str] = _CONTENT.get("default_sources", [])
 
 # Trigger-specific collection actions
 _TRIGGER_ACTIONS: dict[str, str] = _CONTENT["trigger_actions"]
@@ -45,8 +42,37 @@ _LEVEL_FREQUENCY: dict[str, str] = _CONTENT["level_frequency"]
 # Collection frequency table labels
 _TABLE: dict[str, str] = _CONTENT["table"]
 
-# Placeholder text emitted until Phase 2 wires source_matcher + CU-GIRH IDs.
-_SOURCES_PLACEHOLDER = "_pending Phase 2 wiring_"
+# Source candidates loaded once at module import; filtered per-PIR by select_sources().
+_SOURCES: list[dict] = load_sources(_CONTENT_PATH)
+
+# Free-text geography → ISO 3166-1 alpha-2 (or "GLOBAL" for multi-country regions).
+_GEO_TO_ISO: dict[str, str] = {
+    "Japan": "JP",
+    "United States": "US",
+    "USA": "US",
+    "United Kingdom": "GB",
+    "UK": "GB",
+    "Germany": "DE",
+    "France": "FR",
+    "South Korea": "KR",
+    "Korea": "KR",
+    "China": "CN",
+    "India": "IN",
+    "Australia": "AU",
+    "Canada": "CA",
+    "Singapore": "SG",
+    "Ukraine": "UA",
+    "Taiwan": "TW",
+    "Israel": "IL",
+    "Russia": "RU",
+    "Iran": "IR",
+    "North Korea": "KP",
+    "Europe": "GLOBAL",
+    "Southeast Asia": "GLOBAL",
+    "APAC": "GLOBAL",
+    "Asia Pacific": "GLOBAL",
+    "Global": "GLOBAL",
+}
 
 
 def _priority_badge(composite: int) -> str:
@@ -62,6 +88,46 @@ def _priority_badge(composite: int) -> str:
     if composite >= 6:
         return "P3"
     return "P4"
+
+
+def _geo_to_iso(geographies: list[str]) -> str:
+    """Return the ISO 3166-1 alpha-2 code for the first recognised geography."""
+    for geo in geographies:
+        if geo in _GEO_TO_ISO:
+            return _GEO_TO_ISO[geo]
+    return "GLOBAL"
+
+
+_TIER_LEVELS: dict[str, list[str]] = {
+    "strategic": ["strategic", "operational"],
+    "operational": ["operational", "tactical"],
+    "tactical": ["tactical", "technical"],
+}
+
+
+def _pir_source_tiers(intelligence_level: str) -> list[str]:
+    """Return the source tiers to query for a given PIR intelligence level.
+
+    A strategic PIR needs both strategic context and operational campaign coverage;
+    an operational PIR needs operational + tactical; a tactical PIR needs tactical.
+    """
+    return _TIER_LEVELS.get(intelligence_level, [intelligence_level])
+
+
+def _format_source_line(src: dict, matched_groups: list[str]) -> str:
+    """Format one source entry as a Markdown list item with rationale."""
+    name = src["name"]
+    tier = src["tier"]
+    regions = ", ".join(src.get("region", []))
+    industries = ", ".join(src.get("industry_focus", []))
+    if src.get("evidence_derivation") == "industry_consensus":
+        rationale = f"{industries} sector coverage"
+    elif matched_groups:
+        groups_str = ", ".join(matched_groups[:4])
+        rationale = f"matches {groups_str} via MITRE ATT&CK external_references"
+    else:
+        rationale = "general coverage"
+    return f"- {name} [{tier}, {regions}, {industries}] — {rationale}"
 
 
 def build_collection_plan(
@@ -134,6 +200,8 @@ def build_collection_plan(
         lines.append("")
         lines.append(f"{len(pirs)} PIR(s) generated — active collection required.")
         lines.append("")
+        org_region = _geo_to_iso(elements.org_geographies)
+        org_industry = elements.org_industry
         for pir in pirs:
             badge = _priority_badge(pir.risk_score.composite)
             lines.append(f"### [{badge}] {pir.pir_id}")
@@ -147,7 +215,22 @@ def build_collection_plan(
                 for item in pir.collection_focus:
                     lines.append(f"- {item}")
                 lines.append("")
-            lines.append(f"**Recommended Sources:** {_SOURCES_PLACEHOLDER}")
+            pir_sources = select_sources(
+                intelligence_levels=_pir_source_tiers(pir.intelligence_level),
+                org_region=org_region,
+                org_industry=org_industry,
+                attack_groups=pir.mitre_attack_groups,
+                sources=_SOURCES,
+            )
+            pir_group_set = set(pir.mitre_attack_groups)
+            lines.append("**Recommended Sources:**")
+            if pir_sources:
+                for src in pir_sources:
+                    evidence = src.get("evidence_attack_groups", [])
+                    matched = [g for g in evidence if g in pir_group_set]
+                    lines.append(_format_source_line(src, matched))
+            else:
+                lines.append("_(no matching sources for this PIR)_")
             lines.append("")
         lines.append("---")
         lines.append("")
@@ -172,6 +255,9 @@ def build_collection_plan(
         if pirs:
             pir_covered_categories = set(threat.matched_categories)
 
+        watch_org_region = _geo_to_iso(elements.org_geographies)
+        watch_org_industry = elements.org_industry
+        watch_groups = resolve_group_ids(threat.notable_groups)
         for cat in threat.matched_categories:
             covered = cat in pir_covered_categories and bool(pirs)
             if covered:
@@ -187,22 +273,47 @@ def build_collection_plan(
                 lines.append("")
                 lines.append(f"**Intelligence Level:** {risk.intelligence_level}")
                 lines.append("")
-                sources = _SOURCE_MAP.get(cat, _DEFAULT_SOURCES)
-                lines.append("**Collection Focus:**")
-                for src in sources:
-                    lines.append(f"- {src}")
-                lines.append("")
-                lines.append(f"**Recommended Sources:** {_SOURCES_PLACEHOLDER}")
+                watch_sources = select_sources(
+                    intelligence_levels=[risk.intelligence_level],
+                    org_region=watch_org_region,
+                    org_industry=watch_org_industry,
+                    attack_groups=watch_groups,
+                    sources=_SOURCES,
+                )
+                watch_group_set = set(watch_groups)
+                lines.append("**Recommended Sources:**")
+                if watch_sources:
+                    for src in watch_sources:
+                        evidence = src.get("evidence_attack_groups", [])
+                        matched = [g for g in evidence if g in watch_group_set]
+                        lines.append(_format_source_line(src, matched))
+                else:
+                    lines.append(
+                        "_(no matching sources for this tier/region/industry combination)_"
+                    )
                 lines.append("")
     else:
         lines.append("No specific threat categories matched the dictionary for this profile.")
         lines.append("")
         watch_badge = _priority_badge(risk.composite)
-        lines.append(f"**General watch [{watch_badge}] — Collection Focus:**")
-        for src in _DEFAULT_SOURCES:
-            lines.append(f"- {src}")
-        lines.append("")
-        lines.append(f"**Recommended Sources:** {_SOURCES_PLACEHOLDER}")
+        general_org_region = _geo_to_iso(elements.org_geographies)
+        general_groups = resolve_group_ids(threat.notable_groups)
+        general_sources = select_sources(
+            intelligence_levels=[risk.intelligence_level],
+            org_region=general_org_region,
+            org_industry=elements.org_industry,
+            attack_groups=general_groups,
+            sources=_SOURCES,
+        )
+        general_group_set = set(general_groups)
+        lines.append(f"**General watch [{watch_badge}] — Recommended Sources:**")
+        if general_sources:
+            for src in general_sources:
+                evidence = src.get("evidence_attack_groups", [])
+                matched = [g for g in evidence if g in general_group_set]
+                lines.append(_format_source_line(src, matched))
+        else:
+            lines.append("_(no matching sources for this tier/region/industry combination)_")
         lines.append("")
 
     # Notable groups
