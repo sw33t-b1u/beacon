@@ -151,6 +151,64 @@ def select_sources(
     return results
 
 
+# ---------------------------------------------------------------------------
+# Geography and tier helpers — shared by report_builder and sources_yaml_builder
+# ---------------------------------------------------------------------------
+
+# Free-text geography label → ISO 3166-1 alpha-2 (or "GLOBAL" for regions).
+GEO_TO_ISO: dict[str, str] = {
+    "Japan": "JP",
+    "United States": "US",
+    "USA": "US",
+    "United Kingdom": "GB",
+    "UK": "GB",
+    "Germany": "DE",
+    "France": "FR",
+    "South Korea": "KR",
+    "Korea": "KR",
+    "China": "CN",
+    "India": "IN",
+    "Australia": "AU",
+    "Canada": "CA",
+    "Singapore": "SG",
+    "Ukraine": "UA",
+    "Taiwan": "TW",
+    "Israel": "IL",
+    "Russia": "RU",
+    "Iran": "IR",
+    "North Korea": "KP",
+    "Europe": "GLOBAL",
+    "Southeast Asia": "GLOBAL",
+    "APAC": "GLOBAL",
+    "Asia Pacific": "GLOBAL",
+    "Global": "GLOBAL",
+}
+
+# PIR intelligence level → source tiers to query (level + one tier lower).
+PIR_SOURCE_TIERS: dict[str, list[str]] = {
+    "strategic": ["strategic", "operational"],
+    "operational": ["operational", "tactical"],
+    "tactical": ["tactical", "technical"],
+}
+
+
+def geo_to_iso(geographies: list[str]) -> str:
+    """Return the ISO 3166-1 alpha-2 code for the first recognised geography."""
+    for geo in geographies:
+        if geo in GEO_TO_ISO:
+            return GEO_TO_ISO[geo]
+    return "GLOBAL"
+
+
+def pir_source_tiers(intelligence_level: str) -> list[str]:
+    """Return source tiers to query for a PIR intelligence level.
+
+    Strategic PIRs need strategic + operational coverage; operational needs
+    operational + tactical; tactical needs tactical only.
+    """
+    return PIR_SOURCE_TIERS.get(intelligence_level, [intelligence_level])
+
+
 def _matches_tier(src: dict[str, Any], tier_set: set[str]) -> bool:
     return src.get("tier") in tier_set
 

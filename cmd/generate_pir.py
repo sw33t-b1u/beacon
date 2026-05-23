@@ -50,6 +50,15 @@ def main(argv: list[str] | None = None) -> int:
         help="Path to write collection_plan.md (default: output/collection_plan.md)",
     )
     parser.add_argument(
+        "--sources-candidate",
+        default="output/sources_candidate.yaml",
+        metavar="FILE",
+        help=(
+            "Path to write sources_candidate.yaml for TRACE merge"
+            " (default: output/sources_candidate.yaml)"
+        ),
+    )
+    parser.add_argument(
         "--save-context",
         default=None,
         metavar="FILE",
@@ -79,6 +88,10 @@ def main(argv: list[str] | None = None) -> int:
     from beacon.analysis.threat_mapper import load_taxonomy, map_threats
     from beacon.generator.pir_builder import PIROutputDocument, build_pirs
     from beacon.generator.report_builder import build_collection_plan, write_collection_plan
+    from beacon.generator.sources_yaml_builder import (  # noqa: PLC0415
+        build_sources_candidate_yaml,
+        write_sources_candidate,
+    )
     from beacon.ingest.context_parser import parse
     from beacon.ingest.misp_client import MispClient  # noqa: PLC0415
 
@@ -186,6 +199,12 @@ def main(argv: list[str] | None = None) -> int:
         plan = build_collection_plan(elements, threat, risk, pirs)
         write_collection_plan(plan, collection_plan_path)
         print(f"Collection plan → {args.collection_plan}")
+
+    if args.sources_candidate:
+        sources_path = Path(args.sources_candidate)
+        yaml_str = build_sources_candidate_yaml(pirs, elements)
+        write_sources_candidate(yaml_str, sources_path)
+        print(f"Sources candidate → {args.sources_candidate}")
 
     return 0
 

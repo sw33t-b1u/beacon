@@ -23,7 +23,9 @@ import structlog
 
 from beacon.analysis.element_extractor import ExtractedElements
 from beacon.analysis.risk_scorer import RiskScore
+from beacon.analysis.source_matcher import geo_to_iso as _geo_to_iso_fn
 from beacon.analysis.source_matcher import load_sources, resolve_group_ids, select_sources
+from beacon.analysis.source_matcher import pir_source_tiers as _pir_source_tiers_fn
 from beacon.analysis.threat_mapper import ThreatProfile
 from beacon.generator.pir_builder import PIROutput
 
@@ -45,35 +47,6 @@ _TABLE: dict[str, str] = _CONTENT["table"]
 # Source candidates loaded once at module import; filtered per-PIR by select_sources().
 _SOURCES: list[dict] = load_sources(_CONTENT_PATH)
 
-# Free-text geography → ISO 3166-1 alpha-2 (or "GLOBAL" for multi-country regions).
-_GEO_TO_ISO: dict[str, str] = {
-    "Japan": "JP",
-    "United States": "US",
-    "USA": "US",
-    "United Kingdom": "GB",
-    "UK": "GB",
-    "Germany": "DE",
-    "France": "FR",
-    "South Korea": "KR",
-    "Korea": "KR",
-    "China": "CN",
-    "India": "IN",
-    "Australia": "AU",
-    "Canada": "CA",
-    "Singapore": "SG",
-    "Ukraine": "UA",
-    "Taiwan": "TW",
-    "Israel": "IL",
-    "Russia": "RU",
-    "Iran": "IR",
-    "North Korea": "KP",
-    "Europe": "GLOBAL",
-    "Southeast Asia": "GLOBAL",
-    "APAC": "GLOBAL",
-    "Asia Pacific": "GLOBAL",
-    "Global": "GLOBAL",
-}
-
 
 def _priority_badge(composite: int) -> str:
     """Map a composite risk score to a PIR priority badge P1–P4.
@@ -92,26 +65,12 @@ def _priority_badge(composite: int) -> str:
 
 def _geo_to_iso(geographies: list[str]) -> str:
     """Return the ISO 3166-1 alpha-2 code for the first recognised geography."""
-    for geo in geographies:
-        if geo in _GEO_TO_ISO:
-            return _GEO_TO_ISO[geo]
-    return "GLOBAL"
-
-
-_TIER_LEVELS: dict[str, list[str]] = {
-    "strategic": ["strategic", "operational"],
-    "operational": ["operational", "tactical"],
-    "tactical": ["tactical", "technical"],
-}
+    return _geo_to_iso_fn(geographies)
 
 
 def _pir_source_tiers(intelligence_level: str) -> list[str]:
-    """Return the source tiers to query for a given PIR intelligence level.
-
-    A strategic PIR needs both strategic context and operational campaign coverage;
-    an operational PIR needs operational + tactical; a tactical PIR needs tactical.
-    """
-    return _TIER_LEVELS.get(intelligence_level, [intelligence_level])
+    """Return the source tiers to query for a given PIR intelligence level."""
+    return _pir_source_tiers_fn(intelligence_level)
 
 
 def _format_source_line(src: dict, matched_groups: list[str]) -> str:
