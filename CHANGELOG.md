@@ -16,6 +16,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
   to the new path. `docs/structure.md` / `docs/structure.ja.md` updated
   to reflect the relocation.
 
+## [0.15.2] — 2026-05-23
+
+### Security
+
+- Pin `starlette>=1.0.1` (top-level) to address `PYSEC-2026-161`. The
+  vulnerability is transitive via `fastapi`. Detected during the
+  `pip-audit` step of Initiative E Phase 1 review on 2026-05-23.
+  Co-shipped with SAGE 0.10.2 (same CVE, transitive via fastapi).
+  TRACE is unaffected (no starlette/fastapi dependency).
+
 ## [0.15.1] — 2026-05-22
 
 Security patch release.
