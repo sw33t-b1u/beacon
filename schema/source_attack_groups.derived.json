@@ -1,0 +1,7645 @@
+{
+  "_comment": "Auto-derived from MITRE ATT&CK Enterprise via scripts/derive_source_groups.py. MITRE ATT&CK is licensed under the MITRE ATT&CK Terms of Use; this derived artifact preserves attribution to MITRE Corporation.",
+  "2022 November_TrendMicro_Earth Preta_Toneshell_Pubload": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "2025_IBM_PUBLOAD_TONESHELL_HIUPAN_CLAIMLOADER_MUSTANG PANDA": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "360 Machete Sep 2020": {
+    "actor_groups": [
+      "G0095"
+    ],
+    "reference_count": 1
+  },
+  "401 TRG Winnti Umbrella May 2018": {
+    "actor_groups": [
+      "G0044"
+    ],
+    "reference_count": 1
+  },
+  "ACTINIUM": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "AMERICIUM": {
+    "actor_groups": [
+      "G1030"
+    ],
+    "reference_count": 1
+  },
+  "APT-C-00": {
+    "actor_groups": [
+      "G0050"
+    ],
+    "reference_count": 1
+  },
+  "APT-C-43": {
+    "actor_groups": [
+      "G0095"
+    ],
+    "reference_count": 1
+  },
+  "APT-Q-98": {
+    "actor_groups": [
+      "G0099"
+    ],
+    "reference_count": 1
+  },
+  "APT1": {
+    "actor_groups": [
+      "G0006"
+    ],
+    "reference_count": 1
+  },
+  "APT10": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "APT12": {
+    "actor_groups": [
+      "G0005"
+    ],
+    "reference_count": 1
+  },
+  "APT15": {
+    "actor_groups": [
+      "G0004"
+    ],
+    "reference_count": 1
+  },
+  "APT15 Intezer June 2018": {
+    "actor_groups": [
+      "G0004"
+    ],
+    "reference_count": 1
+  },
+  "APT16": {
+    "actor_groups": [
+      "G0023"
+    ],
+    "reference_count": 1
+  },
+  "APT17": {
+    "actor_groups": [
+      "G0025"
+    ],
+    "reference_count": 1
+  },
+  "APT18": {
+    "actor_groups": [
+      "G0026"
+    ],
+    "reference_count": 1
+  },
+  "APT19": {
+    "actor_groups": [
+      "G0073"
+    ],
+    "reference_count": 1
+  },
+  "APT2": {
+    "actor_groups": [
+      "G0024"
+    ],
+    "reference_count": 1
+  },
+  "APT27": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "APT28": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "APT29": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "APT3": {
+    "actor_groups": [
+      "G0022"
+    ],
+    "reference_count": 1
+  },
+  "APT30": {
+    "actor_groups": [
+      "G0013"
+    ],
+    "reference_count": 1
+  },
+  "APT31": {
+    "actor_groups": [
+      "G0128"
+    ],
+    "reference_count": 1
+  },
+  "APT32": {
+    "actor_groups": [
+      "G0050"
+    ],
+    "reference_count": 1
+  },
+  "APT33": {
+    "actor_groups": [
+      "G0064"
+    ],
+    "reference_count": 1
+  },
+  "APT34": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "APT35": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "APT36": {
+    "actor_groups": [
+      "G0134"
+    ],
+    "reference_count": 1
+  },
+  "APT37": {
+    "actor_groups": [
+      "G0067"
+    ],
+    "reference_count": 1
+  },
+  "APT38": {
+    "actor_groups": [
+      "G0082"
+    ],
+    "reference_count": 1
+  },
+  "APT39": {
+    "actor_groups": [
+      "G0087"
+    ],
+    "reference_count": 1
+  },
+  "APT40": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "APT41": {
+    "actor_groups": [
+      "G0096"
+    ],
+    "reference_count": 1
+  },
+  "APT43": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "APT44": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "ARS Technica China Hack SK April 2017": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "ATT Sidewinder January 2021": {
+    "actor_groups": [
+      "G0121"
+    ],
+    "reference_count": 1
+  },
+  "ATT TeamTNT Chimaera September 2020": {
+    "actor_groups": [
+      "G0139"
+    ],
+    "reference_count": 1
+  },
+  "ATTACKIQ MUSTANG PANDA TONESHELL March 2023": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Accenture Dragonfish Jan 2018": {
+    "actor_groups": [
+      "G0030"
+    ],
+    "reference_count": 1
+  },
+  "Accenture Hogfish April 2018": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "Accenture HyperStack October 2020": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "Accenture Lyceum Targets November 2021": {
+    "actor_groups": [
+      "G1001"
+    ],
+    "reference_count": 1
+  },
+  "Accenture MUDCARP March 2019": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "Accenture SNAKEMACKEREL Nov 2018": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Agonizing Serpens": {
+    "actor_groups": [
+      "G1030"
+    ],
+    "reference_count": 1
+  },
+  "AguilaCiega": {
+    "actor_groups": [
+      "G0099"
+    ],
+    "reference_count": 1
+  },
+  "AhnLab Andariel Subgroup of Lazarus June 2018": {
+    "actor_groups": [
+      "G0138"
+    ],
+    "reference_count": 1
+  },
+  "AhnLab Kimsuky Kabar Cobra Feb 2019": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "AjaxTM": {
+    "actor_groups": [
+      "G0130"
+    ],
+    "reference_count": 1
+  },
+  "Alperovitch 2014": {
+    "actor_groups": [
+      "G0009"
+    ],
+    "reference_count": 1
+  },
+  "Amnesty Intl. Ocean Lotus February 2021": {
+    "actor_groups": [
+      "G0050"
+    ],
+    "reference_count": 1
+  },
+  "Andariel": {
+    "actor_groups": [
+      "G0138"
+    ],
+    "reference_count": 1
+  },
+  "Anomali Evasive Maneuvers July 2015": {
+    "actor_groups": [
+      "G0026"
+    ],
+    "reference_count": 1
+  },
+  "Anomali MUSTANG PANDA October 2019": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Anomali Static Kitten February 2021": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "Anunak": {
+    "actor_groups": [
+      "G0008"
+    ],
+    "reference_count": 1
+  },
+  "Aqua Blizzard": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "Aqua TeamTNT August 2020": {
+    "actor_groups": [
+      "G0139"
+    ],
+    "reference_count": 1
+  },
+  "Arctic Wolf Akira 2023": {
+    "actor_groups": [
+      "G1024"
+    ],
+    "reference_count": 1
+  },
+  "Arid Viper": {
+    "actor_groups": [
+      "G1028"
+    ],
+    "reference_count": 1
+  },
+  "Armageddon": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "Ars Technica GRU indictment Jul 2018": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Ashen Lepus": {
+    "actor_groups": [
+      "G0090"
+    ],
+    "reference_count": 1
+  },
+  "Avertium Storm-0501 Sabbath Ransomware Arcane January 2022": {
+    "actor_groups": [
+      "G1053"
+    ],
+    "reference_count": 1
+  },
+  "Axiom": {
+    "actor_groups": [
+      "G0001"
+    ],
+    "reference_count": 1
+  },
+  "BANISHED KITTEN": {
+    "actor_groups": [
+      "G1055"
+    ],
+    "reference_count": 1
+  },
+  "BARIUM": {
+    "actor_groups": [
+      "G0096"
+    ],
+    "reference_count": 1
+  },
+  "BBC LAPSUS Apr 2022": {
+    "actor_groups": [
+      "G1004"
+    ],
+    "reference_count": 1
+  },
+  "BELUGASTURGEON": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "BISMUTH": {
+    "actor_groups": [
+      "G0050"
+    ],
+    "reference_count": 1
+  },
+  "BROMINE": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "BRONZE BUTLER": {
+    "actor_groups": [
+      "G0060"
+    ],
+    "reference_count": 1
+  },
+  "BRONZE FLEETWOOD": {
+    "actor_groups": [
+      "G1023"
+    ],
+    "reference_count": 1
+  },
+  "BRONZE HIGHLAND": {
+    "actor_groups": [
+      "G1034"
+    ],
+    "reference_count": 1
+  },
+  "BRONZE HUNTLEY": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "BRONZE MOHAWK": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "BRONZE PRESIDENT": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "BRONZE RIVERSIDE": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "BRONZE SILHOUETTE": {
+    "actor_groups": [
+      "G1017"
+    ],
+    "reference_count": 1
+  },
+  "BRONZE STARLIGHT": {
+    "actor_groups": [
+      "G1021"
+    ],
+    "reference_count": 1
+  },
+  "BRONZE UNION": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "Bahamut": {
+    "actor_groups": [
+      "G0112"
+    ],
+    "reference_count": 1
+  },
+  "Baumgartner Golovkin Naikon 2015": {
+    "actor_groups": [
+      "G0013",
+      "G0019"
+    ],
+    "reference_count": 2
+  },
+  "Baumgartner Naikon 2015": {
+    "actor_groups": [
+      "G0019"
+    ],
+    "reference_count": 1
+  },
+  "BeagleBoyz": {
+    "actor_groups": [
+      "G0082"
+    ],
+    "reference_count": 1
+  },
+  "Beijing Group": {
+    "actor_groups": [
+      "G0066"
+    ],
+    "reference_count": 1
+  },
+  "Berserk Bear": {
+    "actor_groups": [
+      "G0035",
+      "G0074"
+    ],
+    "reference_count": 2
+  },
+  "BiZone Lizar May 2021": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "Big Bang APT": {
+    "actor_groups": [
+      "G1028"
+    ],
+    "reference_count": 1
+  },
+  "Bilbug": {
+    "actor_groups": [
+      "G0030"
+    ],
+    "reference_count": 1
+  },
+  "Bitdefender LuminousMoth July 2021": {
+    "actor_groups": [
+      "G1014"
+    ],
+    "reference_count": 1
+  },
+  "Bitdefender Sardonic Aug 2021": {
+    "actor_groups": [
+      "G0061"
+    ],
+    "reference_count": 1
+  },
+  "Bitdefender StrongPity June 2020": {
+    "actor_groups": [
+      "G0056"
+    ],
+    "reference_count": 1
+  },
+  "Bitsight Latrodectus June 2024": {
+    "actor_groups": [
+      "G1038"
+    ],
+    "reference_count": 1
+  },
+  "Bizeul 2014": {
+    "actor_groups": [
+      "G0011"
+    ],
+    "reference_count": 1
+  },
+  "Black Banshee": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "Black Vine": {
+    "actor_groups": [
+      "G0009"
+    ],
+    "reference_count": 1
+  },
+  "BlackBerry CostaRicto November 2020": {
+    "actor_groups": [
+      "G0132"
+    ],
+    "reference_count": 1
+  },
+  "BlackBerry MUSTANG PANDA October 2022": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "BlackEnergy (Group)": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "BlackOasis": {
+    "actor_groups": [
+      "G0063"
+    ],
+    "reference_count": 1
+  },
+  "BlackShadow": {
+    "actor_groups": [
+      "G1030"
+    ],
+    "reference_count": 1
+  },
+  "Blackfly": {
+    "actor_groups": [
+      "G0044"
+    ],
+    "reference_count": 1
+  },
+  "Bleeding Bear": {
+    "actor_groups": [
+      "G1003"
+    ],
+    "reference_count": 1
+  },
+  "Bleeping Computer INC Ransomware March 2024": {
+    "actor_groups": [
+      "G1032"
+    ],
+    "reference_count": 1
+  },
+  "Bleepingcomputer Gamardeon FSB November 2021": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "Blind Eagle": {
+    "actor_groups": [
+      "G0099"
+    ],
+    "reference_count": 1
+  },
+  "Blue Kitsune": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "Bluenoroff": {
+    "actor_groups": [
+      "G0082"
+    ],
+    "reference_count": 1
+  },
+  "Brass Typhoon": {
+    "actor_groups": [
+      "G0096"
+    ],
+    "reference_count": 1
+  },
+  "Broadcom": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Broadcom Medusa Ransomware Medusa Group March 2025": {
+    "actor_groups": [
+      "G1051"
+    ],
+    "reference_count": 1
+  },
+  "Buckeye": {
+    "actor_groups": [
+      "G0022"
+    ],
+    "reference_count": 1
+  },
+  "BushidoToken Akira 2023": {
+    "actor_groups": [
+      "G1024"
+    ],
+    "reference_count": 1
+  },
+  "BushidoToken Qilin RaaS JUN 2024": {
+    "actor_groups": [
+      "G1050"
+    ],
+    "reference_count": 1
+  },
+  "C0d0so0": {
+    "actor_groups": [
+      "G0073"
+    ],
+    "reference_count": 1
+  },
+  "CAMARO DRAGON": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "CERN Windigo June 2019": {
+    "actor_groups": [
+      "G0124"
+    ],
+    "reference_count": 1
+  },
+  "CERT-UA WinterVivern 2023": {
+    "actor_groups": [
+      "G1035"
+    ],
+    "reference_count": 1
+  },
+  "CHIMBORAZO": {
+    "actor_groups": [
+      "G0092"
+    ],
+    "reference_count": 1
+  },
+  "CHROMIUM": {
+    "actor_groups": [
+      "G1006"
+    ],
+    "reference_count": 1
+  },
+  "CISA AA20-239A BeagleBoyz August 2020": {
+    "actor_groups": [
+      "G0082"
+    ],
+    "reference_count": 1
+  },
+  "CISA AA20-259A Iran-Based Actor September 2020": {
+    "actor_groups": [
+      "G0117"
+    ],
+    "reference_count": 1
+  },
+  "CISA AA20-296A Berserk Bear December 2020": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "CISA AA20-301A Kimsuky": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "CISA AA21-200A APT40 July 2021": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "CISA AA24-038A PRC Critical Infrastructure February 2024": {
+    "actor_groups": [
+      "G1017"
+    ],
+    "reference_count": 1
+  },
+  "CISA Akira Ransomware APR 2024": {
+    "actor_groups": [
+      "G1024"
+    ],
+    "reference_count": 1
+  },
+  "CISA GRU29155 2024": {
+    "actor_groups": [
+      "G1003"
+    ],
+    "reference_count": 1
+  },
+  "CISA Leviathan 2024": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "CISA Medusa Group Medusa Ransomware March 2025": {
+    "actor_groups": [
+      "G1051"
+    ],
+    "reference_count": 1
+  },
+  "CISA Play Ransomware Advisory December 2023": {
+    "actor_groups": [
+      "G1040"
+    ],
+    "reference_count": 1
+  },
+  "CISA Scattered Spider Advisory November 2023": {
+    "actor_groups": [
+      "G1015"
+    ],
+    "reference_count": 1
+  },
+  "CISA Star Blizzard Advisory December 2023": {
+    "actor_groups": [
+      "G1033"
+    ],
+    "reference_count": 1
+  },
+  "COBALT DICKENS": {
+    "actor_groups": [
+      "G0122"
+    ],
+    "reference_count": 1
+  },
+  "COBALT GYPSY": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "COBALT ILLUSION": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "COBALT MYSTIQUE": {
+    "actor_groups": [
+      "G1055"
+    ],
+    "reference_count": 1
+  },
+  "COLDRIVER": {
+    "actor_groups": [
+      "G1033"
+    ],
+    "reference_count": 1
+  },
+  "COPERNICIUM": {
+    "actor_groups": [
+      "G0082"
+    ],
+    "reference_count": 1
+  },
+  "COPPER FIELDSTONE": {
+    "actor_groups": [
+      "G0134"
+    ],
+    "reference_count": 1
+  },
+  "CSIRT CTI MUSTANG PANDA PUBLOAD TONESHELL JAN 2024": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "CSM Elderwood Sept 2012": {
+    "actor_groups": [
+      "G0066"
+    ],
+    "reference_count": 1
+  },
+  "CVNX": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "CYBERCOM Iranian Intel Cyber January 2022": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "CactusPete": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "Cadet Blizzard": {
+    "actor_groups": [
+      "G1003"
+    ],
+    "reference_count": 1
+  },
+  "Cadet Blizzard emerges as novel threat actor": {
+    "actor_groups": [
+      "G1003",
+      "G1031"
+    ],
+    "reference_count": 2
+  },
+  "Cado Security TeamTNT Worm August 2020": {
+    "actor_groups": [
+      "G0139"
+    ],
+    "reference_count": 1
+  },
+  "Callisto Group": {
+    "actor_groups": [
+      "G1033"
+    ],
+    "reference_count": 1
+  },
+  "CameraShy": {
+    "actor_groups": [
+      "G0019"
+    ],
+    "reference_count": 1
+  },
+  "Camouflage Tempest": {
+    "actor_groups": [
+      "G0037"
+    ],
+    "reference_count": 1
+  },
+  "Canvas Cyclone": {
+    "actor_groups": [
+      "G0050"
+    ],
+    "reference_count": 1
+  },
+  "Carbanak": {
+    "actor_groups": [
+      "G0008"
+    ],
+    "reference_count": 1
+  },
+  "Carbon Spider": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "Certfa Charming Kitten January 2021": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "Chafer": {
+    "actor_groups": [
+      "G0087"
+    ],
+    "reference_count": 1
+  },
+  "Charcoal Typhoon": {
+    "actor_groups": [
+      "G1006"
+    ],
+    "reference_count": 1
+  },
+  "Charming Kitten": {
+    "actor_groups": [
+      "G0058",
+      "G0059"
+    ],
+    "reference_count": 2
+  },
+  "Check Point APT31 February 2021": {
+    "actor_groups": [
+      "G0128"
+    ],
+    "reference_count": 1
+  },
+  "Check Point APT34 April 2021": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Check Point APT35 CharmPower January 2022": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "Check Point Blind Eagle MAR 2025": {
+    "actor_groups": [
+      "G0099"
+    ],
+    "reference_count": 1
+  },
+  "Check Point Rocket Kitten": {
+    "actor_groups": [
+      "G0130"
+    ],
+    "reference_count": 1
+  },
+  "Check Point VOID MANTICORE Handala Hack March 2026": {
+    "actor_groups": [
+      "G1055"
+    ],
+    "reference_count": 1
+  },
+  "Check Point Wirte NOV 2024": {
+    "actor_groups": [
+      "G0090"
+    ],
+    "reference_count": 1
+  },
+  "CheckPoint Agrius 2023": {
+    "actor_groups": [
+      "G1030"
+    ],
+    "reference_count": 1
+  },
+  "CheckPoint Volatile Cedar March 2015": {
+    "actor_groups": [
+      "G0123"
+    ],
+    "reference_count": 1
+  },
+  "Checkpoint IndigoZebra July 2021": {
+    "actor_groups": [
+      "G0136"
+    ],
+    "reference_count": 1
+  },
+  "Checkpoint MosesStaff Nov 2021": {
+    "actor_groups": [
+      "G1009"
+    ],
+    "reference_count": 1
+  },
+  "Chimera": {
+    "actor_groups": [
+      "G0114"
+    ],
+    "reference_count": 1
+  },
+  "Chinastrats": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "Cicada": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "Cisco Akira Ransomware OCT 2024": {
+    "actor_groups": [
+      "G1024"
+    ],
+    "reference_count": 1
+  },
+  "Cisco BlackByte 2024": {
+    "actor_groups": [
+      "G1043"
+    ],
+    "reference_count": 1
+  },
+  "Cisco Group 72": {
+    "actor_groups": [
+      "G0001"
+    ],
+    "reference_count": 1
+  },
+  "Cisco LotusBlossom 2025": {
+    "actor_groups": [
+      "G0030"
+    ],
+    "reference_count": 1
+  },
+  "Cisco Operation Layover September 2021": {
+    "actor_groups": [
+      "G1018"
+    ],
+    "reference_count": 1
+  },
+  "Cisco Salt Typhoon FEB 2025": {
+    "actor_groups": [
+      "G1045"
+    ],
+    "reference_count": 1
+  },
+  "Cisco Talos Bitter Bangladesh May 2022": {
+    "actor_groups": [
+      "G1002"
+    ],
+    "reference_count": 1
+  },
+  "Cisco Talos MUSTANG PANDA PLUGX PUBLOAD MAY 2022": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Citizen Lab Group5": {
+    "actor_groups": [
+      "G0043"
+    ],
+    "reference_count": 1
+  },
+  "Citizen Lab Stealth Falcon May 2016": {
+    "actor_groups": [
+      "G0038"
+    ],
+    "reference_count": 1
+  },
+  "Citrine Sleet": {
+    "actor_groups": [
+      "G1049"
+    ],
+    "reference_count": 1
+  },
+  "ClearSky Charming Kitten Dec 2017": {
+    "actor_groups": [
+      "G0058",
+      "G0059"
+    ],
+    "reference_count": 2
+  },
+  "ClearSky CopyKittens March 2017": {
+    "actor_groups": [
+      "G0052"
+    ],
+    "reference_count": 1
+  },
+  "ClearSky Kittens Back 2 Oct 2019": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "ClearSky Kittens Back 3 August 2020": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "ClearSky Lebanese Cedar Jan 2021": {
+    "actor_groups": [
+      "G0123"
+    ],
+    "reference_count": 1
+  },
+  "ClearSky MuddyWater June 2019": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "ClearSky MuddyWater Nov 2018": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "ClearSky OilRig Jan 2017": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "ClearSky Pay2Kitten December 2020": {
+    "actor_groups": [
+      "G0117"
+    ],
+    "reference_count": 1
+  },
+  "ClearSky Siamesekitten August 2021": {
+    "actor_groups": [
+      "G1001"
+    ],
+    "reference_count": 1
+  },
+  "ClearSky Wilted Tulip July 2017": {
+    "actor_groups": [
+      "G0052"
+    ],
+    "reference_count": 1
+  },
+  "ClearkSky Fox Kitten February 2020": {
+    "actor_groups": [
+      "G0117"
+    ],
+    "reference_count": 1
+  },
+  "Cleaver": {
+    "actor_groups": [
+      "G0003"
+    ],
+    "reference_count": 1
+  },
+  "Cloud Atlas": {
+    "actor_groups": [
+      "G0100"
+    ],
+    "reference_count": 1
+  },
+  "Cloudflare 2026 Threat Report New Threat Actors March 2026": {
+    "actor_groups": [
+      "G0047",
+      "G0069",
+      "G0094",
+      "G0129",
+      "G1017"
+    ],
+    "reference_count": 5
+  },
+  "ClumsyToad": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Cobalt Gang": {
+    "actor_groups": [
+      "G0080"
+    ],
+    "reference_count": 1
+  },
+  "Cobalt Group": {
+    "actor_groups": [
+      "G0080"
+    ],
+    "reference_count": 1
+  },
+  "Cobalt Spider": {
+    "actor_groups": [
+      "G0080"
+    ],
+    "reference_count": 1
+  },
+  "Codoso": {
+    "actor_groups": [
+      "G0073"
+    ],
+    "reference_count": 1
+  },
+  "Codoso Team": {
+    "actor_groups": [
+      "G0073"
+    ],
+    "reference_count": 1
+  },
+  "Comment Crew": {
+    "actor_groups": [
+      "G0006"
+    ],
+    "reference_count": 1
+  },
+  "Comment Group": {
+    "actor_groups": [
+      "G0006"
+    ],
+    "reference_count": 1
+  },
+  "Comment Panda": {
+    "actor_groups": [
+      "G0006"
+    ],
+    "reference_count": 1
+  },
+  "ControlX": {
+    "actor_groups": [
+      "G1006"
+    ],
+    "reference_count": 1
+  },
+  "CopyKittens": {
+    "actor_groups": [
+      "G0052"
+    ],
+    "reference_count": 1
+  },
+  "CopyKittens Nov 2015": {
+    "actor_groups": [
+      "G0052"
+    ],
+    "reference_count": 1
+  },
+  "Cosmic Wolf": {
+    "actor_groups": [
+      "G1041"
+    ],
+    "reference_count": 1
+  },
+  "Cozy Bear": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "CozyDuke": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "Crambus": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Crimson Sandstorm": {
+    "actor_groups": [
+      "G1012"
+    ],
+    "reference_count": 1
+  },
+  "Crouching Yeti": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike AQUATIC PANDA December 2021": {
+    "actor_groups": [
+      "G0143"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike Carbon Spider August 2021": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike Ember Bear Profile March 2022": {
+    "actor_groups": [
+      "G1003"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike Evolution of Pinchy Spider July 2021": {
+    "actor_groups": [
+      "G0115"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike Flying Kitten ": {
+    "actor_groups": [
+      "G0130"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike GTR 2021 June 2021": {
+    "actor_groups": [
+      "G0082"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike Grim Spider May 2019": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike Labyrinth Chollima Feb 2022": {
+    "actor_groups": [
+      "G0032"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike Manufacturing Threat July 2020": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike PIONEER KITTEN August 2020": {
+    "actor_groups": [
+      "G0117"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike PUNK SPIDER": {
+    "actor_groups": [
+      "G1024"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike Putter Panda": {
+    "actor_groups": [
+      "G0006",
+      "G0024"
+    ],
+    "reference_count": 2
+  },
+  "CrowdStrike Richochet Chollima September 2021": {
+    "actor_groups": [
+      "G0067"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike Ryuk January 2019": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike SUNSPOT Implant January 2021": {
+    "actor_groups": [
+      "G0016",
+      "G0118"
+    ],
+    "reference_count": 2
+  },
+  "CrowdStrike Scattered Spider BYOVD January 2023": {
+    "actor_groups": [
+      "G1015"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike Scattered Spider Profile": {
+    "actor_groups": [
+      "G1015"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike Silent Chollima Adversary September 2021": {
+    "actor_groups": [
+      "G0138"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike Stardust Chollima Profile April 2018": {
+    "actor_groups": [
+      "G0082"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike StellarParticle January 2022": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike VENOMOUS BEAR": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike VOODOO BEAR": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "CrowdStrike Wizard Spider October 2020": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "Crowdstrike CrowdCast Oct 2013": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "Crowdstrike DNC June 2016": {
+    "actor_groups": [
+      "G0007",
+      "G0016"
+    ],
+    "reference_count": 2
+  },
+  "Crowdstrike EvilCorp March 2021": {
+    "actor_groups": [
+      "G0119"
+    ],
+    "reference_count": 1
+  },
+  "Crowdstrike GTR2020 Mar 2020": {
+    "actor_groups": [
+      "G0087",
+      "G0091",
+      "G0096"
+    ],
+    "reference_count": 3
+  },
+  "Crowdstrike Global Threat Report Feb 2018": {
+    "actor_groups": [
+      "G0037",
+      "G0080"
+    ],
+    "reference_count": 2
+  },
+  "Crowdstrike Helix Kitten Nov 2018": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Crowdstrike Indrik November 2018": {
+    "actor_groups": [
+      "G0119"
+    ],
+    "reference_count": 1
+  },
+  "Crowdstrike KRYPTONITE PANDA August 2018": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "Crowdstrike MUSTANG PANDA June 2018": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Crowdstrike Mythic Leopard Profile": {
+    "actor_groups": [
+      "G0134"
+    ],
+    "reference_count": 1
+  },
+  "Crowdstrike Pirate Panda April 2020": {
+    "actor_groups": [
+      "G0081"
+    ],
+    "reference_count": 1
+  },
+  "Crowdstrike TELCO BPO Campaign December 2022": {
+    "actor_groups": [
+      "G1015"
+    ],
+    "reference_count": 1
+  },
+  "Cyber Forensicator Silence Jan 2019": {
+    "actor_groups": [
+      "G0091"
+    ],
+    "reference_count": 1
+  },
+  "CyberScoop BlackOasis Oct 2017": {
+    "actor_groups": [
+      "G0055",
+      "G0063"
+    ],
+    "reference_count": 2
+  },
+  "Cybereason INC Ransomware November 2023": {
+    "actor_groups": [
+      "G1032"
+    ],
+    "reference_count": 1
+  },
+  "Cybereason Kimsuky November 2020": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "Cybereason Molerats Dec 2020": {
+    "actor_groups": [
+      "G0021"
+    ],
+    "reference_count": 1
+  },
+  "Cybereason Oceanlotus May 2017": {
+    "actor_groups": [
+      "G0050"
+    ],
+    "reference_count": 1
+  },
+  "Cybereason Soft Cell June 2019": {
+    "actor_groups": [
+      "G0093"
+    ],
+    "reference_count": 1
+  },
+  "Cybereason StrifeWater Feb 2022": {
+    "actor_groups": [
+      "G1009"
+    ],
+    "reference_count": 1
+  },
+  "Cybersecurity Advisory GRU Brute Force Campaign July 2021": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Cybersecurity Advisory SVR TTP May 2021": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "Cyble Sidewinder September 2020": {
+    "actor_groups": [
+      "G0121"
+    ],
+    "reference_count": 1
+  },
+  "Cycraft Chimera April 2020": {
+    "actor_groups": [
+      "G0114"
+    ],
+    "reference_count": 1
+  },
+  "Cylance Cleaver": {
+    "actor_groups": [
+      "G0003"
+    ],
+    "reference_count": 1
+  },
+  "Cylance Dust Storm": {
+    "actor_groups": [
+      "G0031"
+    ],
+    "reference_count": 1
+  },
+  "Cylance Machete Mar 2017": {
+    "actor_groups": [
+      "G0095"
+    ],
+    "reference_count": 1
+  },
+  "Cylance Putter Panda": {
+    "actor_groups": [
+      "G0024"
+    ],
+    "reference_count": 1
+  },
+  "Cylance Shaheen Nov 2018": {
+    "actor_groups": [
+      "G0089"
+    ],
+    "reference_count": 1
+  },
+  "Cylera Kwampirs 2022": {
+    "actor_groups": [
+      "G0071"
+    ],
+    "reference_count": 1
+  },
+  "Cymmetria Patchwork": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "DEV#POPPER": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "DEV-0157": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "DEV-0193": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "DEV-0206": {
+    "actor_groups": [
+      "G1020"
+    ],
+    "reference_count": 1
+  },
+  "DEV-0237": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "DEV-0243": {
+    "actor_groups": [
+      "G0119"
+    ],
+    "reference_count": 1
+  },
+  "DEV-0391": {
+    "actor_groups": [
+      "G1017"
+    ],
+    "reference_count": 1
+  },
+  "DEV-0401": {
+    "actor_groups": [
+      "G1021"
+    ],
+    "reference_count": 1
+  },
+  "DEV-0500": {
+    "actor_groups": [
+      "G1009"
+    ],
+    "reference_count": 1
+  },
+  "DEV-0537": {
+    "actor_groups": [
+      "G1004"
+    ],
+    "reference_count": 1
+  },
+  "DEV-0586": {
+    "actor_groups": [
+      "G1003"
+    ],
+    "reference_count": 1
+  },
+  "DHS CISA AA22-055A MuddyWater February 2022": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "DHS/CISA Ransomware Targeting Healthcare October 2020": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "DNSCALC": {
+    "actor_groups": [
+      "G0005"
+    ],
+    "reference_count": 1
+  },
+  "DOJ APT10 Dec 2018": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "DOJ Affidavit Search and Seizure PlugX December 2024": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "DOJ FBI Handala Hack March 2026": {
+    "actor_groups": [
+      "G1055"
+    ],
+    "reference_count": 1
+  },
+  "DOJ GRU Indictment Jul 2018": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "DOJ Iran Indictments March 2018": {
+    "actor_groups": [
+      "G0122"
+    ],
+    "reference_count": 1
+  },
+  "DOJ Iran Indictments September 2020": {
+    "actor_groups": [
+      "G0087"
+    ],
+    "reference_count": 1
+  },
+  "DOJ KVBotnet 2024": {
+    "actor_groups": [
+      "G1017"
+    ],
+    "reference_count": 1
+  },
+  "DOJ North Korea Indictment Feb 2021": {
+    "actor_groups": [
+      "G0082"
+    ],
+    "reference_count": 1
+  },
+  "DOJ Russia Targeting Critical Infrastructure March 2022": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "DRAGONFISH": {
+    "actor_groups": [
+      "G0030"
+    ],
+    "reference_count": 1
+  },
+  "DUBNIUM": {
+    "actor_groups": [
+      "G0012"
+    ],
+    "reference_count": 1
+  },
+  "DYMALLOY": {
+    "actor_groups": [
+      "G0035",
+      "G0074"
+    ],
+    "reference_count": 2
+  },
+  "Dark Caracal": {
+    "actor_groups": [
+      "G0070"
+    ],
+    "reference_count": 1
+  },
+  "Dark Halo": {
+    "actor_groups": [
+      "G0016",
+      "G0118"
+    ],
+    "reference_count": 2
+  },
+  "Dark Reading APT39 JAN 2019": {
+    "actor_groups": [
+      "G0087"
+    ],
+    "reference_count": 1
+  },
+  "Dark Reading Codoso Feb 2015": {
+    "actor_groups": [
+      "G0073"
+    ],
+    "reference_count": 1
+  },
+  "DarkHydrus": {
+    "actor_groups": [
+      "G0079"
+    ],
+    "reference_count": 1
+  },
+  "DarkReading FireEye FIN5 Oct 2015": {
+    "actor_groups": [
+      "G0053"
+    ],
+    "reference_count": 1
+  },
+  "DarkVishnya": {
+    "actor_groups": [
+      "G0105"
+    ],
+    "reference_count": 1
+  },
+  "Darkhotel": {
+    "actor_groups": [
+      "G0012"
+    ],
+    "reference_count": 1
+  },
+  "Datadog Contagious Interview Tenacious Pungsan October 2024": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "DazedToad": {
+    "actor_groups": [
+      "G1017"
+    ],
+    "reference_count": 1
+  },
+  "DeceptiveDevelopment": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "Deep Panda": {
+    "actor_groups": [
+      "G0009"
+    ],
+    "reference_count": 1
+  },
+  "Dell Lateral Movement": {
+    "actor_groups": [
+      "G0026"
+    ],
+    "reference_count": 1
+  },
+  "Dell SecureWorks BRONZE STARLIGHT Profile": {
+    "actor_groups": [
+      "G1021"
+    ],
+    "reference_count": 1
+  },
+  "Dell TG-1314": {
+    "actor_groups": [
+      "G0028"
+    ],
+    "reference_count": 1
+  },
+  "Dell TG-3390": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "Dell Threat Group 2889": {
+    "actor_groups": [
+      "G0003"
+    ],
+    "reference_count": 1
+  },
+  "Dept. of Treasury Iran Sanctions September 2020": {
+    "actor_groups": [
+      "G0087"
+    ],
+    "reference_count": 1
+  },
+  "Deputy Dog": {
+    "actor_groups": [
+      "G0025"
+    ],
+    "reference_count": 1
+  },
+  "Desert Falcon": {
+    "actor_groups": [
+      "G1028"
+    ],
+    "reference_count": 1
+  },
+  "Diamond Sleet": {
+    "actor_groups": [
+      "G0032"
+    ],
+    "reference_count": 1
+  },
+  "District Court of NY APT10 Indictment December 2018": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "Domain Tools Handala Hack Karma Homeland Justice MOIS April 2026": {
+    "actor_groups": [
+      "G1055"
+    ],
+    "reference_count": 1
+  },
+  "DomainTools WinterVivern 2021": {
+    "actor_groups": [
+      "G1035"
+    ],
+    "reference_count": 1
+  },
+  "DragonOK": {
+    "actor_groups": [
+      "G0017"
+    ],
+    "reference_count": 1
+  },
+  "Dragonfly": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "Dragonfly 2.0": {
+    "actor_groups": [
+      "G0074"
+    ],
+    "reference_count": 1
+  },
+  "Dragos 2025 Year in Review": {
+    "actor_groups": [
+      "G1017"
+    ],
+    "reference_count": 1
+  },
+  "Dragos DYMALLOY ": {
+    "actor_groups": [
+      "G0035",
+      "G0074"
+    ],
+    "reference_count": 2
+  },
+  "Dragos ELECTRUM": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "Dragos Hexane": {
+    "actor_groups": [
+      "G1001"
+    ],
+    "reference_count": 1
+  },
+  "Dragos PARISITE ": {
+    "actor_groups": [
+      "G0117"
+    ],
+    "reference_count": 1
+  },
+  "Dragos Raspite Aug 2018": {
+    "actor_groups": [
+      "G0077"
+    ],
+    "reference_count": 1
+  },
+  "Dragos Xenotime 2018": {
+    "actor_groups": [
+      "G0088"
+    ],
+    "reference_count": 1
+  },
+  "Dropping Elephant": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "Dust Storm": {
+    "actor_groups": [
+      "G0031"
+    ],
+    "reference_count": 1
+  },
+  "DustSquad": {
+    "actor_groups": [
+      "G0133"
+    ],
+    "reference_count": 1
+  },
+  "DustySky": {
+    "actor_groups": [
+      "G0021"
+    ],
+    "reference_count": 1
+  },
+  "DustySky2": {
+    "actor_groups": [
+      "G0021"
+    ],
+    "reference_count": 1
+  },
+  "DynCalc": {
+    "actor_groups": [
+      "G0005"
+    ],
+    "reference_count": 1
+  },
+  "Dynamite Panda": {
+    "actor_groups": [
+      "G0026"
+    ],
+    "reference_count": 1
+  },
+  "EARTH PRETA": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "ELBRUS": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "ELECTRUM": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "ESET BackdoorDiplomacy Jun 2021": {
+    "actor_groups": [
+      "G0135"
+    ],
+    "reference_count": 1
+  },
+  "ESET Contagious Interview BeaverTail InvisibleFerret February 2025": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "ESET Dukes October 2019": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "ESET EvasivePanda 2023": {
+    "actor_groups": [
+      "G1034"
+    ],
+    "reference_count": 1
+  },
+  "ESET EvasivePanda 2024": {
+    "actor_groups": [
+      "G1034"
+    ],
+    "reference_count": 1
+  },
+  "ESET EvilNum July 2020": {
+    "actor_groups": [
+      "G0120"
+    ],
+    "reference_count": 1
+  },
+  "ESET Exchange Mar 2021": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "ESET Gamaredon June 2020": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "ESET Gazer Aug 2017": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "ESET Gelsemium June 2021": {
+    "actor_groups": [
+      "G0141"
+    ],
+    "reference_count": 1
+  },
+  "ESET Machete July 2019": {
+    "actor_groups": [
+      "G0095"
+    ],
+    "reference_count": 1
+  },
+  "ESET MirrorFace DEC 2022": {
+    "actor_groups": [
+      "G1054"
+    ],
+    "reference_count": 1
+  },
+  "ESET Nomadic Octopus 2018": {
+    "actor_groups": [
+      "G0133"
+    ],
+    "reference_count": 1
+  },
+  "ESET OceanLotus": {
+    "actor_groups": [
+      "G0050"
+    ],
+    "reference_count": 1
+  },
+  "ESET OceanLotus Mar 2019": {
+    "actor_groups": [
+      "G0050"
+    ],
+    "reference_count": 1
+  },
+  "ESET RTM Feb 2017": {
+    "actor_groups": [
+      "G0048"
+    ],
+    "reference_count": 1
+  },
+  "ESET Sednit Part 3": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "ESET Turla Mosquito Jan 2018": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "ESET Turla PowerShell May 2019": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "ESET Windigo Mar 2014": {
+    "actor_groups": [
+      "G0124"
+    ],
+    "reference_count": 1
+  },
+  "ESET WinterVivern 2023": {
+    "actor_groups": [
+      "G1035"
+    ],
+    "reference_count": 1
+  },
+  "ESET Zebrocy May 2019": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "ESET_MuddyWater_Dec2025": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "EST Kimsuky April 2019": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "EST Kimsuky SmokeScreen April 2019": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "EUROPIUM": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Earth Akhlut": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "Earth Kasha": {
+    "actor_groups": [
+      "G1054"
+    ],
+    "reference_count": 1
+  },
+  "Earth Kumiho": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "Earth Simnavaz": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Earth Smilodon": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "Earth Vetala": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "EclecticIQ Mustang Panda PlugX": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "El Machete": {
+    "actor_groups": [
+      "G0095"
+    ],
+    "reference_count": 1
+  },
+  "Elderwood": {
+    "actor_groups": [
+      "G0066"
+    ],
+    "reference_count": 1
+  },
+  "Elderwood Gang": {
+    "actor_groups": [
+      "G0066"
+    ],
+    "reference_count": 1
+  },
+  "Elephant Beetle": {
+    "actor_groups": [
+      "G1016"
+    ],
+    "reference_count": 1
+  },
+  "Elfin": {
+    "actor_groups": [
+      "G0064"
+    ],
+    "reference_count": 1
+  },
+  "Emerald Sleet": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "Emissary Panda": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "Emperor Dragonfly": {
+    "actor_groups": [
+      "G1021"
+    ],
+    "reference_count": 1
+  },
+  "Energetic Bear": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "Equation": {
+    "actor_groups": [
+      "G0020"
+    ],
+    "reference_count": 1
+  },
+  "Esentire ContagiousInterview BeaverTail InvisibleFerret November 2024": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "Eset PlugX Korplug Mustang Panda March 2022": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Europol Cobalt Mar 2018": {
+    "actor_groups": [
+      "G0008",
+      "G0080"
+    ],
+    "reference_count": 2
+  },
+  "Evasive Panda": {
+    "actor_groups": [
+      "G1034"
+    ],
+    "reference_count": 1
+  },
+  "Evasive Serpens": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Evil Corp": {
+    "actor_groups": [
+      "G0119"
+    ],
+    "reference_count": 1
+  },
+  "Evilnum": {
+    "actor_groups": [
+      "G0120"
+    ],
+    "reference_count": 1
+  },
+  "Eweek Newscaster and Charming Kitten May 2014": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "F-Secure BlackEnergy 2014": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "F-Secure The Dukes": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "FBI BlackByte 2022": {
+    "actor_groups": [
+      "G1043"
+    ],
+    "reference_count": 1
+  },
+  "FBI FLASH APT39 September 2020": {
+    "actor_groups": [
+      "G0087"
+    ],
+    "reference_count": 1
+  },
+  "FIN10": {
+    "actor_groups": [
+      "G0051"
+    ],
+    "reference_count": 1
+  },
+  "FIN12": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "FIN4": {
+    "actor_groups": [
+      "G0085"
+    ],
+    "reference_count": 1
+  },
+  "FIN5": {
+    "actor_groups": [
+      "G0053"
+    ],
+    "reference_count": 1
+  },
+  "FIN6": {
+    "actor_groups": [
+      "G0037"
+    ],
+    "reference_count": 1
+  },
+  "FIN7": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "FIN8": {
+    "actor_groups": [
+      "G0061"
+    ],
+    "reference_count": 1
+  },
+  "FIREANT": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "FOX-IT May 2016 Mofang": {
+    "actor_groups": [
+      "G0103"
+    ],
+    "reference_count": 1
+  },
+  "FROZENBARENTS": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "FROZENLAKE": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "FSI Andariel Campaign Rifle July 2017": {
+    "actor_groups": [
+      "G0138"
+    ],
+    "reference_count": 1
+  },
+  "FalconFeeds_Iran_Mar2026": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "Fancy Bear": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT Groups": {
+    "actor_groups": [
+      "G0073"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT10 April 2017": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT10 Sept 2018": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT17": {
+    "actor_groups": [
+      "G0025"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT19": {
+    "actor_groups": [
+      "G0073"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT28": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT28 January 2017": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT29 Nov 2018": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT30": {
+    "actor_groups": [
+      "G0013"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT32 May 2017": {
+    "actor_groups": [
+      "G0050"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT33 Sept 2017": {
+    "actor_groups": [
+      "G0064"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT33 Webinar Sept 2017": {
+    "actor_groups": [
+      "G0064"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT34 Dec 2017": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT35 2018": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT37 Feb 2018": {
+    "actor_groups": [
+      "G0067"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT38 Oct 2018": {
+    "actor_groups": [
+      "G0082"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT39 Jan 2019": {
+    "actor_groups": [
+      "G0087"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT40 March 2019": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT41 2019": {
+    "actor_groups": [
+      "G0096"
+    ],
+    "reference_count": 1
+  },
+  "FireEye APT41 Aug 2019": {
+    "actor_groups": [
+      "G0096"
+    ],
+    "reference_count": 1
+  },
+  "FireEye CARBANAK June 2017": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "FireEye Chinese Espionage October 2019": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "FireEye Clandestine Wolf": {
+    "actor_groups": [
+      "G0022"
+    ],
+    "reference_count": 1
+  },
+  "FireEye EPS Awakens Part 2": {
+    "actor_groups": [
+      "G0023"
+    ],
+    "reference_count": 1
+  },
+  "FireEye FIN10 June 2017": {
+    "actor_groups": [
+      "G0051"
+    ],
+    "reference_count": 1
+  },
+  "FireEye FIN4 Stealing Insider NOV 2014": {
+    "actor_groups": [
+      "G0085"
+    ],
+    "reference_count": 1
+  },
+  "FireEye FIN6 Apr 2019": {
+    "actor_groups": [
+      "G0037"
+    ],
+    "reference_count": 1
+  },
+  "FireEye FIN6 April 2016": {
+    "actor_groups": [
+      "G0037"
+    ],
+    "reference_count": 1
+  },
+  "FireEye FIN7 April 2017": {
+    "actor_groups": [
+      "G0008",
+      "G0046"
+    ],
+    "reference_count": 2
+  },
+  "FireEye FIN7 Aug 2018": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "FireEye FIN7 March 2017": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "FireEye FIN7 Shim Databases": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "FireEye Fin8 May 2016": {
+    "actor_groups": [
+      "G0061"
+    ],
+    "reference_count": 1
+  },
+  "FireEye Hacking FIN4 Dec 2014": {
+    "actor_groups": [
+      "G0085"
+    ],
+    "reference_count": 1
+  },
+  "FireEye Hacking FIN4 Video Dec 2014": {
+    "actor_groups": [
+      "G0085"
+    ],
+    "reference_count": 1
+  },
+  "FireEye KEGTAP SINGLEMALT October 2020": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "FireEye MuddyWater Mar 2018": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "FireEye Obfuscation June 2017": {
+    "actor_groups": [
+      "G0061"
+    ],
+    "reference_count": 1
+  },
+  "FireEye Operation Double Tap": {
+    "actor_groups": [
+      "G0022"
+    ],
+    "reference_count": 1
+  },
+  "FireEye Operation Molerats": {
+    "actor_groups": [
+      "G0021"
+    ],
+    "reference_count": 1
+  },
+  "FireEye Operation Saffron Rose 2013": {
+    "actor_groups": [
+      "G0130"
+    ],
+    "reference_count": 1
+  },
+  "FireEye Periscope March 2018": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "FireEye Poison Ivy": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "FireEye Respond Webinar July 2017": {
+    "actor_groups": [
+      "G0053"
+    ],
+    "reference_count": 1
+  },
+  "FireEye Ryuk and Trickbot January 2019": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "FireEye SUNBURST Backdoor December 2020": {
+    "actor_groups": [
+      "G0016",
+      "G0118"
+    ],
+    "reference_count": 2
+  },
+  "FireEye Southeast Asia Threat Landscape March 2015": {
+    "actor_groups": [
+      "G1023"
+    ],
+    "reference_count": 1
+  },
+  "FireEye TEMP.Veles 2018": {
+    "actor_groups": [
+      "G0088"
+    ],
+    "reference_count": 1
+  },
+  "FireEye TEMP.Veles JSON April 2019": {
+    "actor_groups": [
+      "G0088"
+    ],
+    "reference_count": 1
+  },
+  "FireEye TRITON 2019": {
+    "actor_groups": [
+      "G0088"
+    ],
+    "reference_count": 1
+  },
+  "FireEye admin@338": {
+    "actor_groups": [
+      "G0018"
+    ],
+    "reference_count": 1
+  },
+  "Flying Kitten": {
+    "actor_groups": [
+      "G0130"
+    ],
+    "reference_count": 1
+  },
+  "Forcepoint BITTER Pakistan Oct 2016": {
+    "actor_groups": [
+      "G1002"
+    ],
+    "reference_count": 1
+  },
+  "Forcepoint Monsoon": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "Forest Blizzard": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Fortune Dragonfly 2.0 Sept 2017": {
+    "actor_groups": [
+      "G0035",
+      "G0074"
+    ],
+    "reference_count": 2
+  },
+  "Fox-It Anunak Feb 2015": {
+    "actor_groups": [
+      "G0008"
+    ],
+    "reference_count": 1
+  },
+  "FoxIT Wocao December 2019": {
+    "actor_groups": [
+      "G0116"
+    ],
+    "reference_count": 1
+  },
+  "Frozenvista": {
+    "actor_groups": [
+      "G1003"
+    ],
+    "reference_count": 1
+  },
+  "GALLIUM": {
+    "actor_groups": [
+      "G0093"
+    ],
+    "reference_count": 1
+  },
+  "GCMAN": {
+    "actor_groups": [
+      "G0036"
+    ],
+    "reference_count": 1
+  },
+  "GOLD BLACKBURN": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "GOLD CABIN": {
+    "actor_groups": [
+      "G0127"
+    ],
+    "reference_count": 1
+  },
+  "GOLD FEATHER": {
+    "actor_groups": [
+      "G1050"
+    ],
+    "reference_count": 1
+  },
+  "GOLD IONIC": {
+    "actor_groups": [
+      "G1032"
+    ],
+    "reference_count": 1
+  },
+  "GOLD KINGSWOOD": {
+    "actor_groups": [
+      "G0080"
+    ],
+    "reference_count": 1
+  },
+  "GOLD NIAGARA": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "GOLD PRELUDE": {
+    "actor_groups": [
+      "G1020"
+    ],
+    "reference_count": 1
+  },
+  "GOLD SAHARA": {
+    "actor_groups": [
+      "G1024"
+    ],
+    "reference_count": 1
+  },
+  "GREF": {
+    "actor_groups": [
+      "G0004"
+    ],
+    "reference_count": 1
+  },
+  "GRIZZLY STEPPE JAR": {
+    "actor_groups": [
+      "G0007",
+      "G0016"
+    ],
+    "reference_count": 2
+  },
+  "Gadolinium": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "Gallagher 2015": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "Gallmaker": {
+    "actor_groups": [
+      "G0084"
+    ],
+    "reference_count": 1
+  },
+  "Gamaredon Group": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "Gaza Cybergang": {
+    "actor_groups": [
+      "G0021"
+    ],
+    "reference_count": 1
+  },
+  "Ghost Blizzard": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "Gigamon Berserk Bear October 2021": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "Gingham Typhoon": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "Gleaming Pisces": {
+    "actor_groups": [
+      "G1049"
+    ],
+    "reference_count": 1
+  },
+  "Google Cloud Threat Intelligence VMWare ESXi Zero-Day 2023": {
+    "actor_groups": [
+      "G1048"
+    ],
+    "reference_count": 1
+  },
+  "Google EXOTIC LILY March 2022": {
+    "actor_groups": [
+      "G1011"
+    ],
+    "reference_count": 1
+  },
+  "Google Mandiant Storm-0501 Sabbath Ransomware November 2021": {
+    "actor_groups": [
+      "G1053"
+    ],
+    "reference_count": 1
+  },
+  "Google TAG COLDRIVER January 2024": {
+    "actor_groups": [
+      "G1033"
+    ],
+    "reference_count": 1
+  },
+  "Google Threat Intelligence Group MUSTANG PANDA PLUGX August 2025": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Gorgon Group": {
+    "actor_groups": [
+      "G0078"
+    ],
+    "reference_count": 1
+  },
+  "Gothic Panda": {
+    "actor_groups": [
+      "G0022"
+    ],
+    "reference_count": 1
+  },
+  "Granite Typhoon": {
+    "actor_groups": [
+      "G0093"
+    ],
+    "reference_count": 1
+  },
+  "Grey Karkadann": {
+    "actor_groups": [
+      "G1028"
+    ],
+    "reference_count": 1
+  },
+  "Grim Spider": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "Group 72": {
+    "actor_groups": [
+      "G0001"
+    ],
+    "reference_count": 1
+  },
+  "Group 74": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Group 88": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "Group IB APT 41 June 2021": {
+    "actor_groups": [
+      "G0096"
+    ],
+    "reference_count": 1
+  },
+  "Group IB Cobalt Aug 2017": {
+    "actor_groups": [
+      "G0080"
+    ],
+    "reference_count": 1
+  },
+  "Group123": {
+    "actor_groups": [
+      "G0067"
+    ],
+    "reference_count": 1
+  },
+  "Group5": {
+    "actor_groups": [
+      "G0043"
+    ],
+    "reference_count": 1
+  },
+  "GruesomeLarch": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Guardians of Peace": {
+    "actor_groups": [
+      "G0032"
+    ],
+    "reference_count": 1
+  },
+  "Gwisin Gang": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "HIDDEN COBRA": {
+    "actor_groups": [
+      "G0032"
+    ],
+    "reference_count": 1
+  },
+  "HIVE0154": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "HOGFISH": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "HOLMIUM": {
+    "actor_groups": [
+      "G0064"
+    ],
+    "reference_count": 1
+  },
+  "Hacker News LuckyMouse June 2018": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "HackerNews IndigoZebra July 2021": {
+    "actor_groups": [
+      "G0136"
+    ],
+    "reference_count": 1
+  },
+  "Handala Hack": {
+    "actor_groups": [
+      "G1055"
+    ],
+    "reference_count": 1
+  },
+  "Hangover Group": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "Haq 2014": {
+    "actor_groups": [
+      "G0002"
+    ],
+    "reference_count": 1
+  },
+  "Hazel Sandstorm": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Hecamede": {
+    "actor_groups": [
+      "G1043"
+    ],
+    "reference_count": 1
+  },
+  "Helix Kitten": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Hive0065": {
+    "actor_groups": [
+      "G0092"
+    ],
+    "reference_count": 1
+  },
+  "Homeland Justice": {
+    "actor_groups": [
+      "G1055"
+    ],
+    "reference_count": 1
+  },
+  "Honeybee": {
+    "actor_groups": [
+      "G0072"
+    ],
+    "reference_count": 1
+  },
+  "HorseShell": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Howling Scorpius": {
+    "actor_groups": [
+      "G1024"
+    ],
+    "reference_count": 1
+  },
+  "Hunt Sea Turtle 2024": {
+    "actor_groups": [
+      "G1041"
+    ],
+    "reference_count": 1
+  },
+  "Huntio_IranInfra_Mar2026": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "IBM ITG18 2020": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "IBM MUSTANG PANDA PUBLOAD CLAIMLOADER JUNE 2025": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "IBM Ransomware Trends September 2020": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "IBM TA505 April 2020": {
+    "actor_groups": [
+      "G0092"
+    ],
+    "reference_count": 1
+  },
+  "IBM X-Force ITG23 Oct 2021": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "IBM ZeroCleare Wiper December 2019": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "ICIT China's Espionage Jul 2016": {
+    "actor_groups": [
+      "G0009",
+      "G0073"
+    ],
+    "reference_count": 2
+  },
+  "IRIDIUM": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "IRN2": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "IRON HEMLOCK": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "IRON HUNTER": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "IRON LIBERTY": {
+    "actor_groups": [
+      "G0035",
+      "G0074"
+    ],
+    "reference_count": 2
+  },
+  "IRON RITUAL": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "IRON TILDEN": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "IRON TWILIGHT": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "IRON VIKING": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "ITG07": {
+    "actor_groups": [
+      "G0087"
+    ],
+    "reference_count": 1
+  },
+  "ITG08": {
+    "actor_groups": [
+      "G0037"
+    ],
+    "reference_count": 1
+  },
+  "ITG13": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "ITG14": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "ITG18": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "ITG23": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "IXESHE": {
+    "actor_groups": [
+      "G0005"
+    ],
+    "reference_count": 1
+  },
+  "Inception": {
+    "actor_groups": [
+      "G0100"
+    ],
+    "reference_count": 1
+  },
+  "Inception Framework": {
+    "actor_groups": [
+      "G0100"
+    ],
+    "reference_count": 1
+  },
+  "IndigoZebra": {
+    "actor_groups": [
+      "G0136"
+    ],
+    "reference_count": 1
+  },
+  "InfoSecurity Sandworm Oct 2014": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "InkySquid": {
+    "actor_groups": [
+      "G0067"
+    ],
+    "reference_count": 1
+  },
+  "Insidious Taurus": {
+    "actor_groups": [
+      "G1017"
+    ],
+    "reference_count": 1
+  },
+  "Intel471 Medusa Ransomware May 2025": {
+    "actor_groups": [
+      "G1051"
+    ],
+    "reference_count": 1
+  },
+  "Intezer TeamTNT Explosion September 2021": {
+    "actor_groups": [
+      "G0139"
+    ],
+    "reference_count": 1
+  },
+  "Intezer TeamTNT September 2020": {
+    "actor_groups": [
+      "G0139"
+    ],
+    "reference_count": 1
+  },
+  "IranThreats Kittens Dec 2017": {
+    "actor_groups": [
+      "G0130"
+    ],
+    "reference_count": 1
+  },
+  "Iron Tiger": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "IronNet BlackTech Oct 2021": {
+    "actor_groups": [
+      "G0098"
+    ],
+    "reference_count": 1
+  },
+  "IssueMakersLab Andariel GoldenAxe May 2017": {
+    "actor_groups": [
+      "G0138"
+    ],
+    "reference_count": 1
+  },
+  "JPCERT MirrorFace JUL 2024": {
+    "actor_groups": [
+      "G1054"
+    ],
+    "reference_count": 1
+  },
+  "JPCert Blog Laz Subgroups 2025": {
+    "actor_groups": [
+      "G0032",
+      "G1049"
+    ],
+    "reference_count": 2
+  },
+  "Joint Cybersecurity Advisory AA23-129A Snake Malware May 2023": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "Joint Cybersecurity Advisory Volt Typhoon June 2023": {
+    "actor_groups": [
+      "G1017"
+    ],
+    "reference_count": 1
+  },
+  "Karma": {
+    "actor_groups": [
+      "G1055"
+    ],
+    "reference_count": 1
+  },
+  "Karma Panda": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "Karmabelow80": {
+    "actor_groups": [
+      "G1055"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky BlindEagle AUG 2024": {
+    "actor_groups": [
+      "G0099"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky CactusPete Aug 2020": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky Carbanak": {
+    "actor_groups": [
+      "G0008"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky Cloud Atlas December 2014": {
+    "actor_groups": [
+      "G0100"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky Darkhotel": {
+    "actor_groups": [
+      "G0012"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky Equation QA": {
+    "actor_groups": [
+      "G0020"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky Ferocious Kitten Jun 2021": {
+    "actor_groups": [
+      "G0137"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky LODEINFO OCT 2022": {
+    "actor_groups": [
+      "G1054"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky LODEINFO Part II OCT 2022": {
+    "actor_groups": [
+      "G1054"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky Lazarus Under The Hood Blog 2017": {
+    "actor_groups": [
+      "G0082"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky LuminousMoth July 2021": {
+    "actor_groups": [
+      "G1014"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky Lyceum October 2021": {
+    "actor_groups": [
+      "G1001"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky MoleRATs April 2019": {
+    "actor_groups": [
+      "G0021"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky Poseidon Group": {
+    "actor_groups": [
+      "G0033"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky ProjectSauron Blog": {
+    "actor_groups": [
+      "G0041"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky ProjectSauron Full Report": {
+    "actor_groups": [
+      "G0041"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky Sofacy": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky ToddyCat Check Logs October 2023": {
+    "actor_groups": [
+      "G1022"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky ToddyCat June 2022": {
+    "actor_groups": [
+      "G1022"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky Transparent Tribe August 2020": {
+    "actor_groups": [
+      "G0134"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky Turla": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky WIRTE November 2021": {
+    "actor_groups": [
+      "G0090"
+    ],
+    "reference_count": 1
+  },
+  "Kaspersky Winnti April 2013": {
+    "actor_groups": [
+      "G0001",
+      "G0044"
+    ],
+    "reference_count": 2
+  },
+  "Kaspersky Winnti June 2015": {
+    "actor_groups": [
+      "G0001",
+      "G0044"
+    ],
+    "reference_count": 2
+  },
+  "Ke3chang": {
+    "actor_groups": [
+      "G0004"
+    ],
+    "reference_count": 1
+  },
+  "KeyBoy": {
+    "actor_groups": [
+      "G0081"
+    ],
+    "reference_count": 1
+  },
+  "Keyhole Panda": {
+    "actor_groups": [
+      "G1023"
+    ],
+    "reference_count": 1
+  },
+  "Kimsuky": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "Korean FSI TA505 2020": {
+    "actor_groups": [
+      "G0092"
+    ],
+    "reference_count": 1
+  },
+  "Krypton": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "Kryptonite Panda": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "KungFu Kittens": {
+    "actor_groups": [
+      "G0009"
+    ],
+    "reference_count": 1
+  },
+  "LUMINOUS MOTH": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Lab52 WIRTE Apr 2019": {
+    "actor_groups": [
+      "G0090"
+    ],
+    "reference_count": 1
+  },
+  "Labyrinth Chollima": {
+    "actor_groups": [
+      "G0032"
+    ],
+    "reference_count": 1
+  },
+  "Lacework TeamTNT May 2021": {
+    "actor_groups": [
+      "G0139"
+    ],
+    "reference_count": 1
+  },
+  "Latrodectus APR 2024": {
+    "actor_groups": [
+      "G1037",
+      "G1038"
+    ],
+    "reference_count": 2
+  },
+  "Lazarus Group": {
+    "actor_groups": [
+      "G0032"
+    ],
+    "reference_count": 1
+  },
+  "LazyScripter": {
+    "actor_groups": [
+      "G0140"
+    ],
+    "reference_count": 1
+  },
+  "Leafminer": {
+    "actor_groups": [
+      "G0077"
+    ],
+    "reference_count": 1
+  },
+  "Lebanese Cedar": {
+    "actor_groups": [
+      "G0123"
+    ],
+    "reference_count": 1
+  },
+  "Lemon Sandstorm": {
+    "actor_groups": [
+      "G0117"
+    ],
+    "reference_count": 1
+  },
+  "Leonard TAG 2023": {
+    "actor_groups": [
+      "G0007",
+      "G0034"
+    ],
+    "reference_count": 2
+  },
+  "Leonardo Turla Penquin May 2020": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "Leviathan": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "Linen Typhoon": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "Lookout Dark Caracal Jan 2018": {
+    "actor_groups": [
+      "G0070"
+    ],
+    "reference_count": 1
+  },
+  "Lorec53": {
+    "actor_groups": [
+      "G1031"
+    ],
+    "reference_count": 1
+  },
+  "Lotus Blossom": {
+    "actor_groups": [
+      "G0030"
+    ],
+    "reference_count": 1
+  },
+  "Lotus Blossom Jun 2015": {
+    "actor_groups": [
+      "G0030"
+    ],
+    "reference_count": 1
+  },
+  "LuckyMouse": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "Lyceum": {
+    "actor_groups": [
+      "G1001"
+    ],
+    "reference_count": 1
+  },
+  "MANGANESE": {
+    "actor_groups": [
+      "G1023"
+    ],
+    "reference_count": 1
+  },
+  "MERCURY": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "MONSOON": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "MSFT-AI": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "MSRC Nobelium June 2021": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "MSTIC DEV-0537 Mar 2022": {
+    "actor_groups": [
+      "G1004"
+    ],
+    "reference_count": 1
+  },
+  "MSTIC GADOLINIUM September 2020": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "MSTIC NOBELIUM Mar 2021": {
+    "actor_groups": [
+      "G0016",
+      "G0118"
+    ],
+    "reference_count": 2
+  },
+  "MSTIC NOBELIUM May 2021": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "MSTIC Nobelium Toolset May 2021": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "MSTIC Octo Tempest Operations October 2023": {
+    "actor_groups": [
+      "G1015"
+    ],
+    "reference_count": 1
+  },
+  "MSUpdater": {
+    "actor_groups": [
+      "G0024"
+    ],
+    "reference_count": 1
+  },
+  "MUDCARP": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "Machete": {
+    "actor_groups": [
+      "G0095"
+    ],
+    "reference_count": 1
+  },
+  "Magecart Group 6": {
+    "actor_groups": [
+      "G0037"
+    ],
+    "reference_count": 1
+  },
+  "Magic Hound": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "MalwareBytes LazyScripter Feb 2021": {
+    "actor_groups": [
+      "G0140"
+    ],
+    "reference_count": 1
+  },
+  "MalwareBytes SideCopy Dec 2021": {
+    "actor_groups": [
+      "G1008"
+    ],
+    "reference_count": 1
+  },
+  "Malwarebytes Higaisa 2020": {
+    "actor_groups": [
+      "G0126"
+    ],
+    "reference_count": 1
+  },
+  "Malwarebytes Kimsuky June 2021": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "Malwarebytes Silent Librarian October 2020": {
+    "actor_groups": [
+      "G0122"
+    ],
+    "reference_count": 1
+  },
+  "Manatee Tempest": {
+    "actor_groups": [
+      "G0119"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant 3cx UNC4736 2023": {
+    "actor_groups": [
+      "G1049"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant APT1": {
+    "actor_groups": [
+      "G0006"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant APT29 Eye Spy Email Nov 22": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant APT42-charms": {
+    "actor_groups": [
+      "G1044"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant APT42-untangling": {
+    "actor_groups": [
+      "G1044"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant APT43 March 2024": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant Advanced Persistent Threats": {
+    "actor_groups": [
+      "G1023"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant DPRK Groups 2023": {
+    "actor_groups": [
+      "G0032",
+      "G1049"
+    ],
+    "reference_count": 2
+  },
+  "Mandiant DPRK Laz Org Breakdown 2022": {
+    "actor_groups": [
+      "G0032"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant FIN12 Oct 2021": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant FIN13 Aug 2022": {
+    "actor_groups": [
+      "G1016"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant FIN5 GrrCON Oct 2016": {
+    "actor_groups": [
+      "G0053"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant FIN7 Apr 2022": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant Fortinet Zero Day": {
+    "actor_groups": [
+      "G1048"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant Operation Ke3chang November 2014": {
+    "actor_groups": [
+      "G0004"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant Pulse Secure Update May 2021": {
+    "actor_groups": [
+      "G1023"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant Pulse Secure Zero-Day April 2021": {
+    "actor_groups": [
+      "G1023"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant UNC2589 March 2022": {
+    "actor_groups": [
+      "G1003"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant UNC3944 May 2025": {
+    "actor_groups": [
+      "G1015"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant Ukraine Cyber Threats January 2022": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant VMware vSphere JUL 2025": {
+    "actor_groups": [
+      "G1015"
+    ],
+    "reference_count": 1
+  },
+  "Mandiant_UNC2165": {
+    "actor_groups": [
+      "G0119"
+    ],
+    "reference_count": 1
+  },
+  "Mango Sandstorm": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "Mantis": {
+    "actor_groups": [
+      "G1028"
+    ],
+    "reference_count": 1
+  },
+  "Marbled Dust": {
+    "actor_groups": [
+      "G1041"
+    ],
+    "reference_count": 1
+  },
+  "Marigold Sandstorm": {
+    "actor_groups": [
+      "G1009"
+    ],
+    "reference_count": 1
+  },
+  "McAfee Honeybee": {
+    "actor_groups": [
+      "G0072"
+    ],
+    "reference_count": 1
+  },
+  "McAfee Night Dragon": {
+    "actor_groups": [
+      "G0014"
+    ],
+    "reference_count": 1
+  },
+  "McAfee Sharpshooter December 2018": {
+    "actor_groups": [
+      "G0104"
+    ],
+    "reference_count": 1
+  },
+  "Meyers Numbered Panda": {
+    "actor_groups": [
+      "G0005"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Actinium February 2022": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft BlackByte 2023": {
+    "actor_groups": [
+      "G1043"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft DUBNIUM Flash June 2016": {
+    "actor_groups": [
+      "G0012"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft DUBNIUM July 2016": {
+    "actor_groups": [
+      "G0012"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft DUBNIUM June 2016": {
+    "actor_groups": [
+      "G0012"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Digital Defense 2021": {
+    "actor_groups": [
+      "G1041"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Digital Defense FY20 Sept 2020": {
+    "actor_groups": [
+      "G0012"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft East Asia Threats September 2023": {
+    "actor_groups": [
+      "G1023"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft GALLIUM December 2019": {
+    "actor_groups": [
+      "G0093"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft HAFNIUM March 2020": {
+    "actor_groups": [
+      "G0125"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Holmium June 2020": {
+    "actor_groups": [
+      "G0064"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Iran Cyber 2023": {
+    "actor_groups": [
+      "G1030"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Iranian Threat Actor Trends November 2021": {
+    "actor_groups": [
+      "G1012"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Moonstone Sleet 2024": {
+    "actor_groups": [
+      "G1036"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft NEODYMIUM Dec 2016": {
+    "actor_groups": [
+      "G0055",
+      "G0056"
+    ],
+    "reference_count": 2
+  },
+  "Microsoft NICKEL December 2021": {
+    "actor_groups": [
+      "G0004"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Naming Conventions Frequently Updated": {
+    "actor_groups": [
+      "G0027",
+      "G0129"
+    ],
+    "reference_count": 2
+  },
+  "Microsoft PLATINUM April 2016": {
+    "actor_groups": [
+      "G0068"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft POLONIUM June 2022": {
+    "actor_groups": [
+      "G1005"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Phosphorus Mar 2019": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Phosphorus Oct 2020": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Prestige ransomware October 2022": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Ransomware as a Service": {
+    "actor_groups": [
+      "G0046",
+      "G1020",
+      "G1021"
+    ],
+    "reference_count": 3
+  },
+  "Microsoft SIR Vol 21": {
+    "actor_groups": [
+      "G0055",
+      "G0056"
+    ],
+    "reference_count": 2
+  },
+  "Microsoft STRONTIUM Aug 2019": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft STRONTIUM New Patterns Cred Harvesting Sept 2020": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Silk Typhoon MAR 2025": {
+    "actor_groups": [
+      "G0125"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Star Blizzard August 2022": {
+    "actor_groups": [
+      "G1033"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Storm-0501 Embargo Ransomware August 2025": {
+    "actor_groups": [
+      "G1053"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Storm-1811 2024": {
+    "actor_groups": [
+      "G1046"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Storm-501 Sabbath Ransomware Embargo September 2024": {
+    "actor_groups": [
+      "G1053"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Targeting Elections September 2020": {
+    "actor_groups": [
+      "G0128"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Threat Actor Naming July 2023": {
+    "actor_groups": [
+      "G0004",
+      "G0007",
+      "G0010",
+      "G0012",
+      "G0016",
+      "G0030",
+      "G0032",
+      "G0034",
+      "G0035",
+      "G0037",
+      "G0046",
+      "G0047",
+      "G0049",
+      "G0050",
+      "G0059",
+      "G0064",
+      "G0065",
+      "G0069",
+      "G0082",
+      "G0092",
+      "G0093",
+      "G0094",
+      "G0096",
+      "G0102",
+      "G0117",
+      "G0119",
+      "G0125",
+      "G0128",
+      "G0138",
+      "G1004",
+      "G1005",
+      "G1006",
+      "G1009",
+      "G1012",
+      "G1015",
+      "G1020",
+      "G1021",
+      "G1023",
+      "G1030"
+    ],
+    "reference_count": 39
+  },
+  "Microsoft Unidentified Dec 2018": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft Volt Typhoon May 2023": {
+    "actor_groups": [
+      "G1017"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft ZINC disruption Dec 2017": {
+    "actor_groups": [
+      "G0032"
+    ],
+    "reference_count": 1
+  },
+  "Microsoft_PistachioTempest_Jan2024": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "Midnight Blizzard": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "Mint Sandstorm": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "Mirage": {
+    "actor_groups": [
+      "G0004"
+    ],
+    "reference_count": 1
+  },
+  "Moafee": {
+    "actor_groups": [
+      "G0002"
+    ],
+    "reference_count": 1
+  },
+  "Molerats": {
+    "actor_groups": [
+      "G0021"
+    ],
+    "reference_count": 1
+  },
+  "Moran 2014": {
+    "actor_groups": [
+      "G0005"
+    ],
+    "reference_count": 1
+  },
+  "Morphisec Cobalt Gang Oct 2018": {
+    "actor_groups": [
+      "G0080"
+    ],
+    "reference_count": 1
+  },
+  "Morphisec FIN7 June 2017": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "MoustachedBouncer ESET August 2023": {
+    "actor_groups": [
+      "G1019"
+    ],
+    "reference_count": 1
+  },
+  "MuddyKrill": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "MuddyWater": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "Mulberry Typhoon": {
+    "actor_groups": [
+      "G1023"
+    ],
+    "reference_count": 1
+  },
+  "Mustang Panda": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Mythic Leopard": {
+    "actor_groups": [
+      "G0134"
+    ],
+    "reference_count": 1
+  },
+  "NCC Group APT15 Alive and Strong": {
+    "actor_groups": [
+      "G0004"
+    ],
+    "reference_count": 1
+  },
+  "NCC Group Chimera January 2021": {
+    "actor_groups": [
+      "G0114"
+    ],
+    "reference_count": 1
+  },
+  "NCC Group TA505": {
+    "actor_groups": [
+      "G0092"
+    ],
+    "reference_count": 1
+  },
+  "NCSC APT29 July 2020": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "NCSC Sandworm Feb 2020": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "NEODYMIUM": {
+    "actor_groups": [
+      "G0055"
+    ],
+    "reference_count": 1
+  },
+  "NICKEL": {
+    "actor_groups": [
+      "G0004"
+    ],
+    "reference_count": 1
+  },
+  "NICKEL ACADEMY": {
+    "actor_groups": [
+      "G0032"
+    ],
+    "reference_count": 1
+  },
+  "NICKEL GLADSTONE": {
+    "actor_groups": [
+      "G0082"
+    ],
+    "reference_count": 1
+  },
+  "NOBELIUM": {
+    "actor_groups": [
+      "G0016",
+      "G0118"
+    ],
+    "reference_count": 2
+  },
+  "NSA APT5 Citrix Threat Hunting December 2022": {
+    "actor_groups": [
+      "G1023"
+    ],
+    "reference_count": 1
+  },
+  "NSA Joint Advisory SVR SolarWinds April 2021": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "NSA/FBI Drovorub August 2020": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Naikon": {
+    "actor_groups": [
+      "G0019"
+    ],
+    "reference_count": 1
+  },
+  "NastyShrew": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "NaumaanProofpoint_GlobalClickFix_April2025": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "Nccgroup Emissary Panda May 2018": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "Nearest Neighbor Volexity": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Netscout Stolen Pencil Dec 2018": {
+    "actor_groups": [
+      "G0086",
+      "G0094"
+    ],
+    "reference_count": 2
+  },
+  "New DragonOK": {
+    "actor_groups": [
+      "G0017"
+    ],
+    "reference_count": 1
+  },
+  "Newscaster": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "Night Dragon": {
+    "actor_groups": [
+      "G0014"
+    ],
+    "reference_count": 1
+  },
+  "NobleBaron": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "Nomadic Octopus": {
+    "actor_groups": [
+      "G0133"
+    ],
+    "reference_count": 1
+  },
+  "Novetta Blockbuster": {
+    "actor_groups": [
+      "G0032"
+    ],
+    "reference_count": 1
+  },
+  "Novetta Winnti April 2015": {
+    "actor_groups": [
+      "G0001",
+      "G0044"
+    ],
+    "reference_count": 2
+  },
+  "Novetta-Axiom": {
+    "actor_groups": [
+      "G0001"
+    ],
+    "reference_count": 1
+  },
+  "Numbered Panda": {
+    "actor_groups": [
+      "G0005"
+    ],
+    "reference_count": 1
+  },
+  "Nylon Typhoon": {
+    "actor_groups": [
+      "G0004"
+    ],
+    "reference_count": 1
+  },
+  "OceanLotus": {
+    "actor_groups": [
+      "G0050"
+    ],
+    "reference_count": 1
+  },
+  "Octo Tempest": {
+    "actor_groups": [
+      "G1015"
+    ],
+    "reference_count": 1
+  },
+  "OilRig": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Onyx Sleet": {
+    "actor_groups": [
+      "G0138"
+    ],
+    "reference_count": 1
+  },
+  "Operation Exchange Marauder": {
+    "actor_groups": [
+      "G0125"
+    ],
+    "reference_count": 1
+  },
+  "Operation Hangover": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "Operation Hangover May 2013": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "Operation Molerats": {
+    "actor_groups": [
+      "G0021"
+    ],
+    "reference_count": 1
+  },
+  "Operation Quantum Entanglement": {
+    "actor_groups": [
+      "G0017"
+    ],
+    "reference_count": 1
+  },
+  "Operation Saffron Rose": {
+    "actor_groups": [
+      "G0130"
+    ],
+    "reference_count": 1
+  },
+  "Operation Wocao": {
+    "actor_groups": [
+      "G0116"
+    ],
+    "reference_count": 1
+  },
+  "Operation Woolen-Goldfish": {
+    "actor_groups": [
+      "G0130"
+    ],
+    "reference_count": 1
+  },
+  "Orangeworm": {
+    "actor_groups": [
+      "G0071"
+    ],
+    "reference_count": 1
+  },
+  "PLATINUM": {
+    "actor_groups": [
+      "G0068"
+    ],
+    "reference_count": 1
+  },
+  "PLUTONIUM": {
+    "actor_groups": [
+      "G0138"
+    ],
+    "reference_count": 1
+  },
+  "POTASSIUM": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "PROMETHIUM": {
+    "actor_groups": [
+      "G0056"
+    ],
+    "reference_count": 1
+  },
+  "PTSecurity Cobalt Dec 2016": {
+    "actor_groups": [
+      "G0080"
+    ],
+    "reference_count": 1
+  },
+  "PTSecurity Cobalt Group Aug 2017": {
+    "actor_groups": [
+      "G0080"
+    ],
+    "reference_count": 1
+  },
+  "PTSecurity Higaisa 2020": {
+    "actor_groups": [
+      "G0126"
+    ],
+    "reference_count": 1
+  },
+  "PUNK SPIDER": {
+    "actor_groups": [
+      "G1024"
+    ],
+    "reference_count": 1
+  },
+  "PWC Cloud Hopper April 2017": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "PWC Pirpi Scanbox": {
+    "actor_groups": [
+      "G0022"
+    ],
+    "reference_count": 1
+  },
+  "PWC Sea Turtle 2023": {
+    "actor_groups": [
+      "G1041"
+    ],
+    "reference_count": 1
+  },
+  "PWC UK MUSTANG PANDA RED LICH February 2021": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "PWC WellMess C2 August 2020": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "PWC WellMess July 2020": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "PWC Yellow Liderc 2023": {
+    "actor_groups": [
+      "G1012"
+    ],
+    "reference_count": 1
+  },
+  "Palmerworm": {
+    "actor_groups": [
+      "G0098"
+    ],
+    "reference_count": 1
+  },
+  "Palo Alto Ashen Lepus DEC 2025": {
+    "actor_groups": [
+      "G0090"
+    ],
+    "reference_count": 1
+  },
+  "Palo Alto Black-T October 2020": {
+    "actor_groups": [
+      "G0139"
+    ],
+    "reference_count": 1
+  },
+  "Palo Alto Gamaredon Feb 2017": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "Palo Alto Howling Scorpius DEC 2024": {
+    "actor_groups": [
+      "G1024"
+    ],
+    "reference_count": 1
+  },
+  "Palo Alto Networks, Unit 42": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Palo Alto OilRig April 2017": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Palo Alto OilRig May 2016": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Palo Alto OilRig Oct 2016": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Palo Alto Sofacy 06-2018": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Palo Alto Unit 42 OutSteel SaintBot February 2022 ": {
+    "actor_groups": [
+      "G1003",
+      "G1031"
+    ],
+    "reference_count": 2
+  },
+  "Palo Alto Unit42 STATELY TAURUS TONESHELL September 2023": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Palo Alto VOID MANTICORE Iran Cyber Threats March 2026": {
+    "actor_groups": [
+      "G1055"
+    ],
+    "reference_count": 1
+  },
+  "Palo Alto menuPass Feb 2017": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "PaloAlto ContagiousInterview BeaverTail InvisibleFerret November 2023": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "PaloAlto Patchwork Mar 2018": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "PaloAlto Unit42 ContagiousInterview BeaverTail InvisibileFerret October 2024": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "Parisite": {
+    "actor_groups": [
+      "G0117"
+    ],
+    "reference_count": 1
+  },
+  "Patchwork": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "PatheticSlug": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "Pawn Storm": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Peach Sandstorm": {
+    "actor_groups": [
+      "G0064"
+    ],
+    "reference_count": 1
+  },
+  "Periwinkle Tempest": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "Phish Labs Silent Librarian": {
+    "actor_groups": [
+      "G0122"
+    ],
+    "reference_count": 1
+  },
+  "Phosphorus": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "Picus BlackByte 2022": {
+    "actor_groups": [
+      "G1043"
+    ],
+    "reference_count": 1
+  },
+  "Pinchy Spider": {
+    "actor_groups": [
+      "G0115"
+    ],
+    "reference_count": 1
+  },
+  "Pink Sandstorm": {
+    "actor_groups": [
+      "G1030"
+    ],
+    "reference_count": 1
+  },
+  "PinkPanther": {
+    "actor_groups": [
+      "G0009"
+    ],
+    "reference_count": 1
+  },
+  "Pioneer Kitten": {
+    "actor_groups": [
+      "G0117"
+    ],
+    "reference_count": 1
+  },
+  "Pirate Panda": {
+    "actor_groups": [
+      "G0081"
+    ],
+    "reference_count": 1
+  },
+  "Pirpi": {
+    "actor_groups": [
+      "G0022"
+    ],
+    "reference_count": 1
+  },
+  "Pistachio Tempest": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "PittyTiger": {
+    "actor_groups": [
+      "G0011"
+    ],
+    "reference_count": 1
+  },
+  "Plaid Rain": {
+    "actor_groups": [
+      "G1005"
+    ],
+    "reference_count": 1
+  },
+  "Playful Dragon": {
+    "actor_groups": [
+      "G0004"
+    ],
+    "reference_count": 1
+  },
+  "Poseidon Group": {
+    "actor_groups": [
+      "G0033"
+    ],
+    "reference_count": 1
+  },
+  "Primitive Bear": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "ProjectM": {
+    "actor_groups": [
+      "G0134"
+    ],
+    "reference_count": 1
+  },
+  "ProjectSauron": {
+    "actor_groups": [
+      "G0041"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint Cobalt June 2017": {
+    "actor_groups": [
+      "G0080"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint Iranian Aligned Attacks JAN 2020": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint Leviathan Oct 2017": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint Operation Transparent Tribe March 2016": {
+    "actor_groups": [
+      "G0134"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint TA2541 February 2022": {
+    "actor_groups": [
+      "G1018"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint TA407 September 2019": {
+    "actor_groups": [
+      "G0122"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint TA416 Europe March 2022": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint TA416 November 2020": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint TA427 April 2024": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint TA450 Phishing March 2024": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint TA453 July2021": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint TA453 March 2021": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint TA456 Defense Contractor July 2021": {
+    "actor_groups": [
+      "G1012"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint TA459 April 2017": {
+    "actor_groups": [
+      "G0062"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint TA505 Jan 2019": {
+    "actor_groups": [
+      "G0092"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint TA505 June 2018": {
+    "actor_groups": [
+      "G0092"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint TA505 Sep 2017": {
+    "actor_groups": [
+      "G0092"
+    ],
+    "reference_count": 1
+  },
+  "Proofpoint WinterVivern 2023": {
+    "actor_groups": [
+      "G1035"
+    ],
+    "reference_count": 1
+  },
+  "PurpleBravo": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "Putter Panda": {
+    "actor_groups": [
+      "G0024"
+    ],
+    "reference_count": 1
+  },
+  "Pylos Xenotime 2019": {
+    "actor_groups": [
+      "G0088"
+    ],
+    "reference_count": 1
+  },
+  "QiAnXin APT-C-36 Feb2019": {
+    "actor_groups": [
+      "G0099"
+    ],
+    "reference_count": 1
+  },
+  "Quedagh": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "RADIUM": {
+    "actor_groups": [
+      "G0030"
+    ],
+    "reference_count": 1
+  },
+  "REDBALDKNIGHT": {
+    "actor_groups": [
+      "G0060"
+    ],
+    "reference_count": 1
+  },
+  "RSA Shell Crew": {
+    "actor_groups": [
+      "G0009"
+    ],
+    "reference_count": 1
+  },
+  "RTM": {
+    "actor_groups": [
+      "G0048"
+    ],
+    "reference_count": 1
+  },
+  "RUBIDIUM": {
+    "actor_groups": [
+      "G0117"
+    ],
+    "reference_count": 1
+  },
+  "Rancor": {
+    "actor_groups": [
+      "G0075"
+    ],
+    "reference_count": 1
+  },
+  "Rancor Unit42 June 2018": {
+    "actor_groups": [
+      "G0075"
+    ],
+    "reference_count": 1
+  },
+  "Rapid7 Threat Landscape Actors March 2026": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "Raspberry Typhoon": {
+    "actor_groups": [
+      "G0030"
+    ],
+    "reference_count": 1
+  },
+  "Raspite": {
+    "actor_groups": [
+      "G0077"
+    ],
+    "reference_count": 1
+  },
+  "Rattlesnake": {
+    "actor_groups": [
+      "G0121"
+    ],
+    "reference_count": 1
+  },
+  "Reaper": {
+    "actor_groups": [
+      "G0067"
+    ],
+    "reference_count": 1
+  },
+  "Reaqta MuddyWater November 2017": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "Recorded Future APT3 May 2017": {
+    "actor_groups": [
+      "G0022"
+    ],
+    "reference_count": 1
+  },
+  "Recorded Future Contagious Inteview BeaverTail InvisibleFerret OtterCookie February 2025": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "Recorded Future REDDELTA July 2020": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Recorded Future RedHotel August 2023": {
+    "actor_groups": [
+      "G1006"
+    ],
+    "reference_count": 1
+  },
+  "Recorded Future TAG-144 AUG 2025": {
+    "actor_groups": [
+      "G0099"
+    ],
+    "reference_count": 1
+  },
+  "Recorded Future TAG-22 July 2021": {
+    "actor_groups": [
+      "G1006"
+    ],
+    "reference_count": 1
+  },
+  "RecordedFuture RedEcho 2021": {
+    "actor_groups": [
+      "G1042"
+    ],
+    "reference_count": 1
+  },
+  "RecordedFuture RedEcho 2022": {
+    "actor_groups": [
+      "G1042"
+    ],
+    "reference_count": 1
+  },
+  "Red Apollo": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "Red Lich": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Red Sandstorm": {
+    "actor_groups": [
+      "G1055"
+    ],
+    "reference_count": 1
+  },
+  "RedCanary June Insights 2024": {
+    "actor_groups": [
+      "G1046"
+    ],
+    "reference_count": 1
+  },
+  "RedCanary Mockingbird May 2020": {
+    "actor_groups": [
+      "G0108"
+    ],
+    "reference_count": 1
+  },
+  "RedCanary Storm-1811 2024": {
+    "actor_groups": [
+      "G1046"
+    ],
+    "reference_count": 1
+  },
+  "RedDelta": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Remix Kitten": {
+    "actor_groups": [
+      "G0087"
+    ],
+    "reference_count": 1
+  },
+  "Reuters Taiwan BlackTech August 2020": {
+    "actor_groups": [
+      "G0098"
+    ],
+    "reference_count": 1
+  },
+  "Ricochet Chollima": {
+    "actor_groups": [
+      "G0067"
+    ],
+    "reference_count": 1
+  },
+  "RiskIQ Cobalt Jan 2018": {
+    "actor_groups": [
+      "G0080"
+    ],
+    "reference_count": 1
+  },
+  "RiskIQ Cobalt Nov 2017": {
+    "actor_groups": [
+      "G0080"
+    ],
+    "reference_count": 1
+  },
+  "Roasted 0ktapus": {
+    "actor_groups": [
+      "G1015"
+    ],
+    "reference_count": 1
+  },
+  "Rocket Kitten": {
+    "actor_groups": [
+      "G0130"
+    ],
+    "reference_count": 1
+  },
+  "RoyalAPT": {
+    "actor_groups": [
+      "G0004"
+    ],
+    "reference_count": 1
+  },
+  "SANS Windshift August 2018": {
+    "actor_groups": [
+      "G0112"
+    ],
+    "reference_count": 1
+  },
+  "SCILabs Malteiro 2021": {
+    "actor_groups": [
+      "G1026"
+    ],
+    "reference_count": 1
+  },
+  "SEABORGIUM": {
+    "actor_groups": [
+      "G1033"
+    ],
+    "reference_count": 1
+  },
+  "SILICON": {
+    "actor_groups": [
+      "G1041"
+    ],
+    "reference_count": 1
+  },
+  "SNAKEMACKEREL": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "STATELY TAURUS": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "STRONTIUM": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Sandworm Team": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "Sangria Tempest": {
+    "actor_groups": [
+      "G0046"
+    ],
+    "reference_count": 1
+  },
+  "Sapphire Sleet": {
+    "actor_groups": [
+      "G0082"
+    ],
+    "reference_count": 1
+  },
+  "ScarCruft": {
+    "actor_groups": [
+      "G0067"
+    ],
+    "reference_count": 1
+  },
+  "Scarlet Mimic": {
+    "actor_groups": [
+      "G0029"
+    ],
+    "reference_count": 1
+  },
+  "Scarlet Mimic Jan 2016": {
+    "actor_groups": [
+      "G0029"
+    ],
+    "reference_count": 1
+  },
+  "SeaLotus": {
+    "actor_groups": [
+      "G0050"
+    ],
+    "reference_count": 1
+  },
+  "Seashell Blizzard": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "Secret Blizzard": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "SecureList Silence Nov 2017": {
+    "actor_groups": [
+      "G0091"
+    ],
+    "reference_count": 1
+  },
+  "SecureWorks August 2019": {
+    "actor_groups": [
+      "G1001"
+    ],
+    "reference_count": 1
+  },
+  "SecureWorks BRONZE MOHAWK n.d.": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "SecureWorks BRONZE STARLIGHT Ransomware Operations June 2022": {
+    "actor_groups": [
+      "G0045",
+      "G1021"
+    ],
+    "reference_count": 2
+  },
+  "SecureWorks BRONZE UNION June 2017": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "SecureWorks NICKEL GLADSTONE profile Sept 2021": {
+    "actor_groups": [
+      "G0082"
+    ],
+    "reference_count": 1
+  },
+  "SecureWorks TG-4127": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Securelist APT Trends April 2018": {
+    "actor_groups": [
+      "G0121"
+    ],
+    "reference_count": 1
+  },
+  "Securelist APT Trends Q2 2017": {
+    "actor_groups": [
+      "G0063",
+      "G0136"
+    ],
+    "reference_count": 2
+  },
+  "Securelist BlackOasis Oct 2017": {
+    "actor_groups": [
+      "G0063"
+    ],
+    "reference_count": 1
+  },
+  "Securelist DarkVishnya Dec 2018": {
+    "actor_groups": [
+      "G0105"
+    ],
+    "reference_count": 1
+  },
+  "Securelist Darkhotel Aug 2015": {
+    "actor_groups": [
+      "G0012"
+    ],
+    "reference_count": 1
+  },
+  "Securelist Dropping Elephant": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "Securelist GCMAN": {
+    "actor_groups": [
+      "G0036"
+    ],
+    "reference_count": 1
+  },
+  "Securelist Kimsuky Sept 2013": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "Securelist LuckyMouse June 2018": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "Securelist Machete Aug 2014": {
+    "actor_groups": [
+      "G0095"
+    ],
+    "reference_count": 1
+  },
+  "Securelist Octopus Oct 2018": {
+    "actor_groups": [
+      "G0133"
+    ],
+    "reference_count": 1
+  },
+  "Securelist ScarCruft Jun 2016": {
+    "actor_groups": [
+      "G0067"
+    ],
+    "reference_count": 1
+  },
+  "Securelist ScarCruft May 2019": {
+    "actor_groups": [
+      "G0067"
+    ],
+    "reference_count": 1
+  },
+  "Securelist Sofacy Feb 2018": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Securelist WhiteBear Aug 2017": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks BRONZE BUTLER Oct 2017": {
+    "actor_groups": [
+      "G0060"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks BRONZE FLEETWOOD Profile": {
+    "actor_groups": [
+      "G1023"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks BRONZE HUNTLEY ": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks BRONZE PRESIDENT December 2019": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks BRONZE SILHOUETTE May 2023": {
+    "actor_groups": [
+      "G1017"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks COBALT DICKENS August 2018": {
+    "actor_groups": [
+      "G0122"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks COBALT DICKENS September 2019": {
+    "actor_groups": [
+      "G0122"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks COBALT GYPSY Threat Profile": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks COBALT ILLUSION Threat Profile": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks COPPER FIELDSTONE Profile": {
+    "actor_groups": [
+      "G0134"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks GOLD CABIN": {
+    "actor_groups": [
+      "G0127"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks GOLD IONIC April 2024": {
+    "actor_groups": [
+      "G1032"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks GOLD KINGSWOOD September 2018": {
+    "actor_groups": [
+      "G0080"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks GOLD KINGSWOOD Threat Profile": {
+    "actor_groups": [
+      "G0008"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks GOLD NIAGARA Threat Profile": {
+    "actor_groups": [
+      "G0008",
+      "G0046"
+    ],
+    "reference_count": 2
+  },
+  "Secureworks GOLD SAHARA": {
+    "actor_groups": [
+      "G1024"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks GOLD SOUTHFIELD": {
+    "actor_groups": [
+      "G0115"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks GandCrab and REvil September 2019": {
+    "actor_groups": [
+      "G0115"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks Gold Blackburn Mar 2022": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks Gold Prelude Profile": {
+    "actor_groups": [
+      "G1020"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks IRON HEMLOCK Profile": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks IRON HUNTER Profile": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks IRON LIBERTY": {
+    "actor_groups": [
+      "G0074"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks IRON LIBERTY July 2019": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks IRON RITUAL Profile": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks IRON TILDEN Profile": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks IRON TWILIGHT Active Measures March 2017": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks IRON TWILIGHT Profile": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks IRON VIKING ": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks Karagany July 2019": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks MCMD July 2019": {
+    "actor_groups": [
+      "G0035",
+      "G0074"
+    ],
+    "reference_count": 2
+  },
+  "Secureworks NICKEL ACADEMY Dec 2017": {
+    "actor_groups": [
+      "G0032"
+    ],
+    "reference_count": 1
+  },
+  "Secureworks REvil September 2019": {
+    "actor_groups": [
+      "G0115"
+    ],
+    "reference_count": 1
+  },
+  "Security Affairs DustSquad Oct 2018": {
+    "actor_groups": [
+      "G0133"
+    ],
+    "reference_count": 1
+  },
+  "Security Affairs Elderwood Sept 2012": {
+    "actor_groups": [
+      "G0066"
+    ],
+    "reference_count": 1
+  },
+  "Security Intelligence ITG08 April 2020": {
+    "actor_groups": [
+      "G0037"
+    ],
+    "reference_count": 1
+  },
+  "Security Intelligence More Eggs Aug 2019": {
+    "actor_groups": [
+      "G0037"
+    ],
+    "reference_count": 1
+  },
+  "Security Scorecard Medusa Ransomware January 2024": {
+    "actor_groups": [
+      "G1051"
+    ],
+    "reference_count": 1
+  },
+  "SecurityWeek Nomadic Octopus Oct 2018": {
+    "actor_groups": [
+      "G0133"
+    ],
+    "reference_count": 1
+  },
+  "Securonix Contagious Interview DEVPOPPER April 2024": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "Sednit": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Seedworm": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "Sentinel One Contagious Interview ClickFix September 2025": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "SentinelLabs Metador Sept 2022": {
+    "actor_groups": [
+      "G1013"
+    ],
+    "reference_count": 1
+  },
+  "SentinelOne Agrius 2021": {
+    "actor_groups": [
+      "G1030"
+    ],
+    "reference_count": 1
+  },
+  "SentinelOne Aoqin Dragon June 2022": {
+    "actor_groups": [
+      "G1007"
+    ],
+    "reference_count": 1
+  },
+  "SentinelOne INC Ransomware": {
+    "actor_groups": [
+      "G1032"
+    ],
+    "reference_count": 1
+  },
+  "SentinelOne NobleBaron June 2021": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "SentinelOne WinterVivern 2023": {
+    "actor_groups": [
+      "G1035"
+    ],
+    "reference_count": 1
+  },
+  "Shathak": {
+    "actor_groups": [
+      "G0127"
+    ],
+    "reference_count": 1
+  },
+  "Shell Crew": {
+    "actor_groups": [
+      "G0009"
+    ],
+    "reference_count": 1
+  },
+  "Shuckworm": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "Siamesekitten": {
+    "actor_groups": [
+      "G1001"
+    ],
+    "reference_count": 1
+  },
+  "Silence": {
+    "actor_groups": [
+      "G0091"
+    ],
+    "reference_count": 1
+  },
+  "Silent Chollima": {
+    "actor_groups": [
+      "G0138"
+    ],
+    "reference_count": 1
+  },
+  "Silk Typhoon": {
+    "actor_groups": [
+      "G0125"
+    ],
+    "reference_count": 1
+  },
+  "SilverTerrier": {
+    "actor_groups": [
+      "G0083"
+    ],
+    "reference_count": 1
+  },
+  "Skeleton Spider": {
+    "actor_groups": [
+      "G0037"
+    ],
+    "reference_count": 1
+  },
+  "Snake": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "Sneaky Panda": {
+    "actor_groups": [
+      "G0066"
+    ],
+    "reference_count": 1
+  },
+  "SocGholish-update": {
+    "actor_groups": [
+      "G1020"
+    ],
+    "reference_count": 1
+  },
+  "Sofacy": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Sofacy DealersChoice": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "SolarStorm": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "Sophos Mustang Panda PLUGX": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Sophos PlugX September 2022": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Sophos Qilin MSP APR 2025": {
+    "actor_groups": [
+      "G1050"
+    ],
+    "reference_count": 1
+  },
+  "Sophos VOID MANTICORE COBALT MYSTIQUE other Names April 2026": {
+    "actor_groups": [
+      "G1055"
+    ],
+    "reference_count": 1
+  },
+  "Sowbug": {
+    "actor_groups": [
+      "G0054"
+    ],
+    "reference_count": 1
+  },
+  "Spandex Tempest": {
+    "actor_groups": [
+      "G0092"
+    ],
+    "reference_count": 1
+  },
+  "Spirlin": {
+    "actor_groups": [
+      "G1001"
+    ],
+    "reference_count": 1
+  },
+  "Spring Dragon": {
+    "actor_groups": [
+      "G0030"
+    ],
+    "reference_count": 1
+  },
+  "Spring Dragon Jun 2015": {
+    "actor_groups": [
+      "G0030"
+    ],
+    "reference_count": 1
+  },
+  "Springtail": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "StarBlizzard": {
+    "actor_groups": [
+      "G1033"
+    ],
+    "reference_count": 1
+  },
+  "Stardust Chollima": {
+    "actor_groups": [
+      "G0082"
+    ],
+    "reference_count": 1
+  },
+  "Static Kitten": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "Stealth Falcon": {
+    "actor_groups": [
+      "G0038"
+    ],
+    "reference_count": 1
+  },
+  "StellarParticle": {
+    "actor_groups": [
+      "G0118"
+    ],
+    "reference_count": 1
+  },
+  "Stolen Pencil": {
+    "actor_groups": [
+      "G0086"
+    ],
+    "reference_count": 1
+  },
+  "Stone Panda": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "Storm-0587": {
+    "actor_groups": [
+      "G1031"
+    ],
+    "reference_count": 1
+  },
+  "Storm-0875": {
+    "actor_groups": [
+      "G1015"
+    ],
+    "reference_count": 1
+  },
+  "Storm-1789": {
+    "actor_groups": [
+      "G1036"
+    ],
+    "reference_count": 1
+  },
+  "Strawberry Tempest": {
+    "actor_groups": [
+      "G1004"
+    ],
+    "reference_count": 1
+  },
+  "Strider": {
+    "actor_groups": [
+      "G0041"
+    ],
+    "reference_count": 1
+  },
+  "StrongPity": {
+    "actor_groups": [
+      "G0056"
+    ],
+    "reference_count": 1
+  },
+  "Suckfly": {
+    "actor_groups": [
+      "G0039"
+    ],
+    "reference_count": 1
+  },
+  "Sunshop Group": {
+    "actor_groups": [
+      "G0073"
+    ],
+    "reference_count": 1
+  },
+  "Swallowtail": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Sygnia Elephant Beetle Jan 2022": {
+    "actor_groups": [
+      "G1016"
+    ],
+    "reference_count": 1
+  },
+  "Sygnia Emperor Dragonfly October 2022": {
+    "actor_groups": [
+      "G1021"
+    ],
+    "reference_count": 1
+  },
+  "Sygnia VelvetAnt 2024A": {
+    "actor_groups": [
+      "G1047"
+    ],
+    "reference_count": 1
+  },
+  "Sygnia VelvetAnt 2024B": {
+    "actor_groups": [
+      "G1047"
+    ],
+    "reference_count": 1
+  },
+  "Symantec APT28 Oct 2018": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Bilbug 2022": {
+    "actor_groups": [
+      "G0030"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Black Vine": {
+    "actor_groups": [
+      "G0009"
+    ],
+    "reference_count": 1
+  },
+  "Symantec BlackByte 2022": {
+    "actor_groups": [
+      "G1043"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Buckeye": {
+    "actor_groups": [
+      "G0022"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Chafer Dec 2015": {
+    "actor_groups": [
+      "G0087"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Cicada November 2020": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Crambus OCT 2023": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Daggerfly 2023": {
+    "actor_groups": [
+      "G1034"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Daggerfly 2024": {
+    "actor_groups": [
+      "G1034"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Dragonfly": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Dragonfly 2.0 October 2017": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Dragonfly Sept 2017": {
+    "actor_groups": [
+      "G0035",
+      "G0074"
+    ],
+    "reference_count": 2
+  },
+  "Symantec Elderwood Sept 2012": {
+    "actor_groups": [
+      "G0066"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Elfin Mar 2019": {
+    "actor_groups": [
+      "G0064"
+    ],
+    "reference_count": 1
+  },
+  "Symantec FIN8 Jul 2023": {
+    "actor_groups": [
+      "G0061"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Gallmaker Oct 2018": {
+    "actor_groups": [
+      "G0084"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Inception Framework March 2018": {
+    "actor_groups": [
+      "G0100"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Leafminer July 2018": {
+    "actor_groups": [
+      "G0077"
+    ],
+    "reference_count": 1
+  },
+  "Symantec MuddyWater Dec 2018": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Orangeworm April 2018": {
+    "actor_groups": [
+      "G0071"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Palmerworm Sep 2020": {
+    "actor_groups": [
+      "G0098"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Patchwork": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Shuckworm January 2022": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Sowbug Nov 2017": {
+    "actor_groups": [
+      "G0054"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Strider Blog": {
+    "actor_groups": [
+      "G0041"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Suckfly March 2016": {
+    "actor_groups": [
+      "G0039",
+      "G0044"
+    ],
+    "reference_count": 2
+  },
+  "Symantec Suckfly May 2016": {
+    "actor_groups": [
+      "G0039"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Thrip June 2018": {
+    "actor_groups": [
+      "G0076"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Tick Apr 2016": {
+    "actor_groups": [
+      "G0060"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Tortoiseshell 2019": {
+    "actor_groups": [
+      "G1012"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Troll Stealer 2024": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Waterbug": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "Symantec Whitefly March 2019": {
+    "actor_groups": [
+      "G0107"
+    ],
+    "reference_count": 1
+  },
+  "SymantecCarbonBlack_Seedworm_Mar2026": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "Syssphinx": {
+    "actor_groups": [
+      "G0061"
+    ],
+    "reference_count": 1
+  },
+  "T-APT-04": {
+    "actor_groups": [
+      "G0121"
+    ],
+    "reference_count": 1
+  },
+  "T-APT-17": {
+    "actor_groups": [
+      "G1002"
+    ],
+    "reference_count": 1
+  },
+  "TA407": {
+    "actor_groups": [
+      "G0122"
+    ],
+    "reference_count": 1
+  },
+  "TA416": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "TA427": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "TA446": {
+    "actor_groups": [
+      "G1033"
+    ],
+    "reference_count": 1
+  },
+  "TA450": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "TA452": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "TA453": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "TA456": {
+    "actor_groups": [
+      "G1012"
+    ],
+    "reference_count": 1
+  },
+  "TA459": {
+    "actor_groups": [
+      "G0062"
+    ],
+    "reference_count": 1
+  },
+  "TA471": {
+    "actor_groups": [
+      "G1031"
+    ],
+    "reference_count": 1
+  },
+  "TA473": {
+    "actor_groups": [
+      "G1035"
+    ],
+    "reference_count": 1
+  },
+  "TA569": {
+    "actor_groups": [
+      "G1020"
+    ],
+    "reference_count": 1
+  },
+  "TAAL": {
+    "actor_groups": [
+      "G0037"
+    ],
+    "reference_count": 1
+  },
+  "TAG-121": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "TAG-144": {
+    "actor_groups": [
+      "G0099"
+    ],
+    "reference_count": 1
+  },
+  "TAG-22": {
+    "actor_groups": [
+      "G1006"
+    ],
+    "reference_count": 1
+  },
+  "TANTALUM": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "TEMP.Hex": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "TEMP.Isotope": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "TEMP.Jumper": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "TEMP.MixMaster": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "TEMP.Periscope": {
+    "actor_groups": [
+      "G0065"
+    ],
+    "reference_count": 1
+  },
+  "TEMP.Reaper": {
+    "actor_groups": [
+      "G0067"
+    ],
+    "reference_count": 1
+  },
+  "TEMP.Veles": {
+    "actor_groups": [
+      "G0088"
+    ],
+    "reference_count": 1
+  },
+  "TEMP.Zagros": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "TG-0110": {
+    "actor_groups": [
+      "G0022"
+    ],
+    "reference_count": 1
+  },
+  "TG-0416": {
+    "actor_groups": [
+      "G0026"
+    ],
+    "reference_count": 1
+  },
+  "TG-1314": {
+    "actor_groups": [
+      "G0028"
+    ],
+    "reference_count": 1
+  },
+  "TG-2889": {
+    "actor_groups": [
+      "G0003"
+    ],
+    "reference_count": 1
+  },
+  "TG-3390": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "TG-4127": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "TG-4192": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "THALLIUM": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "TWILL TYPHOON": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Talos Bisonal 10 Years March 2020": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "Talos Bisonal Mar 2020": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "Talos Cobalt Group July 2018": {
+    "actor_groups": [
+      "G0080"
+    ],
+    "reference_count": 1
+  },
+  "Talos Frankenstein June 2019": {
+    "actor_groups": [
+      "G0101"
+    ],
+    "reference_count": 1
+  },
+  "Talos Group123": {
+    "actor_groups": [
+      "G0067"
+    ],
+    "reference_count": 1
+  },
+  "Talos MuddyWater Jan 2022": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "Talos Promethium June 2020": {
+    "actor_groups": [
+      "G0056"
+    ],
+    "reference_count": 1
+  },
+  "Talos Rocke August 2018": {
+    "actor_groups": [
+      "G0106"
+    ],
+    "reference_count": 1
+  },
+  "Talos Sea Turtle 2019": {
+    "actor_groups": [
+      "G1041"
+    ],
+    "reference_count": 1
+  },
+  "Talos Sea Turtle 2019_2": {
+    "actor_groups": [
+      "G1041"
+    ],
+    "reference_count": 1
+  },
+  "Talos Seduploader Oct 2017": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Talos TinyTurla September 2021": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "Talos Transparent Tribe May 2021": {
+    "actor_groups": [
+      "G0134"
+    ],
+    "reference_count": 1
+  },
+  "Teal Kurma": {
+    "actor_groups": [
+      "G1041"
+    ],
+    "reference_count": 1
+  },
+  "Telebots": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "Tenacious Pungsan": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "The Dukes": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "Threat Group 2889": {
+    "actor_groups": [
+      "G0003"
+    ],
+    "reference_count": 1
+  },
+  "Threat Group-0110": {
+    "actor_groups": [
+      "G0022"
+    ],
+    "reference_count": 1
+  },
+  "Threat Group-0416": {
+    "actor_groups": [
+      "G0026"
+    ],
+    "reference_count": 1
+  },
+  "Threat Group-1314": {
+    "actor_groups": [
+      "G0028"
+    ],
+    "reference_count": 1
+  },
+  "Threat Group-3390": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "Threat Group-4127": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "ThreatConnect Anthem": {
+    "actor_groups": [
+      "G0009"
+    ],
+    "reference_count": 1
+  },
+  "ThreatConnect Kimsuky September 2020": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "ThreatStream Evasion Analysis": {
+    "actor_groups": [
+      "G0026"
+    ],
+    "reference_count": 1
+  },
+  "Thrip": {
+    "actor_groups": [
+      "G0030",
+      "G0076"
+    ],
+    "reference_count": 2
+  },
+  "Tick": {
+    "actor_groups": [
+      "G0060"
+    ],
+    "reference_count": 1
+  },
+  "Tonto Team": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "Tortoise Shell": {
+    "actor_groups": [
+      "G1012"
+    ],
+    "reference_count": 1
+  },
+  "Treasury EvilCorp Dec 2019": {
+    "actor_groups": [
+      "G0119"
+    ],
+    "reference_count": 1
+  },
+  "Treasury North Korean Cyber Groups September 2019": {
+    "actor_groups": [
+      "G0032",
+      "G0138"
+    ],
+    "reference_count": 2
+  },
+  "Trend Micro Cheerscrypt May 2022": {
+    "actor_groups": [
+      "G1021"
+    ],
+    "reference_count": 1
+  },
+  "Trend Micro DRBControl February 2020": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "Trend Micro Daserf Nov 2017": {
+    "actor_groups": [
+      "G0060"
+    ],
+    "reference_count": 1
+  },
+  "Trend Micro Earth Kasha NOV 2024": {
+    "actor_groups": [
+      "G1054"
+    ],
+    "reference_count": 1
+  },
+  "Trend Micro Earth Kasha Updates APR 2025": {
+    "actor_groups": [
+      "G1054"
+    ],
+    "reference_count": 1
+  },
+  "Trend Micro Earth Simnavaz October 2024": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Trend Micro HeartBeat Campaign January 2013": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "Trend Micro Iron Tiger April 2021": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "Trend Micro MUSTANG PANDA PUBLOAD HIUPAN SEPTEMBER 2024": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Trend Micro Muddy Water March 2021": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "Trend Micro Mustang Panda Earth Preta TONESHELL June 2023": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Trend Micro Mustang Panda Earth Preta Toneshell February 2025": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Trend Micro Ransomware Spotlight Play July 2023": {
+    "actor_groups": [
+      "G1040"
+    ],
+    "reference_count": 1
+  },
+  "Trend Micro TeamTNT": {
+    "actor_groups": [
+      "G0139"
+    ],
+    "reference_count": 1
+  },
+  "Trend Micro Tick November 2019": {
+    "actor_groups": [
+      "G0060"
+    ],
+    "reference_count": 1
+  },
+  "TrendMicro BlackTech June 2017": {
+    "actor_groups": [
+      "G0098"
+    ],
+    "reference_count": 1
+  },
+  "TrendMicro Confucius APT Aug 2021": {
+    "actor_groups": [
+      "G0142"
+    ],
+    "reference_count": 1
+  },
+  "TrendMicro Confucius APT Feb 2018": {
+    "actor_groups": [
+      "G0142"
+    ],
+    "reference_count": 1
+  },
+  "TrendMicro EarthLusca 2022": {
+    "actor_groups": [
+      "G1006"
+    ],
+    "reference_count": 1
+  },
+  "TrendMicro Gamaredon April 2020": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "TrendMicro New Andariel Tactics July 2018": {
+    "actor_groups": [
+      "G0138"
+    ],
+    "reference_count": 1
+  },
+  "TrendMicro Operation Woolen Goldfish March 2015": {
+    "actor_groups": [
+      "G0130"
+    ],
+    "reference_count": 1
+  },
+  "TrendMicro Patchwork Dec 2017": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "TrendMicro Pawn Storm Dec 2020": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "TrendMicro Tonto Team October 2020": {
+    "actor_groups": [
+      "G0131"
+    ],
+    "reference_count": 1
+  },
+  "TrendMicro Tropic Trooper Mar 2018": {
+    "actor_groups": [
+      "G0081"
+    ],
+    "reference_count": 1
+  },
+  "TrendMicro Tropic Trooper May 2020": {
+    "actor_groups": [
+      "G0081"
+    ],
+    "reference_count": 1
+  },
+  "Tropic Trooper": {
+    "actor_groups": [
+      "G0081"
+    ],
+    "reference_count": 1
+  },
+  "Tsar Team": {
+    "actor_groups": [
+      "G0007"
+    ],
+    "reference_count": 1
+  },
+  "Turla": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "Two-tailed Scorpion": {
+    "actor_groups": [
+      "G1028"
+    ],
+    "reference_count": 1
+  },
+  "UAC-0056": {
+    "actor_groups": [
+      "G1003",
+      "G1031"
+    ],
+    "reference_count": 2
+  },
+  "UAC-0114": {
+    "actor_groups": [
+      "G1035"
+    ],
+    "reference_count": 1
+  },
+  "UK GOV FSB Factsheet April 2022": {
+    "actor_groups": [
+      "G0035"
+    ],
+    "reference_count": 1
+  },
+  "UK Gov Malign RIS Activity April 2021": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "UK Gov UK Exposes Russia SolarWinds April 2021": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "UK NCSC Olympic Attacks October 2020": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "UK NSCS Russia SolarWinds April 2021": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "UNC1543": {
+    "actor_groups": [
+      "G1020"
+    ],
+    "reference_count": 1
+  },
+  "UNC1720": {
+    "actor_groups": [
+      "G1049"
+    ],
+    "reference_count": 1
+  },
+  "UNC1878": {
+    "actor_groups": [
+      "G0102"
+    ],
+    "reference_count": 1
+  },
+  "UNC2165": {
+    "actor_groups": [
+      "G0119"
+    ],
+    "reference_count": 1
+  },
+  "UNC2452": {
+    "actor_groups": [
+      "G0016",
+      "G0118"
+    ],
+    "reference_count": 2
+  },
+  "UNC2589": {
+    "actor_groups": [
+      "G1003"
+    ],
+    "reference_count": 1
+  },
+  "UNC2630": {
+    "actor_groups": [
+      "G1023"
+    ],
+    "reference_count": 1
+  },
+  "UNC3236": {
+    "actor_groups": [
+      "G1017"
+    ],
+    "reference_count": 1
+  },
+  "UNC3524": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "UNC3944": {
+    "actor_groups": [
+      "G1015"
+    ],
+    "reference_count": 1
+  },
+  "UNC4736": {
+    "actor_groups": [
+      "G1049"
+    ],
+    "reference_count": 1
+  },
+  "UNC6384": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "UNC757": {
+    "actor_groups": [
+      "G0117"
+    ],
+    "reference_count": 1
+  },
+  "UNIT 42 LAPSUS Mar 2022": {
+    "actor_groups": [
+      "G1004"
+    ],
+    "reference_count": 1
+  },
+  "UPS Team": {
+    "actor_groups": [
+      "G0022"
+    ],
+    "reference_count": 1
+  },
+  "US Dept. of Treasury Salt Typhoon JAN 2025": {
+    "actor_groups": [
+      "G1045"
+    ],
+    "reference_count": 1
+  },
+  "US District Court Indictment GRU Oct 2018": {
+    "actor_groups": [
+      "G0007",
+      "G0034"
+    ],
+    "reference_count": 2
+  },
+  "US District Court Indictment GRU Unit 74455 October 2020": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "US District Court of DC Phosphorus Complaint 2019": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "US-CERT HIDDEN COBRA June 2017": {
+    "actor_groups": [
+      "G0032"
+    ],
+    "reference_count": 1
+  },
+  "US-CERT HOPLIGHT Apr 2019": {
+    "actor_groups": [
+      "G0032"
+    ],
+    "reference_count": 1
+  },
+  "US-CERT TA18-074A": {
+    "actor_groups": [
+      "G0074"
+    ],
+    "reference_count": 1
+  },
+  "USDOJ Sandworm Feb 2020": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 BackConfig May 2020": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 C0d0so0 Jan 2016": {
+    "actor_groups": [
+      "G0073"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 DarkHydrus July 2018": {
+    "actor_groups": [
+      "G0079"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 Gamaredon February 2022": {
+    "actor_groups": [
+      "G0047"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 Gorgon Group Aug 2018": {
+    "actor_groups": [
+      "G0078"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 Hildegard Malware": {
+    "actor_groups": [
+      "G0139"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 Inception November 2018": {
+    "actor_groups": [
+      "G0100"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 Magic Hound Feb 2017": {
+    "actor_groups": [
+      "G0059"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 MuddyWater Nov 2017": {
+    "actor_groups": [
+      "G0069"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 PingPull Jun 2022": {
+    "actor_groups": [
+      "G0093"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 Playbook Dec 2017": {
+    "actor_groups": [
+      "G0049",
+      "G0079"
+    ],
+    "reference_count": 2
+  },
+  "Unit 42 ProjectM March 2016": {
+    "actor_groups": [
+      "G0134"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 QUADAGENT July 2018": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 SolarStorm December 2020": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 TA551 Jan 2021": {
+    "actor_groups": [
+      "G0127"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 Tropic Trooper Nov 2016": {
+    "actor_groups": [
+      "G0081"
+    ],
+    "reference_count": 1
+  },
+  "Unit 42 Valak July 2020": {
+    "actor_groups": [
+      "G0127"
+    ],
+    "reference_count": 1
+  },
+  "Unit42 Agrius 2023": {
+    "actor_groups": [
+      "G1030"
+    ],
+    "reference_count": 1
+  },
+  "Unit42 Bookworm Nov2015": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Unit42 Chinese VSCode 06 September 2024": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Unit42 DPRK Threat Groups 2024": {
+    "actor_groups": [
+      "G1049"
+    ],
+    "reference_count": 1
+  },
+  "Unit42 Emissary Panda May 2019": {
+    "actor_groups": [
+      "G0027"
+    ],
+    "reference_count": 1
+  },
+  "Unit42 OilRig Playbook 2023": {
+    "actor_groups": [
+      "G0049"
+    ],
+    "reference_count": 1
+  },
+  "Unit42 SilverTerrier 2016": {
+    "actor_groups": [
+      "G0083"
+    ],
+    "reference_count": 1
+  },
+  "Unit42 SilverTerrier 2018": {
+    "actor_groups": [
+      "G0083"
+    ],
+    "reference_count": 1
+  },
+  "Uptycs Confucius APT Jan 2021": {
+    "actor_groups": [
+      "G0142"
+    ],
+    "reference_count": 1
+  },
+  "Validin Contagious Interview North Korea ClickFix January 2025": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "Vanguard Panda": {
+    "actor_groups": [
+      "G1017"
+    ],
+    "reference_count": 1
+  },
+  "Velvet Chollima": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "Venomous Bear": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "Villeneuve 2014": {
+    "actor_groups": [
+      "G0011"
+    ],
+    "reference_count": 1
+  },
+  "Villeneuve et al 2014": {
+    "actor_groups": [
+      "G0004"
+    ],
+    "reference_count": 1
+  },
+  "Violet Typhoon": {
+    "actor_groups": [
+      "G0128"
+    ],
+    "reference_count": 1
+  },
+  "Vixen Panda": {
+    "actor_groups": [
+      "G0004"
+    ],
+    "reference_count": 1
+  },
+  "Volatile Cedar": {
+    "actor_groups": [
+      "G0123"
+    ],
+    "reference_count": 1
+  },
+  "Volexity Exchange Marauder March 2021": {
+    "actor_groups": [
+      "G0125"
+    ],
+    "reference_count": 1
+  },
+  "Volexity InkySquid BLUELIGHT August 2021": {
+    "actor_groups": [
+      "G0067"
+    ],
+    "reference_count": 1
+  },
+  "Volexity OceanLotus Nov 2017": {
+    "actor_groups": [
+      "G0050"
+    ],
+    "reference_count": 1
+  },
+  "Volexity Patchwork June 2018": {
+    "actor_groups": [
+      "G0040"
+    ],
+    "reference_count": 1
+  },
+  "Volexity SolarWinds": {
+    "actor_groups": [
+      "G0016",
+      "G0118"
+    ],
+    "reference_count": 2
+  },
+  "Voltzite": {
+    "actor_groups": [
+      "G1017"
+    ],
+    "reference_count": 1
+  },
+  "Voodoo Bear": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "WIRTE": {
+    "actor_groups": [
+      "G0090"
+    ],
+    "reference_count": 1
+  },
+  "Waterbug": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "WebMasters": {
+    "actor_groups": [
+      "G0009"
+    ],
+    "reference_count": 1
+  },
+  "Whisper Spider": {
+    "actor_groups": [
+      "G0091"
+    ],
+    "reference_count": 1
+  },
+  "White House Imposing Costs RU Gov April 2021": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "WhiteBear": {
+    "actor_groups": [
+      "G0010"
+    ],
+    "reference_count": 1
+  },
+  "Wicked Panda": {
+    "actor_groups": [
+      "G0096"
+    ],
+    "reference_count": 1
+  },
+  "Winnti Group": {
+    "actor_groups": [
+      "G0044"
+    ],
+    "reference_count": 1
+  },
+  "XENOTIME": {
+    "actor_groups": [
+      "G0088"
+    ],
+    "reference_count": 1
+  },
+  "YTTRIUM": {
+    "actor_groups": [
+      "G0016"
+    ],
+    "reference_count": 1
+  },
+  "Yellow Liderc": {
+    "actor_groups": [
+      "G1012"
+    ],
+    "reference_count": 1
+  },
+  "ZINC": {
+    "actor_groups": [
+      "G0032"
+    ],
+    "reference_count": 1
+  },
+  "Zdnet Kimsuky Dec 2018": {
+    "actor_groups": [
+      "G0094"
+    ],
+    "reference_count": 1
+  },
+  "Zigzag Hail": {
+    "actor_groups": [
+      "G0012"
+    ],
+    "reference_count": 1
+  },
+  "Zscaler": {
+    "actor_groups": [
+      "G0129"
+    ],
+    "reference_count": 1
+  },
+  "Zscaler ContagiousInterview BeaverTail InvisibleFerret November 2024": {
+    "actor_groups": [
+      "G1052"
+    ],
+    "reference_count": 1
+  },
+  "Zscaler Higaisa 2020": {
+    "actor_groups": [
+      "G0126"
+    ],
+    "reference_count": 1
+  },
+  "admin@338": {
+    "actor_groups": [
+      "G0018"
+    ],
+    "reference_count": 1
+  },
+  "apt41_mandiant": {
+    "actor_groups": [
+      "G0096"
+    ],
+    "reference_count": 1
+  },
+  "checkpoint_interactive_map_apt-c-23": {
+    "actor_groups": [
+      "G1028"
+    ],
+    "reference_count": 1
+  },
+  "dtex DPRK 2025 structure ITworkers": {
+    "actor_groups": [
+      "G1049",
+      "G1052"
+    ],
+    "reference_count": 2
+  },
+  "fb_arid_viper": {
+    "actor_groups": [
+      "G1028"
+    ],
+    "reference_count": 1
+  },
+  "group-ib_redcurl1": {
+    "actor_groups": [
+      "G1039"
+    ],
+    "reference_count": 1
+  },
+  "group-ib_redcurl2": {
+    "actor_groups": [
+      "G1039"
+    ],
+    "reference_count": 1
+  },
+  "iSIGHT Sandworm 2014": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "mandiant_apt44_unearthing_sandworm": {
+    "actor_groups": [
+      "G0034"
+    ],
+    "reference_count": 1
+  },
+  "menuPass": {
+    "actor_groups": [
+      "G0045"
+    ],
+    "reference_count": 1
+  },
+  "objective-see windtail1 dec 2018": {
+    "actor_groups": [
+      "G0112"
+    ],
+    "reference_count": 1
+  },
+  "objective-see windtail2 jan 2019": {
+    "actor_groups": [
+      "G0112"
+    ],
+    "reference_count": 1
+  },
+  "rapid7-email-bombing": {
+    "actor_groups": [
+      "G1046"
+    ],
+    "reference_count": 1
+  },
+  "sentinelone_israel_hamas_war": {
+    "actor_groups": [
+      "G1028"
+    ],
+    "reference_count": 1
+  },
+  "symantec_mantis": {
+    "actor_groups": [
+      "G1028"
+    ],
+    "reference_count": 1
+  },
+  "welivesecurity_apt-c-23": {
+    "actor_groups": [
+      "G1028"
+    ],
+    "reference_count": 1
+  }
+}

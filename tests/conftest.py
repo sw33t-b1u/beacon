@@ -1,7 +1,8 @@
 """Test configuration and shared helpers.
 
 Provides load_cmd_module() to import scripts from the cmd/ directory
-without conflicting with Python's stdlib 'cmd' module.
+without conflicting with Python's stdlib 'cmd' module, and
+load_scripts_module() to import scripts from the scripts/ directory.
 """
 
 from __future__ import annotations
@@ -12,6 +13,7 @@ from pathlib import Path
 
 _PROJECT_ROOT = str(Path(__file__).parent.parent)
 _CMD_DIR = Path(__file__).parent.parent / "cmd"
+_SCRIPTS_DIR = Path(__file__).parent.parent / "scripts"
 
 # Move the project root and cmd/ directory to the end of sys.path so that
 # Python's stdlib modules (e.g. 'cmd' used by pdb) are resolved before
@@ -33,6 +35,24 @@ def load_cmd_module(name: str):
         return sys.modules[cache_key]
 
     path = _CMD_DIR / f"{name}.py"
+    spec = importlib.util.spec_from_file_location(cache_key, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[cache_key] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_scripts_module(name: str):
+    """Load a script from scripts/<name>.py as a module.
+
+    The module is cached in sys.modules as '_beacon_scripts_<name>' so
+    repeated calls return the same object.
+    """
+    cache_key = f"_beacon_scripts_{name}"
+    if cache_key in sys.modules:
+        return sys.modules[cache_key]
+
+    path = _SCRIPTS_DIR / f"{name}.py"
     spec = importlib.util.spec_from_file_location(cache_key, path)
     module = importlib.util.module_from_spec(spec)
     sys.modules[cache_key] = module

@@ -1,0 +1,97 @@
+{
+  "type": "bundle",
+  "id": "bundle--fixture-attack-bundle-001",
+  "spec_version": "2.1",
+  "objects": [
+    {
+      "type": "intrusion-set",
+      "id": "intrusion-set--fixture-apt41",
+      "name": "APT41",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/groups/G0096",
+          "external_id": "G0096"
+        },
+        {
+          "source_name": "Mandiant APT41 Feb 2020",
+          "description": "Fixture: Mandiant report on APT41 dual espionage and cybercrime."
+        },
+        {
+          "source_name": "CISA AA20-258A",
+          "description": "Fixture: CISA advisory citing APT41 activity."
+        },
+        {
+          "source_name": "BARIUM",
+          "description": "Fixture: alias used by Microsoft for APT41."
+        }
+      ]
+    },
+    {
+      "type": "intrusion-set",
+      "id": "intrusion-set--fixture-lazarus",
+      "name": "Lazarus Group",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/groups/G0032",
+          "external_id": "G0032"
+        },
+        {
+          "source_name": "JPCERT/CC Lazarus 2022",
+          "description": "Fixture: JPCERT/CC analysis of Lazarus Group supply chain attacks."
+        },
+        {
+          "source_name": "Mandiant APT38 Sept 2018",
+          "description": "Fixture: Mandiant report on financial-targeting operations."
+        },
+        {
+          "source_name": "Hidden Cobra",
+          "description": "Fixture: alias used by US-CERT for DPRK-linked activity."
+        }
+      ]
+    },
+    {
+      "type": "intrusion-set",
+      "id": "intrusion-set--fixture-apt28",
+      "name": "APT28",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/groups/G0007",
+          "external_id": "G0007"
+        },
+        {
+          "source_name": "CISA APT28 June 2020",
+          "description": "Fixture: CISA advisory on APT28 targeting government networks."
+        },
+        {
+          "source_name": "Mandiant APT28 Jan 2017",
+          "description": "Fixture: Mandiant attribution report for APT28."
+        }
+      ]
+    },
+    {
+      "type": "intrusion-set",
+      "id": "intrusion-set--fixture-no-gid",
+      "name": "NoGIDGroup",
+      "external_references": [
+        {
+          "source_name": "Some Report 2023",
+          "description": "Fixture: intrusion-set without a mitre-attack ref — must be skipped."
+        }
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--fixture-001",
+      "name": "Spearphishing",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1566"
+        }
+      ]
+    }
+  ]
+}
