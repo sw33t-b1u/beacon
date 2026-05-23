@@ -4,7 +4,7 @@
       "mitre_attack": "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json",
       "misp_galaxy_threat_actor": "https://raw.githubusercontent.com/MISP/misp-galaxy/main/clusters/threat-actor.json"
     },
-    "last_auto_sync": "2026-05-21T16:11:48+00:00",
+    "last_auto_sync": "2026-05-23T02:29:17+00:00",
     "generator": "cmd/update_taxonomy.py",
     "schema_version": "2.0.0"
   },
@@ -6892,1135 +6892,1702 @@
       "technique_count": 0,
       "software_count": 1,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "APT-C-36": {
       "technique_count": 38,
       "software_count": 9,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 11
     },
     "APT1": {
       "technique_count": 23,
       "software_count": 17,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "APT12": {
       "technique_count": 5,
       "software_count": 3,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "APT16": {
       "technique_count": 1,
       "software_count": 1,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "APT17": {
       "technique_count": 2,
       "software_count": 1,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "APT18": {
       "technique_count": 12,
       "software_count": 5,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "APT19": {
       "technique_count": 21,
       "software_count": 2,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 8
     },
     "APT28": {
       "technique_count": 93,
       "software_count": 29,
       "sophistication_tier": "expert",
-      "campaign_last_seen": "2024-11-01T04:00:00.000Z"
+      "campaign_last_seen": "2024-11-01T04:00:00.000Z",
+      "campaign_first_seen": "2022-02-01T05:00:00.000Z",
+      "campaign_count": 1,
+      "defense_evasion_ttp_count": 18
     },
     "APT29": {
       "technique_count": 66,
       "software_count": 49,
       "sophistication_tier": "expert",
-      "campaign_last_seen": "2021-01-01T06:00:00.000Z"
+      "campaign_last_seen": "2021-01-01T06:00:00.000Z",
+      "campaign_first_seen": "2013-09-01T04:00:00.000Z",
+      "campaign_count": 2,
+      "defense_evasion_ttp_count": 13
     },
     "APT3": {
       "technique_count": 44,
       "software_count": 6,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 9
     },
     "APT30": {
       "technique_count": 2,
       "software_count": 5,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "APT32": {
       "technique_count": 78,
       "software_count": 15,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 23
     },
     "APT33": {
       "technique_count": 31,
       "software_count": 16,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "APT34": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "APT37": {
       "technique_count": 29,
       "software_count": 13,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 4
     },
     "APT38": {
       "technique_count": 56,
       "software_count": 6,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 19
     },
     "APT39": {
       "technique_count": 53,
       "software_count": 11,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 8
     },
     "APT41": {
       "technique_count": 82,
       "software_count": 32,
       "sophistication_tier": "expert",
-      "campaign_last_seen": "2024-06-30T22:00:00.000Z"
+      "campaign_last_seen": "2024-06-30T22:00:00.000Z",
+      "campaign_first_seen": "2021-05-01T04:00:00.000Z",
+      "campaign_count": 2,
+      "defense_evasion_ttp_count": 23
     },
     "APT42": {
       "technique_count": 32,
       "software_count": 2,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 5
     },
     "APT5": {
       "technique_count": 29,
       "software_count": 13,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": "2024-05-01T04:00:00.000Z"
+      "campaign_last_seen": "2024-05-01T04:00:00.000Z",
+      "campaign_first_seen": "2019-01-01T05:00:00.000Z",
+      "campaign_count": 1,
+      "defense_evasion_ttp_count": 9
     },
     "Agrius": {
       "technique_count": 22,
       "software_count": 9,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 4
     },
     "Ajax Security Team": {
       "technique_count": 6,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Akira": {
       "technique_count": 17,
       "software_count": 8,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 4
     },
     "Andariel": {
       "technique_count": 12,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "Aoqin Dragon": {
       "technique_count": 9,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "AppleJeus": {
       "technique_count": 2,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": "2023-03-01T05:00:00.000Z"
+      "campaign_last_seen": "2023-03-01T05:00:00.000Z",
+      "campaign_first_seen": "2022-11-01T06:00:00.000Z",
+      "campaign_count": 1,
+      "defense_evasion_ttp_count": 0
     },
     "Aquatic Panda": {
       "technique_count": 35,
       "software_count": 6,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 12
     },
     "Axiom": {
       "technique_count": 16,
       "software_count": 8,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "BITTER": {
       "technique_count": 16,
       "software_count": 1,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "BRONZE BUTLER": {
       "technique_count": 40,
       "software_count": 14,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 9
     },
     "BackdoorDiplomacy": {
       "technique_count": 15,
       "software_count": 5,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 5
     },
     "BlackByte": {
       "technique_count": 48,
       "software_count": 8,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 12
     },
     "BlackOasis": {
       "technique_count": 1,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "BlackTech": {
       "technique_count": 14,
       "software_count": 6,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "Blue Mockingbird": {
       "technique_count": 22,
       "software_count": 2,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 7
     },
     "CURIUM": {
       "technique_count": 19,
       "software_count": 1,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Carbanak": {
       "technique_count": 9,
       "software_count": 4,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 5
     },
     "Charming Kitten": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Chimera": {
       "technique_count": 59,
       "software_count": 6,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 9
     },
     "Cinnamon Tempest": {
       "technique_count": 19,
       "software_count": 8,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 5
     },
     "Cleaver": {
       "technique_count": 5,
       "software_count": 4,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Cobalt Group": {
       "technique_count": 34,
       "software_count": 6,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 7
     },
     "Confucius": {
       "technique_count": 19,
       "software_count": 1,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "Contagious Interview": {
       "technique_count": 54,
       "software_count": 4,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 8
     },
     "CopyKittens": {
       "technique_count": 8,
       "software_count": 4,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "CostaRicto": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Daggerfly": {
       "technique_count": 17,
       "software_count": 6,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 4
     },
     "Dark Caracal": {
       "technique_count": 12,
       "software_count": 3,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "DarkHydrus": {
       "technique_count": 7,
       "software_count": 3,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "DarkVishnya": {
       "technique_count": 10,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Darkhotel": {
       "technique_count": 24,
       "software_count": 0,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 7
     },
     "Deep Panda": {
       "technique_count": 10,
       "software_count": 7,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "DragonOK": {
       "technique_count": 0,
       "software_count": 2,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Dragonfly": {
       "technique_count": 56,
       "software_count": 10,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 8
     },
     "Dragonfly 2.0": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Dust Storm": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "EXOTIC LILY": {
       "technique_count": 15,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Earth Lusca": {
       "technique_count": 44,
       "software_count": 9,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 7
     },
     "Elderwood": {
       "technique_count": 9,
       "software_count": 9,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "Ember Bear": {
       "technique_count": 47,
       "software_count": 11,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 5
     },
     "Equation": {
       "technique_count": 4,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "Evilnum": {
       "technique_count": 11,
       "software_count": 3,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "FIN10": {
       "technique_count": 11,
       "software_count": 1,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "FIN13": {
       "technique_count": 53,
       "software_count": 4,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 9
     },
     "FIN4": {
       "technique_count": 12,
       "software_count": 0,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "FIN5": {
       "technique_count": 11,
       "software_count": 6,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "FIN6": {
       "technique_count": 40,
       "software_count": 12,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 7
     },
     "FIN7": {
       "technique_count": 67,
       "software_count": 19,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 15
     },
     "FIN8": {
       "technique_count": 36,
       "software_count": 11,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 7
     },
     "Ferocious Kitten": {
       "technique_count": 6,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "Fox Kitten": {
       "technique_count": 41,
       "software_count": 5,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 5
     },
     "Frankenstein": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "GALLIUM": {
       "technique_count": 31,
       "software_count": 16,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 7
     },
     "GCMAN": {
       "technique_count": 2,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "GOLD SOUTHFIELD": {
       "technique_count": 9,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "Gallmaker": {
       "technique_count": 6,
       "software_count": 0,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "Gamaredon Group": {
       "technique_count": 70,
       "software_count": 6,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 19
     },
     "Gelsemium": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Gorgon Group": {
       "technique_count": 16,
       "software_count": 4,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 6
     },
     "Group5": {
       "technique_count": 4,
       "software_count": 2,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "HAFNIUM": {
       "technique_count": 44,
       "software_count": 6,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 5
     },
     "HEXANE": {
       "technique_count": 36,
       "software_count": 12,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "Higaisa": {
       "technique_count": 28,
       "software_count": 3,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 8
     },
     "Honeybee": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "INC Ransom": {
       "technique_count": 25,
       "software_count": 8,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 4
     },
     "Inception": {
       "technique_count": 22,
       "software_count": 3,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 4
     },
     "IndigoZebra": {
       "technique_count": 7,
       "software_count": 3,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Indrik Spider": {
       "technique_count": 33,
       "software_count": 8,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 7
     },
     "Ke3chang": {
       "technique_count": 46,
       "software_count": 11,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": "2024-05-01T04:00:00.000Z"
+      "campaign_last_seen": "2024-05-01T04:00:00.000Z",
+      "campaign_first_seen": "2019-01-01T05:00:00.000Z",
+      "campaign_count": 1,
+      "defense_evasion_ttp_count": 6
     },
     "Kimsuky": {
       "technique_count": 130,
       "software_count": 19,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 35
     },
     "LAPSUS$": {
       "technique_count": 43,
       "software_count": 1,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 5
     },
     "Lazarus Group": {
       "technique_count": 93,
       "software_count": 26,
       "sophistication_tier": "expert",
-      "campaign_last_seen": "2020-08-01T04:00:00.000Z"
+      "campaign_last_seen": "2020-08-01T04:00:00.000Z",
+      "campaign_first_seen": "2019-09-01T04:00:00.000Z",
+      "campaign_count": 1,
+      "defense_evasion_ttp_count": 26
     },
     "LazyScripter": {
       "technique_count": 20,
       "software_count": 7,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 4
     },
     "Leafminer": {
       "technique_count": 17,
       "software_count": 4,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "Leviathan": {
       "technique_count": 50,
       "software_count": 17,
       "sophistication_tier": "expert",
-      "campaign_last_seen": "2022-09-01T06:00:00.000Z"
+      "campaign_last_seen": "2022-09-01T06:00:00.000Z",
+      "campaign_first_seen": "2022-04-01T06:00:00.000Z",
+      "campaign_count": 1,
+      "defense_evasion_ttp_count": 10
     },
     "Lotus Blossom": {
       "technique_count": 21,
       "software_count": 9,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "LuminousMoth": {
       "technique_count": 28,
       "software_count": 2,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 5
     },
     "MONSOON": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Machete": {
       "technique_count": 11,
       "software_count": 1,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "Magic Hound": {
       "technique_count": 78,
       "software_count": 13,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 15
     },
     "Malteiro": {
       "technique_count": 12,
       "software_count": 1,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "Medusa Group": {
       "technique_count": 57,
       "software_count": 5,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 12
     },
     "Metador": {
       "technique_count": 9,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "MirrorFace": {
       "technique_count": 43,
       "software_count": 16,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": "2004-09-01T04:00:00.000Z"
+      "campaign_last_seen": "2004-09-01T04:00:00.000Z",
+      "campaign_first_seen": "2004-06-01T04:00:00.000Z",
+      "campaign_count": 1,
+      "defense_evasion_ttp_count": 11
     },
     "Moafee": {
       "technique_count": 1,
       "software_count": 1,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "Mofang": {
       "technique_count": 6,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "Molerats": {
       "technique_count": 16,
       "software_count": 6,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 4
     },
     "Moonstone Sleet": {
       "technique_count": 30,
       "software_count": 1,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 4
     },
     "Moses Staff": {
       "technique_count": 12,
       "software_count": 4,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "MoustachedBouncer": {
       "technique_count": 8,
       "software_count": 3,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "MuddyWater": {
       "technique_count": 68,
       "software_count": 21,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 11
     },
     "Mustang Panda": {
       "technique_count": 85,
       "software_count": 23,
       "sophistication_tier": "expert",
-      "campaign_last_seen": "2024-12-01T07:00:00.000Z"
+      "campaign_last_seen": "2024-12-01T07:00:00.000Z",
+      "campaign_first_seen": "2023-07-01T06:00:00.000Z",
+      "campaign_count": 1,
+      "defense_evasion_ttp_count": 20
     },
     "Mustard Tempest": {
       "technique_count": 12,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "NEODYMIUM": {
       "technique_count": 0,
       "software_count": 1,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Naikon": {
       "technique_count": 14,
       "software_count": 15,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 4
     },
     "Night Dragon": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Nomadic Octopus": {
       "technique_count": 7,
       "software_count": 1,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "OilRig": {
       "technique_count": 76,
       "software_count": 30,
       "sophistication_tier": "expert",
-      "campaign_last_seen": "2022-12-01T05:00:00.000Z"
+      "campaign_last_seen": "2022-12-01T05:00:00.000Z",
+      "campaign_first_seen": "2021-01-01T05:00:00.000Z",
+      "campaign_count": 2,
+      "defense_evasion_ttp_count": 14
     },
     "Operation Wocao": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Orangeworm": {
       "technique_count": 2,
       "software_count": 8,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "PLATINUM": {
       "technique_count": 11,
       "software_count": 3,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "POLONIUM": {
       "technique_count": 7,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "PROMETHIUM": {
       "technique_count": 11,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": "2023-01-01T08:00:00.000Z"
+      "campaign_last_seen": "2023-01-01T08:00:00.000Z",
+      "campaign_first_seen": "2016-05-01T07:00:00.000Z",
+      "campaign_count": 1,
+      "defense_evasion_ttp_count": 5
     },
     "Patchwork": {
       "technique_count": 41,
       "software_count": 8,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 11
     },
     "PittyTiger": {
       "technique_count": 2,
       "software_count": 5,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "Play": {
       "technique_count": 26,
       "software_count": 9,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 7
     },
     "Poseidon Group": {
       "technique_count": 8,
       "software_count": 0,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "Putter Panda": {
       "technique_count": 4,
       "software_count": 4,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "RTM": {
       "technique_count": 7,
       "software_count": 1,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "Rancor": {
       "technique_count": 9,
       "software_count": 4,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "RedCurl": {
       "technique_count": 41,
       "software_count": 0,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 6
     },
     "RedEcho": {
       "technique_count": 5,
       "software_count": 1,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Rocke": {
       "technique_count": 36,
       "software_count": 0,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 15
     },
     "Saint Bear": {
       "technique_count": 18,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 7
     },
     "Salt Typhoon": {
       "technique_count": 14,
       "software_count": 1,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "Sandworm Team": {
       "technique_count": 79,
       "software_count": 27,
       "sophistication_tier": "expert",
-      "campaign_last_seen": "2022-10-01T04:00:00.000Z"
+      "campaign_last_seen": "2022-10-01T04:00:00.000Z",
+      "campaign_first_seen": "2015-12-01T05:00:00.000Z",
+      "campaign_count": 3,
+      "defense_evasion_ttp_count": 9
     },
     "Scarlet Mimic": {
       "technique_count": 1,
       "software_count": 4,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "Scattered Spider": {
       "technique_count": 64,
       "software_count": 9,
       "sophistication_tier": "expert",
-      "campaign_last_seen": "2022-12-01T05:00:00.000Z"
+      "campaign_last_seen": "2022-12-01T05:00:00.000Z",
+      "campaign_first_seen": "2022-06-01T04:00:00.000Z",
+      "campaign_count": 1,
+      "defense_evasion_ttp_count": 12
     },
     "Sea Turtle": {
       "technique_count": 27,
       "software_count": 1,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 6
     },
     "Sharpshooter": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "SideCopy": {
       "technique_count": 16,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "Sidewinder": {
       "technique_count": 30,
       "software_count": 1,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 5
     },
     "Silence": {
       "technique_count": 28,
       "software_count": 3,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 8
     },
     "Silent Librarian": {
       "technique_count": 13,
       "software_count": 0,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "SilverTerrier": {
       "technique_count": 4,
       "software_count": 5,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Sowbug": {
       "technique_count": 9,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "Star Blizzard": {
       "technique_count": 20,
       "software_count": 1,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "Stealth Falcon": {
       "technique_count": 16,
       "software_count": 0,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Stolen Pencil": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Storm-0501": {
       "technique_count": 42,
       "software_count": 8,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 9
     },
     "Storm-1811": {
       "technique_count": 31,
       "software_count": 7,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 8
     },
     "Strider": {
       "technique_count": 3,
       "software_count": 1,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "Suckfly": {
       "technique_count": 5,
       "software_count": 1,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "TA2541": {
       "technique_count": 28,
       "software_count": 9,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 8
     },
     "TA459": {
       "technique_count": 5,
       "software_count": 4,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "TA505": {
       "technique_count": 34,
       "software_count": 16,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 12
     },
     "TA551": {
       "technique_count": 14,
       "software_count": 5,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 6
     },
     "TA577": {
       "technique_count": 6,
       "software_count": 3,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "TA578": {
       "technique_count": 4,
       "software_count": 3,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "TEMP.Veles": {
       "technique_count": 0,
       "software_count": 2,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": "2017-08-01T04:00:00.000Z"
+      "campaign_last_seen": "2017-08-01T04:00:00.000Z",
+      "campaign_first_seen": "2014-10-01T04:00:00.000Z",
+      "campaign_count": 2,
+      "defense_evasion_ttp_count": 0
     },
     "Taidoor": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "TeamTNT": {
       "technique_count": 56,
       "software_count": 4,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 12
     },
     "The White Company": {
       "technique_count": 7,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "Threat Group-1314": {
       "technique_count": 4,
       "software_count": 2,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "Threat Group-3390": {
       "technique_count": 57,
       "software_count": 24,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 11
     },
     "Thrip": {
       "technique_count": 4,
       "software_count": 3,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "ToddyCat": {
       "technique_count": 25,
       "software_count": 9,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 4
     },
     "Tonto Team": {
       "technique_count": 15,
       "software_count": 6,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "Transparent Tribe": {
       "technique_count": 14,
       "software_count": 5,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": "2022-07-01T05:00:00.000Z"
+      "campaign_last_seen": "2022-07-01T05:00:00.000Z",
+      "campaign_first_seen": "2021-12-01T06:00:00.000Z",
+      "campaign_count": 1,
+      "defense_evasion_ttp_count": 3
     },
     "Tropic Trooper": {
       "technique_count": 40,
       "software_count": 6,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 10
     },
     "Turla": {
       "technique_count": 68,
       "software_count": 30,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 13
     },
     "UNC2452": {
       "technique_count": 0,
       "software_count": 0,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "UNC3886": {
       "technique_count": 49,
       "software_count": 8,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": "2025-03-01T05:00:00.000Z"
+      "campaign_last_seen": "2025-03-01T05:00:00.000Z",
+      "campaign_first_seen": "2024-07-01T04:00:00.000Z",
+      "campaign_count": 1,
+      "defense_evasion_ttp_count": 15
     },
     "VOID MANTICORE": {
       "technique_count": 63,
       "software_count": 0,
       "sophistication_tier": "expert",
-      "campaign_last_seen": "2022-09-01T04:00:00.000Z"
+      "campaign_last_seen": "2022-09-01T04:00:00.000Z",
+      "campaign_first_seen": "2021-05-01T04:00:00.000Z",
+      "campaign_count": 1,
+      "defense_evasion_ttp_count": 11
     },
     "Velvet Ant": {
       "technique_count": 22,
       "software_count": 2,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 7
     },
     "Volatile Cedar": {
       "technique_count": 5,
       "software_count": 2,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Volt Typhoon": {
       "technique_count": 81,
       "software_count": 17,
       "sophistication_tier": "expert",
-      "campaign_last_seen": "2024-08-01T06:00:00.000Z"
+      "campaign_last_seen": "2024-08-01T06:00:00.000Z",
+      "campaign_first_seen": "2022-10-01T04:00:00.000Z",
+      "campaign_count": 2,
+      "defense_evasion_ttp_count": 13
     },
     "WIRTE": {
       "technique_count": 26,
       "software_count": 8,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 8
     },
     "Water Galura": {
       "technique_count": 3,
       "software_count": 2,
       "sophistication_tier": "minimal",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Whitefly": {
       "technique_count": 9,
       "software_count": 1,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "Windigo": {
       "technique_count": 7,
       "software_count": 1,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 0
     },
     "Windshift": {
       "technique_count": 19,
       "software_count": 1,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "Winnti Group": {
       "technique_count": 6,
       "software_count": 3,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 2
     },
     "Winter Vivern": {
       "technique_count": 27,
       "software_count": 0,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 3
     },
     "Wizard Spider": {
       "technique_count": 64,
       "software_count": 22,
       "sophistication_tier": "expert",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 13
     },
     "ZIRCONIUM": {
       "technique_count": 29,
       "software_count": 0,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 5
     },
     "admin@338": {
       "technique_count": 12,
       "software_count": 7,
       "sophistication_tier": "intermediate",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 1
     },
     "menuPass": {
       "technique_count": 46,
       "software_count": 25,
       "sophistication_tier": "advanced",
-      "campaign_last_seen": null
+      "campaign_last_seen": null,
+      "campaign_first_seen": null,
+      "campaign_count": 0,
+      "defense_evasion_ttp_count": 12
     }
   }
 }

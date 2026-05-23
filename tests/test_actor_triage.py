@@ -12,12 +12,15 @@ from beacon.analysis.actor_triage import (
     DataQualityComponent,
     PrioritizedActor,
     ScoreBreakdown,
+    evasion_capability_score,
     geographic_match,
     industry_match,
     motivation_alignment,
     prioritize_actors,
     recency_active_campaigns_90d,
     sophistication_score,
+    targeting_persistence_score,
+    tool_sophistication_score,
     ttp_count_norm,
     victimology_match,
 )
@@ -496,3 +499,272 @@ def test_apt29_in_finance_banking_result():
 
     # APT29 aliases should be populated from MISP fixture
     assert len(apt29.aliases) > 0
+
+
+# ---------------------------------------------------------------------------
+# New scoring function unit tests — Phase 1 (Initiative E)
+# ---------------------------------------------------------------------------
+
+
+class TestToolSophisticationScore:
+    def test_zero_software(self):
+        assert tool_sophistication_score(0) == 0.0
+
+    def test_fifty_software_is_max(self):
+        assert tool_sophistication_score(50) == 1.0
+
+    def test_above_fifty_capped(self):
+        assert tool_sophistication_score(100) == 1.0
+
+    def test_twenty_five_software(self):
+        assert tool_sophistication_score(25) == pytest.approx(0.5)
+
+    def test_ten_software(self):
+        assert tool_sophistication_score(10) == pytest.approx(0.2)
+
+
+class TestTargetingPersistenceScore:
+    def test_zero_campaigns_returns_zero(self):
+        assert targeting_persistence_score(0, None, None) == 0.0
+
+    def test_single_campaign_no_span(self):
+        # count_norm=0.2, span_norm=0 → (0.2+0)/2=0.1
+        assert targeting_persistence_score(1, None, "2025-01-01T00:00:00Z") == pytest.approx(0.1)
+
+    def test_single_campaign_with_span(self):
+        # count_norm=0.2, span=5y → span_norm=0.5 → (0.2+0.5)/2=0.35
+        assert targeting_persistence_score(
+            1, "2020-01-01T00:00:00Z", "2025-01-01T00:00:00Z"
+        ) == pytest.approx(0.35, abs=1e-3)
+
+    def test_five_campaigns_is_max_count(self):
+        # count_norm=1.0, span=0 → (1.0+0)/2=0.5
+        assert targeting_persistence_score(5, None, "2025-01-01T00:00:00Z") == pytest.approx(0.5)
+
+    def test_ten_year_span_is_max_span(self):
+        # count_norm=0.2, span_norm=1.0 → (0.2+1.0)/2=0.6
+        assert targeting_persistence_score(
+            1, "2010-01-01T00:00:00Z", "2020-01-01T00:00:00Z"
+        ) == pytest.approx(0.6, abs=1e-3)
+
+    def test_first_seen_after_last_seen_treated_as_no_span(self):
+        # Malformed data: first > last → span_norm=0
+        assert targeting_persistence_score(
+            1, "2025-06-01T00:00:00Z", "2025-01-01T00:00:00Z"
+        ) == pytest.approx(0.1)
+
+
+class TestEvasionCapabilityScore:
+    def test_zero_de_ttps(self):
+        assert evasion_capability_score(0) == 0.0
+
+    def test_twenty_de_ttps_is_max(self):
+        assert evasion_capability_score(20) == 1.0
+
+    def test_above_twenty_capped(self):
+        assert evasion_capability_score(30) == 1.0
+
+    def test_ten_de_ttps(self):
+        assert evasion_capability_score(10) == pytest.approx(0.5)
+
+
+# ---------------------------------------------------------------------------
+# Golden regression tests — APT28, APT41, Mustang Panda
+# Derived from regenerated threat_taxonomy.json (Phase 1 artifacts).
+# Reference date: 2026-05-23 00:00:00 UTC (fixed for determinism).
+# All expected values computed from the production scoring functions against
+# the actual profiles in schema/threat_taxonomy.json.
+# ---------------------------------------------------------------------------
+
+# beacon/schema/threat_taxonomy.json (parents[1] = beacon/ project root)
+_BEACON_TAXONOMY_PATH = Path(__file__).parents[1] / "schema" / "threat_taxonomy.json"
+
+_REF_DATE = datetime(2026, 5, 23, tzinfo=UTC)
+
+# STIX OV scale value for "expert" tier (= 4/6)
+_EXPERT_SOPH = 4 / 6
+
+
+class TestCapabilityGoldenAPT28:
+    """APT28: tc=93, sw=29, de=18, campaigns=1, first=2022-02-01, last=2024-11-01."""
+
+    def setup_method(self):
+        if not _BEACON_TAXONOMY_PATH.exists():
+            pytest.skip("Real taxonomy not found")
+        tx = json.loads(_BEACON_TAXONOMY_PATH.read_text())
+        self.p = tx["intrusion_set_profiles"]["APT28"]
+
+    def test_sophistication_score(self):
+        # expert tier → 4/6
+        assert sophistication_score("expert") == pytest.approx(_EXPERT_SOPH)
+
+    def test_ttp_count_norm(self):
+        assert ttp_count_norm(self.p["technique_count"]) == pytest.approx(0.93)
+
+    def test_recency(self):
+        assert recency_active_campaigns_90d(
+            self.p["campaign_last_seen"], reference=_REF_DATE
+        ) == pytest.approx(0.25)
+
+    def test_tool_sophistication(self):
+        # sw=29 → 29/50=0.58
+        assert tool_sophistication_score(self.p["software_count"]) == pytest.approx(0.58)
+
+    def test_targeting_persistence(self):
+        # count=1, span≈2.746y → (0.2+0.2746)/2≈0.2373
+        assert targeting_persistence_score(
+            self.p["campaign_count"],
+            self.p["campaign_first_seen"],
+            self.p["campaign_last_seen"],
+        ) == pytest.approx(0.2373, abs=1e-3)
+
+    def test_evasion_capability(self):
+        # de=18 → 18/20=0.9
+        assert evasion_capability_score(self.p["defense_evasion_ttp_count"]) == pytest.approx(0.9)
+
+    def test_depth(self):
+        _soph = sophistication_score("expert")
+        _tool = tool_sophistication_score(self.p["software_count"])
+        _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
+        depth = (_soph * _tool * _evas) ** (1 / 3)
+        assert depth == pytest.approx(0.7034, abs=1e-3)
+
+    def test_breadth(self):
+        _ttp_n = ttp_count_norm(self.p["technique_count"])
+        _pers = targeting_persistence_score(
+            self.p["campaign_count"],
+            self.p["campaign_first_seen"],
+            self.p["campaign_last_seen"],
+        )
+        _rec = recency_active_campaigns_90d(self.p["campaign_last_seen"], reference=_REF_DATE)
+        breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
+        assert breadth == pytest.approx(0.3807, abs=1e-3)
+
+    def test_capability_score(self):
+        _soph = sophistication_score("expert")
+        _tool = tool_sophistication_score(self.p["software_count"])
+        _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
+        _ttp_n = ttp_count_norm(self.p["technique_count"])
+        _pers = targeting_persistence_score(
+            self.p["campaign_count"],
+            self.p["campaign_first_seen"],
+            self.p["campaign_last_seen"],
+        )
+        _rec = recency_active_campaigns_90d(self.p["campaign_last_seen"], reference=_REF_DATE)
+        depth = (_soph * _tool * _evas) ** (1 / 3)
+        breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
+        assert depth * breadth == pytest.approx(0.2678, abs=1e-3)
+
+
+class TestCapabilityGoldenAPT41:
+    """APT41: tc=82, sw=32, de=23, campaigns=2, first=2021-05-01, last=2024-06-30."""
+
+    def setup_method(self):
+        if not _BEACON_TAXONOMY_PATH.exists():
+            pytest.skip("Real taxonomy not found")
+        tx = json.loads(_BEACON_TAXONOMY_PATH.read_text())
+        self.p = tx["intrusion_set_profiles"]["APT41"]
+
+    def test_ttp_count_norm(self):
+        assert ttp_count_norm(self.p["technique_count"]) == pytest.approx(0.82)
+
+    def test_tool_sophistication(self):
+        # sw=32 → 32/50=0.64
+        assert tool_sophistication_score(self.p["software_count"]) == pytest.approx(0.64)
+
+    def test_evasion_capability(self):
+        # de=23 → min(23/20,1.0)=1.0
+        assert evasion_capability_score(self.p["defense_evasion_ttp_count"]) == pytest.approx(1.0)
+
+    def test_targeting_persistence(self):
+        # count=2, span≈3.17y → (0.4+0.317)/2≈0.358
+        assert targeting_persistence_score(
+            self.p["campaign_count"],
+            self.p["campaign_first_seen"],
+            self.p["campaign_last_seen"],
+        ) == pytest.approx(0.3582, abs=1e-3)
+
+    def test_recency(self):
+        # last=2024-06-30 → ~692d → 0.25
+        assert recency_active_campaigns_90d(
+            self.p["campaign_last_seen"], reference=_REF_DATE
+        ) == pytest.approx(0.25)
+
+    def test_depth(self):
+        _soph = sophistication_score("expert")
+        _tool = tool_sophistication_score(self.p["software_count"])
+        _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
+        depth = (_soph * _tool * _evas) ** (1 / 3)
+        assert depth == pytest.approx(0.7528, abs=1e-3)
+
+    def test_capability_score(self):
+        _soph = sophistication_score("expert")
+        _tool = tool_sophistication_score(self.p["software_count"])
+        _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
+        _ttp_n = ttp_count_norm(self.p["technique_count"])
+        _pers = targeting_persistence_score(
+            self.p["campaign_count"],
+            self.p["campaign_first_seen"],
+            self.p["campaign_last_seen"],
+        )
+        _rec = recency_active_campaigns_90d(self.p["campaign_last_seen"], reference=_REF_DATE)
+        depth = (_soph * _tool * _evas) ** (1 / 3)
+        breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
+        assert depth * breadth == pytest.approx(0.3153, abs=1e-3)
+
+
+class TestCapabilityGoldenMustangPanda:
+    """Mustang Panda: tc=85, sw=23, de=20, campaigns=1, first=2023-07-01, last=2024-12-01."""
+
+    def setup_method(self):
+        if not _BEACON_TAXONOMY_PATH.exists():
+            pytest.skip("Real taxonomy not found")
+        tx = json.loads(_BEACON_TAXONOMY_PATH.read_text())
+        self.p = tx["intrusion_set_profiles"]["Mustang Panda"]
+
+    def test_ttp_count_norm(self):
+        assert ttp_count_norm(self.p["technique_count"]) == pytest.approx(0.85)
+
+    def test_tool_sophistication(self):
+        # sw=23 → 23/50=0.46
+        assert tool_sophistication_score(self.p["software_count"]) == pytest.approx(0.46)
+
+    def test_evasion_capability(self):
+        # de=20 → 20/20=1.0
+        assert evasion_capability_score(self.p["defense_evasion_ttp_count"]) == pytest.approx(1.0)
+
+    def test_targeting_persistence(self):
+        # count=1, span≈1.42y → (0.2+0.142)/2≈0.171
+        assert targeting_persistence_score(
+            self.p["campaign_count"],
+            self.p["campaign_first_seen"],
+            self.p["campaign_last_seen"],
+        ) == pytest.approx(0.1710, abs=1e-3)
+
+    def test_recency(self):
+        # last=2024-12-01 → ~538d → 0.25
+        assert recency_active_campaigns_90d(
+            self.p["campaign_last_seen"], reference=_REF_DATE
+        ) == pytest.approx(0.25)
+
+    def test_depth(self):
+        _soph = sophistication_score("expert")
+        _tool = tool_sophistication_score(self.p["software_count"])
+        _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
+        depth = (_soph * _tool * _evas) ** (1 / 3)
+        assert depth == pytest.approx(0.6744, abs=1e-3)
+
+    def test_capability_score(self):
+        _soph = sophistication_score("expert")
+        _tool = tool_sophistication_score(self.p["software_count"])
+        _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
+        _ttp_n = ttp_count_norm(self.p["technique_count"])
+        _pers = targeting_persistence_score(
+            self.p["campaign_count"],
+            self.p["campaign_first_seen"],
+            self.p["campaign_last_seen"],
+        )
+        _rec = recency_active_campaigns_90d(self.p["campaign_last_seen"], reference=_REF_DATE)
+        depth = (_soph * _tool * _evas) ** (1 / 3)
+        breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
+        assert depth * breadth == pytest.approx(0.2234, abs=1e-3)

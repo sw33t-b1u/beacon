@@ -313,16 +313,27 @@ def _sophistication_tier(technique_count: int) -> str:
     return "minimal"
 
 
-def extract_group_campaign_last_seen(bundle: dict) -> dict[str, str | None]:
-    """Return {group_canonical_name: latest_campaign_last_seen_iso} from STIX campaigns.
+# Kill-chain phase names that correspond to "defense evasion" across ATT&CK schema variants:
+# - "defense-evasion"  — standard MITRE ATT&CK Enterprise phase name
+# - "stealth"          — internal taxonomy variant (same concept, renamed)
+# - "defense-impairment" — sub-category used in some extended ATT&CK versions
+_DEFENSE_EVASION_PHASES: frozenset[str] = frozenset(
+    {"defense-evasion", "stealth", "defense-impairment"}
+)
 
-    Walks campaign objects (which carry an optional `last_seen` field) and
-    `attributed-to` relationships linking campaigns to intrusion-sets.
-    Returns the most recent `last_seen` ISO string per group, or omits the
-    group entirely if no campaign data is found.
+
+def extract_group_campaign_stats(bundle: dict) -> dict[str, dict]:
+    """Return {group_name: {count, first_seen, last_seen}} from STIX campaigns.
+
+    Walks campaign objects and `attributed-to` relationships. For each group:
+      - count: total number of attributed campaigns
+      - first_seen: earliest campaign first_seen ISO string (or None)
+      - last_seen: latest campaign last_seen ISO string (or None)
+    Groups with no attributed campaigns are absent from the result.
     """
     intrusion_set_name: dict[str, str] = {}
-    campaign_last_seen: dict[str, str] = {}
+    campaign_first: dict[str, str] = {}
+    campaign_last: dict[str, str] = {}
 
     for obj in bundle.get("objects", []):
         otype = obj.get("type")
@@ -333,11 +344,13 @@ def extract_group_campaign_last_seen(bundle: dict) -> dict[str, str | None]:
                 intrusion_set_name[obj_id] = name
         elif otype == "campaign":
             obj_id = obj.get("id", "")
-            last_seen = obj.get("last_seen")
-            if obj_id and last_seen:
-                campaign_last_seen[obj_id] = last_seen
+            if obj_id:
+                if obj.get("first_seen"):
+                    campaign_first[obj_id] = obj["first_seen"]
+                if obj.get("last_seen"):
+                    campaign_last[obj_id] = obj["last_seen"]
 
-    result: dict[str, str | None] = {}
+    result: dict[str, dict] = {}
     for obj in bundle.get("objects", []):
         if obj.get("type") != "relationship":
             continue
@@ -346,13 +359,74 @@ def extract_group_campaign_last_seen(bundle: dict) -> dict[str, str | None]:
         src = obj.get("source_ref", "")
         tgt = obj.get("target_ref", "")
         group_name = intrusion_set_name.get(tgt)
-        last_seen = campaign_last_seen.get(src)
-        if group_name and last_seen:
-            existing = result.get(group_name)
-            if existing is None or last_seen > existing:
-                result[group_name] = last_seen
+        if not group_name:
+            continue
+        stats = result.setdefault(group_name, {"count": 0, "first_seen": None, "last_seen": None})
+        stats["count"] += 1
+        if src in campaign_first:
+            if stats["first_seen"] is None or campaign_first[src] < stats["first_seen"]:
+                stats["first_seen"] = campaign_first[src]
+        if src in campaign_last:
+            if stats["last_seen"] is None or campaign_last[src] > stats["last_seen"]:
+                stats["last_seen"] = campaign_last[src]
 
     return result
+
+
+def extract_group_defense_evasion_ttps(bundle: dict) -> dict[str, list[str]]:
+    """Return {group_name: sorted_de_ttp_ids} for TTPs in defense-evasion phases.
+
+    Matches kill_chain_phases against _DEFENSE_EVASION_PHASES, which covers the
+    standard "defense-evasion" name and the internal "stealth"/"defense-impairment"
+    variants present in extended ATT&CK schema versions.
+    Emphasizes the T1027 obfuscation family and T1562 defense-impairment family,
+    but all TTPs with a matching kill-chain phase are included.
+    """
+    # Build attack-pattern id → ttp_id and de set
+    ap_to_ttp: dict[str, str] = {}
+    de_ap_ids: set[str] = set()
+
+    for obj in bundle.get("objects", []):
+        if obj.get("type") != "attack-pattern":
+            continue
+        ttp_id: str | None = None
+        for ref in obj.get("external_references", []):
+            if ref.get("source_name") == "mitre-attack":
+                ext_id = ref.get("external_id", "")
+                if ext_id.startswith("T"):
+                    ttp_id = ext_id
+                    break
+        if not ttp_id:
+            continue
+        ap_to_ttp[obj["id"]] = ttp_id
+        for kp in obj.get("kill_chain_phases", []):
+            if (
+                kp.get("kill_chain_name") == "mitre-attack"
+                and kp.get("phase_name") in _DEFENSE_EVASION_PHASES
+            ):
+                de_ap_ids.add(obj["id"])
+                break
+
+    intrusion_set_name: dict[str, str] = {
+        obj["id"]: obj["name"]
+        for obj in bundle.get("objects", [])
+        if obj.get("type") == "intrusion-set" and obj.get("id") and obj.get("name")
+    }
+
+    group_de_ttps: dict[str, set[str]] = {}
+    for obj in bundle.get("objects", []):
+        if obj.get("type") != "relationship":
+            continue
+        if obj.get("relationship_type") != "uses":
+            continue
+        group_name = intrusion_set_name.get(obj.get("source_ref", ""))
+        tgt = obj.get("target_ref", "")
+        if group_name and tgt in de_ap_ids:
+            ttp_id = ap_to_ttp.get(tgt)
+            if ttp_id:
+                group_de_ttps.setdefault(group_name, set()).add(ttp_id)
+
+    return {name: sorted(ttps) for name, ttps in group_de_ttps.items()}
 
 
 def build_intrusion_set_profiles(
@@ -361,22 +435,28 @@ def build_intrusion_set_profiles(
 ) -> dict[str, dict]:
     """Build per-intrusion-set attribute profiles consumed by the actor triage layer.
 
-    Returns {group_name: {technique_count, software_count,
-                           sophistication_tier, campaign_last_seen}}.
-    campaign_last_seen is None when no STIX campaign is attributed to the group.
+    Returns {group_name: {technique_count, software_count, sophistication_tier,
+                           campaign_last_seen, campaign_first_seen, campaign_count,
+                           defense_evasion_ttp_count}}.
+    Fields default to None / 0 when no data is available.
     """
     groups = extract_groups(mitre_bundle)
     software_counts = extract_group_software_counts(mitre_bundle)
-    campaign_last = extract_group_campaign_last_seen(mitre_bundle)
+    campaign_stats = extract_group_campaign_stats(mitre_bundle)
+    de_ttps = extract_group_defense_evasion_ttps(mitre_bundle)
 
     profiles: dict[str, dict] = {}
     for name in sorted(groups.keys()):
         tc = len(group_ttps.get(name, []))
+        stats = campaign_stats.get(name, {})
         profiles[name] = {
             "technique_count": tc,
             "software_count": software_counts.get(name, 0),
             "sophistication_tier": _sophistication_tier(tc),
-            "campaign_last_seen": campaign_last.get(name),
+            "campaign_last_seen": stats.get("last_seen"),
+            "campaign_first_seen": stats.get("first_seen"),
+            "campaign_count": stats.get("count", 0),
+            "defense_evasion_ttp_count": len(de_ttps.get(name, [])),
         }
     return profiles
 

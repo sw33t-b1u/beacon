@@ -99,9 +99,16 @@ class IntentComponent(BaseModel):
 class CapabilityComponent(BaseModel):
     model_config = ConfigDict(extra="allow")
     score: float = Field(ge=0.0, le=1.0)
+    # Phase 0 (Initiative D) factors
     sophistication_score: float = Field(ge=0.0, le=1.0)
     ttp_count_norm: float = Field(ge=0.0, le=1.0)
     recency_active_campaigns_90d: float = Field(ge=0.0, le=1.0)
+    # Phase 1 (Initiative E) extension — Depth × Breadth aggregation
+    tool_sophistication: float = Field(default=0.0, ge=0.0, le=1.0)
+    targeting_persistence: float = Field(default=0.0, ge=0.0, le=1.0)
+    evasion_capability: float = Field(default=0.0, ge=0.0, le=1.0)
+    depth: float = Field(default=0.0, ge=0.0, le=1.0)
+    breadth: float = Field(default=0.0, ge=0.0, le=1.0)
 
 
 class OpportunityComponent(BaseModel):
@@ -261,6 +268,52 @@ def geographic_match(
     a, b = set(actor_geos), set(business_geos)
     union = a | b
     return len(a & b) / len(union)
+
+
+def tool_sophistication_score(software_count: int) -> float:
+    """Normalize software/tool count (from ATT&CK relationships) to [0, 1].
+
+    Upper bound: 50 distinct tools — covers APT29-class actors (~49 observed).
+    Formula: min(software_count / 50, 1.0).
+    """
+    return min(software_count / 50, 1.0)
+
+
+def targeting_persistence_score(
+    campaign_count: int,
+    campaign_first_seen: str | None,
+    campaign_last_seen: str | None,
+) -> float:
+    """Combined campaign-count + operational-span indicator, normalized to [0, 1].
+
+    count_norm = min(campaign_count / 5, 1.0)  — 5 attributed campaigns = persistent
+    span_norm  = min(span_years / 10, 1.0)     — 10-year span = maximum persistence
+    result     = (count_norm + span_norm) / 2  — arithmetic mean (both supply signal)
+
+    Returns 0.0 when campaign_count == 0.
+    span_norm is 0.0 when first_seen is unavailable or first_seen >= last_seen.
+    """
+    if campaign_count == 0:
+        return 0.0
+    count_norm = min(campaign_count / 5, 1.0)
+    span_norm = 0.0
+    if campaign_first_seen and campaign_last_seen:
+        first = _parse_campaign_dt(campaign_first_seen)
+        last = _parse_campaign_dt(campaign_last_seen)
+        if first and last and last > first:
+            span_years = (last - first).days / 365.25
+            span_norm = min(span_years / 10, 1.0)
+    return (count_norm + span_norm) / 2
+
+
+def evasion_capability_score(de_ttp_count: int) -> float:
+    """Normalize defense-evasion TTP count to [0, 1].
+
+    Upper bound: 20 distinct DE TTPs — covers well-resourced APT-class actors.
+    Includes TTPs mapped to the T1027 obfuscation and T1562 impairment families.
+    Formula: min(de_ttp_count / 20, 1.0).
+    """
+    return min(de_ttp_count / 20, 1.0)
 
 
 # ---------------------------------------------------------------------------
@@ -424,13 +477,25 @@ def prioritize_actors(
             )
             continue
 
-        # ------ Capability ------
+        # ------ Capability — Depth × Breadth aggregation (Initiative E Phase 1) ------
+        # Depth  = geometric mean of quality factors  (HOW capable the actor is)
+        # Breadth = geometric mean of quantity factors (HOW MUCH the actor operates)
+        # Both collapse to 0 if any constituent factor is 0 (geometric mean property).
         _soph = sophistication_score(stix_soph)
         _ttp_n = ttp_count_norm(profile.get("technique_count", 0))
         # Phase 2 residual note #2 — derive recency from taxonomy campaign_last_seen,
         # NOT ActorAttributes.active (which is always None at the MISP client layer).
         _rec = recency_active_campaigns_90d(profile.get("campaign_last_seen"), reference=_now)
-        capability_score = min(max(_soph * _ttp_n * _rec, 0.0), 1.0)
+        _tool = tool_sophistication_score(profile.get("software_count", 0))
+        _pers = targeting_persistence_score(
+            profile.get("campaign_count", 0),
+            profile.get("campaign_first_seen"),
+            profile.get("campaign_last_seen"),
+        )
+        _evas = evasion_capability_score(profile.get("defense_evasion_ttp_count", 0))
+        _depth = (_soph * _tool * _evas) ** (1 / 3)
+        _breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
+        capability_score = min(max(_depth * _breadth, 0.0), 1.0)
 
         # ------ Opportunity ------
         _vic = victimology_match(actor_industries, business_sectors)
@@ -464,6 +529,11 @@ def prioritize_actors(
                         sophistication_score=_soph,
                         ttp_count_norm=_ttp_n,
                         recency_active_campaigns_90d=_rec,
+                        tool_sophistication=_tool,
+                        targeting_persistence=_pers,
+                        evasion_capability=_evas,
+                        depth=_depth,
+                        breadth=_breadth,
                     ),
                     opportunity=OpportunityComponent(
                         score=opportunity_score,
@@ -486,6 +556,11 @@ def prioritize_actors(
                         "sophistication_score": _soph,
                         "ttp_count_norm": _ttp_n,
                         "recency_active_campaigns_90d": _rec,
+                        "tool_sophistication": _tool,
+                        "targeting_persistence": _pers,
+                        "evasion_capability": _evas,
+                        "depth": _depth,
+                        "breadth": _breadth,
                     },
                     opportunity_factors={
                         "victimology_match": _vic,

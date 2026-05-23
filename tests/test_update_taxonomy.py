@@ -394,3 +394,92 @@ class TestMainCLI:
         updated = json.loads(taxonomy_file.read_text())
         assert updated["_metadata"]["sources"]["mitre_attack"].startswith("https://")
         assert updated["_metadata"]["sources"]["misp_galaxy_threat_actor"].startswith("https://")
+
+
+# ---------------------------------------------------------------------------
+# Phase 1 (Initiative E) — new extractor tests
+# ---------------------------------------------------------------------------
+
+
+class TestExtractGroupCampaignStats:
+    def test_apt10_has_two_campaigns(self):
+        stats = _mod.extract_group_campaign_stats(SAMPLE_BUNDLE)
+        assert stats["APT10"]["count"] == 2
+
+    def test_apt10_first_seen_is_earliest_across_campaigns(self):
+        stats = _mod.extract_group_campaign_stats(SAMPLE_BUNDLE)
+        # camp3 first_seen=2023-06-01 is earlier than camp1 first_seen=2024-01-01
+        assert stats["APT10"]["first_seen"] == "2023-06-01T00:00:00Z"
+
+    def test_apt10_last_seen_is_latest_across_campaigns(self):
+        stats = _mod.extract_group_campaign_stats(SAMPLE_BUNDLE)
+        # camp1 last_seen=2025-06-01 is later than camp3 last_seen=2024-12-01
+        assert stats["APT10"]["last_seen"] == "2025-06-01T00:00:00Z"
+
+    def test_lazarus_has_one_campaign(self):
+        stats = _mod.extract_group_campaign_stats(SAMPLE_BUNDLE)
+        assert stats["Lazarus Group"]["count"] == 1
+        assert stats["Lazarus Group"]["first_seen"] == "2025-01-01T00:00:00Z"
+        assert stats["Lazarus Group"]["last_seen"] == "2025-11-15T00:00:00Z"
+
+    def test_apt41_not_in_stats_no_campaigns(self):
+        stats = _mod.extract_group_campaign_stats(SAMPLE_BUNDLE)
+        assert "APT41" not in stats
+
+    def test_empty_bundle_returns_empty(self):
+        assert _mod.extract_group_campaign_stats({"objects": []}) == {}
+
+
+class TestExtractGroupDefenseEvasionTtps:
+    def test_apt10_has_defense_evasion_phase_ttp(self):
+        de = _mod.extract_group_defense_evasion_ttps(SAMPLE_BUNDLE)
+        assert "T1078" in de["APT10"]
+
+    def test_apt10_has_stealth_phase_ttp(self):
+        # T1027 is tagged with "stealth" phase (internal ATT&CK variant)
+        de = _mod.extract_group_defense_evasion_ttps(SAMPLE_BUNDLE)
+        assert "T1027" in de["APT10"]
+
+    def test_apt10_de_ttp_count(self):
+        de = _mod.extract_group_defense_evasion_ttps(SAMPLE_BUNDLE)
+        assert len(de["APT10"]) == 2
+
+    def test_apt41_has_no_de_ttps(self):
+        de = _mod.extract_group_defense_evasion_ttps(SAMPLE_BUNDLE)
+        assert "APT41" not in de
+
+    def test_lazarus_has_no_de_ttps(self):
+        de = _mod.extract_group_defense_evasion_ttps(SAMPLE_BUNDLE)
+        assert "Lazarus Group" not in de
+
+    def test_empty_bundle_returns_empty(self):
+        assert _mod.extract_group_defense_evasion_ttps({"objects": []}) == {}
+
+
+class TestBuildIntrusionSetProfilesExtended:
+    """Verify the 3 new field families added in Initiative E Phase 1."""
+
+    def setup_method(self):
+        group_ttps = _mod.extract_group_ttps(SAMPLE_BUNDLE)
+        self.profiles = _mod.build_intrusion_set_profiles(SAMPLE_BUNDLE, group_ttps)
+
+    def test_profiles_include_campaign_first_seen(self):
+        assert "campaign_first_seen" in self.profiles["APT10"]
+
+    def test_profiles_include_campaign_count(self):
+        assert self.profiles["APT10"]["campaign_count"] == 2
+
+    def test_profiles_include_defense_evasion_ttp_count(self):
+        # APT10 uses T1078 (defense-evasion) + T1027 (stealth) = 2 DE TTPs
+        assert self.profiles["APT10"]["defense_evasion_ttp_count"] == 2
+
+    def test_profiles_without_campaigns_have_zero_count(self):
+        assert self.profiles["APT41"]["campaign_count"] == 0
+        assert self.profiles["APT41"]["campaign_first_seen"] is None
+
+    def test_profiles_without_de_ttps_have_zero_count(self):
+        assert self.profiles["Lazarus Group"]["defense_evasion_ttp_count"] == 0
+
+    def test_campaign_last_seen_still_populated(self):
+        # Backward-compat: existing field remains populated
+        assert self.profiles["APT10"]["campaign_last_seen"] == "2025-06-01T00:00:00Z"

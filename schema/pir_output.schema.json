@@ -3,6 +3,27 @@
     "CapabilityComponent": {
       "additionalProperties": true,
       "properties": {
+        "breadth": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Breadth",
+          "type": "number"
+        },
+        "depth": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Depth",
+          "type": "number"
+        },
+        "evasion_capability": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Evasion Capability",
+          "type": "number"
+        },
         "recency_active_campaigns_90d": {
           "maximum": 1.0,
           "minimum": 0.0,
@@ -19,6 +40,20 @@
           "maximum": 1.0,
           "minimum": 0.0,
           "title": "Sophistication Score",
+          "type": "number"
+        },
+        "targeting_persistence": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Targeting Persistence",
+          "type": "number"
+        },
+        "tool_sophistication": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Tool Sophistication",
           "type": "number"
         },
         "ttp_count_norm": {
