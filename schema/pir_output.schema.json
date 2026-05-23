@@ -157,6 +157,115 @@
       "title": "OpportunityComponent",
       "type": "object"
     },
+    "PIROutput": {
+      "properties": {
+        "asset_weight_rules": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Asset Weight Rules",
+          "type": "array"
+        },
+        "collection_focus": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Collection Focus",
+          "type": "array"
+        },
+        "decision_point": {
+          "title": "Decision Point",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "intelligence_level": {
+          "enum": [
+            "strategic",
+            "operational",
+            "tactical"
+          ],
+          "title": "Intelligence Level",
+          "type": "string"
+        },
+        "notable_groups": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Notable Groups",
+          "type": "array"
+        },
+        "organizational_scope": {
+          "title": "Organizational Scope",
+          "type": "string"
+        },
+        "pir_id": {
+          "title": "Pir Id",
+          "type": "string"
+        },
+        "prioritized_actors": {
+          "items": {
+            "$ref": "#/$defs/PrioritizedActor"
+          },
+          "title": "Prioritized Actors",
+          "type": "array"
+        },
+        "rationale": {
+          "title": "Rationale",
+          "type": "string"
+        },
+        "recommended_action": {
+          "title": "Recommended Action",
+          "type": "string"
+        },
+        "risk_score": {
+          "$ref": "#/$defs/RiskScoreModel"
+        },
+        "source_elements": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Elements",
+          "type": "array"
+        },
+        "threat_actor_tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Threat Actor Tags",
+          "type": "array"
+        },
+        "valid_from": {
+          "title": "Valid From",
+          "type": "string"
+        },
+        "valid_until": {
+          "title": "Valid Until",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pir_id",
+        "intelligence_level",
+        "organizational_scope",
+        "decision_point",
+        "description",
+        "rationale",
+        "recommended_action",
+        "threat_actor_tags",
+        "asset_weight_rules",
+        "collection_focus",
+        "valid_from",
+        "valid_until",
+        "risk_score",
+        "prioritized_actors"
+      ],
+      "title": "PIROutput",
+      "type": "object"
+    },
     "PrioritizedActor": {
       "properties": {
         "actor_id": {
@@ -279,111 +388,26 @@
       "type": "object"
     }
   },
+  "description": "Top-level envelope for pir_output.json (BEACON 0.16.0+).\n\nschema_version lets downstream consumers gate on the contract version\nwithout inspecting field presence; pirs holds the ordered list of\nper-decision-point records.",
   "properties": {
-    "asset_weight_rules": {
+    "pirs": {
       "items": {
-        "additionalProperties": true,
-        "type": "object"
+        "$ref": "#/$defs/PIROutput"
       },
-      "title": "Asset Weight Rules",
+      "title": "Pirs",
       "type": "array"
     },
-    "collection_focus": {
-      "items": {
-        "type": "string"
-      },
-      "title": "Collection Focus",
-      "type": "array"
-    },
-    "decision_point": {
-      "title": "Decision Point",
-      "type": "string"
-    },
-    "description": {
-      "title": "Description",
-      "type": "string"
-    },
-    "intelligence_level": {
-      "enum": [
-        "strategic",
-        "operational",
-        "tactical"
-      ],
-      "title": "Intelligence Level",
-      "type": "string"
-    },
-    "notable_groups": {
-      "items": {
-        "type": "string"
-      },
-      "title": "Notable Groups",
-      "type": "array"
-    },
-    "organizational_scope": {
-      "title": "Organizational Scope",
-      "type": "string"
-    },
-    "pir_id": {
-      "title": "Pir Id",
-      "type": "string"
-    },
-    "prioritized_actors": {
-      "items": {
-        "$ref": "#/$defs/PrioritizedActor"
-      },
-      "title": "Prioritized Actors",
-      "type": "array"
-    },
-    "rationale": {
-      "title": "Rationale",
-      "type": "string"
-    },
-    "recommended_action": {
-      "title": "Recommended Action",
-      "type": "string"
-    },
-    "risk_score": {
-      "$ref": "#/$defs/RiskScoreModel"
-    },
-    "source_elements": {
-      "items": {
-        "type": "string"
-      },
-      "title": "Source Elements",
-      "type": "array"
-    },
-    "threat_actor_tags": {
-      "items": {
-        "type": "string"
-      },
-      "title": "Threat Actor Tags",
-      "type": "array"
-    },
-    "valid_from": {
-      "title": "Valid From",
-      "type": "string"
-    },
-    "valid_until": {
-      "title": "Valid Until",
+    "schema_version": {
+      "default": "0.16.0",
+      "description": "Semantic version of the pir_output schema (set by BEACON at emit time).",
+      "title": "Schema Version",
       "type": "string"
     }
   },
   "required": [
-    "pir_id",
-    "intelligence_level",
-    "organizational_scope",
-    "decision_point",
-    "description",
-    "rationale",
-    "recommended_action",
-    "threat_actor_tags",
-    "asset_weight_rules",
-    "collection_focus",
-    "valid_from",
-    "valid_until",
-    "risk_score",
-    "prioritized_actors"
+    "schema_version",
+    "pirs"
   ],
-  "title": "PIROutput",
+  "title": "PIROutputDocument",
   "type": "object"
 }

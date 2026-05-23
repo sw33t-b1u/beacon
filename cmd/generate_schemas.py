@@ -16,10 +16,10 @@ SCHEMA_DIR = Path(__file__).parent.parent / "schema"
 def main() -> int:
     SCHEMA_DIR.mkdir(exist_ok=True)
 
-    # PIR output schema
-    from beacon.generator.pir_builder import PIROutput
+    # PIR output schema — generated from the document envelope (BEACON 0.16.0+)
+    from beacon.generator.pir_builder import PIROutputDocument
 
-    pir_schema = PIROutput.model_json_schema()
+    pir_schema = PIROutputDocument.model_json_schema()
     _write(SCHEMA_DIR / "pir_output.schema.json", pir_schema)
 
     # BusinessContext input schema

@@ -11,7 +11,7 @@ from beacon.analysis.asset_mapper import load_asset_tags, map_asset_tags
 from beacon.analysis.element_extractor import extract
 from beacon.analysis.risk_scorer import RiskScore, score
 from beacon.analysis.threat_mapper import load_taxonomy, map_threats
-from beacon.generator.pir_builder import PIROutput, build_pirs
+from beacon.generator.pir_builder import PIROutput, PIROutputDocument, build_pirs
 from beacon.ingest.misp_client import MispClient
 from beacon.ingest.schema import BusinessContext
 
@@ -241,12 +241,14 @@ class TestPrioritizedActorsSchemaValidation:
         return json.loads((SCHEMA_DIR / "pir_output.schema.json").read_text())
 
     def test_prioritized_actors_in_required(self):
+        # schema_version 0.16.0+: root is PIROutputDocument; PIROutput lives in $defs
         schema = self._load_schema()
-        assert "prioritized_actors" in schema.get("required", [])
+        pir_def = schema["$defs"]["PIROutput"]
+        assert "prioritized_actors" in pir_def.get("required", [])
 
     def test_prioritized_actors_defined_as_array(self):
         schema = self._load_schema()
-        pa_prop = schema["properties"]["prioritized_actors"]
+        pa_prop = schema["$defs"]["PIROutput"]["properties"]["prioritized_actors"]
         assert pa_prop["type"] == "array"
 
     def test_prioritized_actor_def_has_required_fields(self):
@@ -267,3 +269,70 @@ class TestPrioritizedActorsSchemaValidation:
         cap_props = schema["$defs"]["CapabilityComponent"]["properties"]
         assert "ttp_count_norm" in cap_props, "Must use canonical name ttp_count_norm"
         assert "recency_active_campaigns_90d" in cap_props
+
+
+# ---------------------------------------------------------------------------
+# Phase 3 — schema_version field tests (BEACON 0.16.0)
+# ---------------------------------------------------------------------------
+
+
+class TestSchemaVersion:
+    """PIROutputDocument.schema_version is always present with default '0.16.0'."""
+
+    def _make_doc(self, pirs=None) -> PIROutputDocument:
+        if pirs is None:
+            from datetime import date, timedelta
+
+            from beacon.generator.pir_builder import RiskScoreModel
+
+            today = date.today()
+            pirs = [
+                PIROutput(
+                    pir_id="PIR-2026-001",
+                    intelligence_level="operational",
+                    organizational_scope="Engineering (division)",
+                    decision_point="Ransomware impact?",
+                    description="Test description.",
+                    rationale="High composite score.",
+                    recommended_action="Review controls.",
+                    threat_actor_tags=["ransomware"],
+                    asset_weight_rules=[{"tag": "ot", "criticality_multiplier": 2.0}],
+                    collection_focus=["Monitor advisories"],
+                    valid_from=today.isoformat(),
+                    valid_until=(today + timedelta(days=180)).isoformat(),
+                    risk_score=RiskScoreModel(likelihood=4, impact=5, composite=20),
+                )
+            ]
+        return PIROutputDocument(pirs=pirs)
+
+    def test_schema_version_present(self):
+        doc = self._make_doc()
+        dumped = doc.model_dump()
+        assert "schema_version" in dumped
+
+    def test_schema_version_default_value(self):
+        doc = self._make_doc()
+        assert doc.schema_version == "0.16.0"
+        dumped = doc.model_dump()
+        assert dumped["schema_version"] == "0.16.0"
+
+    def test_schema_version_is_first_key_in_json(self):
+        doc = self._make_doc()
+        parsed = json.loads(doc.model_dump_json())
+        assert list(parsed.keys())[0] == "schema_version", (
+            "schema_version must be the first key in JSON output for human readability"
+        )
+
+    def test_schema_version_in_document_required(self):
+        schema = json.loads((SCHEMA_DIR / "pir_output.schema.json").read_text())
+        assert "schema_version" in schema.get("required", []), (
+            "schema_version must appear in top-level required[] of the document schema"
+        )
+
+    def test_pirs_in_document_required(self):
+        schema = json.loads((SCHEMA_DIR / "pir_output.schema.json").read_text())
+        assert "pirs" in schema.get("required", [])
+
+    def test_schema_version_not_overrideable_accident(self):
+        doc = PIROutputDocument(schema_version="0.16.0", pirs=[])
+        assert doc.schema_version == "0.16.0"

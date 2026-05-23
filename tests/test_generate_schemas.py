@@ -53,9 +53,18 @@ class TestPirSchemaConstraints:
     def setup_method(self):
         self.schema = json.loads((SCHEMA_DIR / "pir_output.schema.json").read_text())
 
-    def test_prioritized_actors_in_required(self):
-        """prioritized_actors must be in top-level required[] natively."""
-        assert "prioritized_actors" in self.schema.get("required", [])
+    def test_schema_version_in_document_required(self):
+        """schema_version must be in top-level required[] of PIROutputDocument."""
+        assert "schema_version" in self.schema.get("required", [])
+
+    def test_pirs_in_document_required(self):
+        """pirs must be in top-level required[] of PIROutputDocument."""
+        assert "pirs" in self.schema.get("required", [])
+
+    def test_prioritized_actors_in_pir_output_required(self):
+        """prioritized_actors must be in PIROutput.$defs required[] natively."""
+        pir_def = self.schema["$defs"]["PIROutput"]
+        assert "prioritized_actors" in pir_def.get("required", [])
 
     def test_likelihood_has_min_max(self):
         """PrioritizedActor.likelihood carries ge=0.0 / le=1.0 natively."""

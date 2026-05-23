@@ -19,7 +19,7 @@ from beacon.analysis.asset_mapper import load_asset_tags, map_asset_tags
 from beacon.analysis.element_extractor import extract
 from beacon.analysis.risk_scorer import score
 from beacon.analysis.threat_mapper import load_taxonomy, map_threats
-from beacon.generator.pir_builder import PIROutput, build_pirs
+from beacon.generator.pir_builder import PIROutput, PIROutputDocument, build_pirs
 from beacon.ingest.schema import BusinessContext
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -180,3 +180,37 @@ class TestPIRRoundtripFromFixture:
             payload = json.loads(pir.model_dump_json())
             item = PIRItem.model_validate(payload)
             assert item.valid_until > item.valid_from
+
+
+# ---------------------------------------------------------------------------
+# Phase 3 — PIROutputDocument schema_version roundtrip
+# ---------------------------------------------------------------------------
+
+
+class TestPIRDocumentSchemaVersionRoundtrip:
+    """schema_version survives emit -> reparse -> equality."""
+
+    def _make_doc(self) -> PIROutputDocument:
+        return PIROutputDocument(pirs=_build_pirs_from_fixture("sample_context_manufacturing.json"))
+
+    def test_schema_version_present_after_roundtrip(self):
+        doc = self._make_doc()
+        serialised = doc.model_dump_json()
+        reparsed = PIROutputDocument.model_validate_json(serialised)
+        assert reparsed.schema_version == doc.schema_version
+
+    def test_schema_version_value_after_roundtrip(self):
+        doc = self._make_doc()
+        reparsed = PIROutputDocument.model_validate_json(doc.model_dump_json())
+        assert reparsed.schema_version == "0.16.0"
+
+    def test_pirs_count_preserved_after_roundtrip(self):
+        doc = self._make_doc()
+        reparsed = PIROutputDocument.model_validate_json(doc.model_dump_json())
+        assert len(reparsed.pirs) == len(doc.pirs)
+
+    def test_pir_ids_preserved_after_roundtrip(self):
+        doc = self._make_doc()
+        reparsed = PIROutputDocument.model_validate_json(doc.model_dump_json())
+        for orig, parsed in zip(doc.pirs, reparsed.pirs):
+            assert parsed.pir_id == orig.pir_id

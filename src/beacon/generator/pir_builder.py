@@ -72,6 +72,29 @@ class PIROutput(BaseModel):
     prioritized_actors: list[PrioritizedActor] = Field(default_factory=list)
 
 
+def _pir_output_document_schema_extra(schema: dict) -> None:
+    """Ensure schema_version is in required[] even though it carries a default."""
+    req = schema.get("required", [])
+    if "schema_version" not in req:
+        schema["required"] = ["schema_version", *req]
+
+
+class PIROutputDocument(BaseModel):
+    """Top-level envelope for pir_output.json (BEACON 0.16.0+).
+
+    schema_version lets downstream consumers gate on the contract version
+    without inspecting field presence; pirs holds the ordered list of
+    per-decision-point records.
+    """
+
+    model_config = ConfigDict(json_schema_extra=_pir_output_document_schema_extra)
+    schema_version: str = Field(
+        default="0.16.0",
+        description="Semantic version of the pir_output schema (set by BEACON at emit time).",
+    )
+    pirs: list[PIROutput]
+
+
 def build_pirs(
     elements: ExtractedElements,
     threat: ThreatProfile,

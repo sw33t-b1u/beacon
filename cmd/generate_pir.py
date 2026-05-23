@@ -77,7 +77,7 @@ def main(argv: list[str] | None = None) -> int:
     from beacon.analysis.element_extractor import extract
     from beacon.analysis.risk_scorer import score
     from beacon.analysis.threat_mapper import load_taxonomy, map_threats
-    from beacon.generator.pir_builder import build_pirs
+    from beacon.generator.pir_builder import PIROutputDocument, build_pirs
     from beacon.generator.report_builder import build_collection_plan, write_collection_plan
     from beacon.ingest.context_parser import parse
     from beacon.ingest.misp_client import MispClient  # noqa: PLC0415
@@ -176,10 +176,8 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
     else:
-        output_data = [p.model_dump() for p in pirs]
-        output_path.write_text(
-            json.dumps(output_data, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
+        doc = PIROutputDocument(pirs=pirs)
+        output_path.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
         print(f"Generated {len(pirs)} PIR(s) → {output_path}")
 
     if args.collection_plan:
