@@ -13,6 +13,11 @@ Exit codes:
     0 — success (or dry-run)
     1 — HTTP / network error
     2 — JSON parse error
+
+.. deprecated:: 1.0.0
+    Invoke as ``beacon misp-cache-refresh`` instead. The
+    ``python -m cmd.refresh_misp_cache`` form is preserved for 1.x backward
+    compatibility and will be removed in BEACON 2.0.0.
 """
 
 from __future__ import annotations
@@ -162,7 +167,13 @@ def refresh(source_url: str, output_path: Path, timeout: int, dry_run: bool) -> 
     )
 
 
-def main() -> None:
+def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> None:
+    if not _from_beacon_cli:
+        print(
+            "DeprecationWarning: `python -m cmd.refresh_misp_cache` is deprecated; "
+            "use `beacon misp-cache-refresh` instead (removal scheduled for 2.0.0).",
+            file=sys.stderr,
+        )
     parser = argparse.ArgumentParser(
         description="Refresh BEACON MISP threat-actor cache from upstream."
     )
@@ -187,7 +198,7 @@ def main() -> None:
         action="store_true",
         help="Download and validate JSON but do not write to disk",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     refresh(
         source_url=args.source,

@@ -18,6 +18,11 @@ After generating, validate the output with TRACE before loading into SAGE:
     cd ../TRACE && uv run python cmd/validate_identity_assets.py \\
         --identity-assets ../BEACON/output/identity_assets.json \\
         --assets ../BEACON/output/assets.json
+
+.. deprecated:: 1.0.0
+    Invoke as ``beacon identity-generate`` instead. The
+    ``python -m cmd.generate_identity_assets`` form is preserved for 1.x
+    backward compatibility and will be removed in BEACON 2.0.0.
 """
 
 from __future__ import annotations
@@ -47,7 +52,13 @@ logger = structlog.get_logger(__name__)
 _DEFAULT_OUTPUT = Path(__file__).parent.parent / "output" / "identity_assets.json"
 
 
-def main() -> None:
+def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> None:
+    if not _from_beacon_cli:
+        print(
+            "DeprecationWarning: `python -m cmd.generate_identity_assets` is deprecated; "
+            "use `beacon identity-generate` instead (removal scheduled for 2.0.0).",
+            file=sys.stderr,
+        )
     parser = argparse.ArgumentParser(
         description="Generate identity_assets.json from a BEACON context document"
     )
@@ -68,7 +79,7 @@ def main() -> None:
         action="store_true",
         help="Skip LLM processing — only valid for JSON context files",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     try:
         ctx = parse(args.context, no_llm=args.no_llm)

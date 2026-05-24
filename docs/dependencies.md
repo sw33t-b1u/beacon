@@ -14,6 +14,7 @@
 | `jinja2` | `>=3.1.0` | HTML template rendering for the Web UI (`src/beacon/web/templates/`) | BSD-3-Clause |
 | `cryptography` | `>=46.0.7` | Transitive dependency of `google-genai` / `uvicorn`. Pinned to `>=46.0.7` to resolve CVE-2026-39892 in 46.0.6. No direct usage in BEACON code. | Apache-2.0 / BSD |
 | `python-dotenv` | `>=1.0` | Loads `.env` file into `os.environ` at startup, keeping secrets out of source code | BSD-3-Clause |
+| `click` | `>=8.1.0` | Backs the unified `beacon` CLI entry point (`src/beacon/cli/`) introduced in Initiative H Phase 6. Click's `Group` + `command` decorators give us composable subcommands, automatic `--help`, and a testable `CliRunner`. | BSD-3-Clause |
 
 ## Optional Dependencies
 
@@ -42,6 +43,7 @@
 - **jinja2**: Minimal server-side templating for the Web UI. Chosen over a full JS framework to keep dependencies lean; the `/api/*` endpoints allow future React migration without server-side changes.
 - **cryptography**: Not used directly by BEACON. Pinned to `>=46.0.7` to fix CVE-2026-39892 in the transitive dependency chain (`google-genai` → `httpcore` → `h11` → `cryptography`).
 - **python-dotenv**: Loads `.env` files into `os.environ` at process startup. Keeps credentials and project-specific settings out of source code and shell profiles. Chosen over a custom `.env` parser to avoid reimplementing quoting, comment handling, and variable expansion.
+- **click**: Chosen over argparse for the unified `beacon` CLI because click cleanly composes a `Group` of subcommands without re-parsing argv at every dispatcher boundary, has a first-class `CliRunner` for tests, and produces auto-formatted `--help` text. The legacy `cmd/*.py` modules keep their existing argparse-based entry points so the 1.x backward-compat path stays unchanged.
 
 > **Removed in 0.9.0:** `markitdown[pdf]` was used only by `cmd/stix_from_report.py`,
 > which has moved to TRACE. The dependency now lives in

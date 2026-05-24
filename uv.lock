@@ -52,9 +52,10 @@ wheels = [
 
 [[package]]
 name = "beacon"
-version = "0.17.0"
+version = "0.18.0"
 source = { editable = "." }
 dependencies = [
+    { name = "click" },
     { name = "cryptography" },
     { name = "fastapi" },
     { name = "google-genai" },
@@ -84,6 +85,7 @@ misp = [
 
 [package.metadata]
 requires-dist = [
+    { name = "click", specifier = ">=8.1.0" },
     { name = "cryptography", specifier = ">=46.0.7" },
     { name = "fastapi", specifier = ">=0.111.0" },
     { name = "google-genai", specifier = ">=1.0" },

@@ -15,7 +15,11 @@ dependencies = [
     "python-dotenv>=1.0",  # load .env into os.environ at startup
     "idna>=3.15",  # CVE-2026-45409 fix; transitive via anyio/httpx
     "starlette>=1.0.1",  # PYSEC-2026-161 fix; transitive via fastapi
+    "click>=8.1.0",  # Unified CLI entry (Initiative H Phase 6)
 ]
+
+[project.scripts]
+beacon = "beacon.cli:cli"
 
 [project.optional-dependencies]
 dev = [

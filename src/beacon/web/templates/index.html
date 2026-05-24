@@ -4,6 +4,34 @@
 <h1>PIR Generation</h1>
 
 <div class="card">
+  <h2 style="margin-top:0;">Generated Artifacts</h2>
+  <p style="font-size:0.88rem; color:#555; margin-bottom:0.75rem;">
+    Output directory: <code>{{ output_dir }}</code>
+  </p>
+  {% if artifacts %}
+  <table>
+    <thead>
+      <tr><th>Filename</th><th>Size</th><th>Last modified</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      {% for art in artifacts %}
+      <tr>
+        <td><code>{{ art.filename }}</code></td>
+        <td>{{ art.size_bytes }} B</td>
+        <td>{{ art.mtime_iso }}</td>
+        <td><a href="{{ art.view_url }}">View</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="font-size:0.88rem; color:#777;">
+    No artifacts found in <code>{{ output_dir }}</code>. Run <code>beacon pir-generate</code> first.
+  </p>
+  {% endif %}
+</div>
+
+<div class="card">
   <h2 style="margin-top:0;">Business Context から生成</h2>
   <form action="/generate" method="post" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">

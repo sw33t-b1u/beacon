@@ -21,6 +21,11 @@ After generating, review the output and fill in:
 
 Then load into SAGE Spanner:
     uv run python cmd/load_assets.py --file output/assets.json
+
+.. deprecated:: 1.0.0
+    Invoke as ``beacon assets-generate`` instead. The
+    ``python -m cmd.generate_assets`` form is preserved for 1.x backward
+    compatibility and will be removed in BEACON 2.0.0.
 """
 
 from __future__ import annotations
@@ -50,7 +55,13 @@ logger = structlog.get_logger(__name__)
 _DEFAULT_OUTPUT = Path(__file__).parent.parent / "output" / "assets.json"
 
 
-def main() -> None:
+def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> None:
+    if not _from_beacon_cli:
+        print(
+            "DeprecationWarning: `python -m cmd.generate_assets` is deprecated; "
+            "use `beacon assets-generate` instead (removal scheduled for 2.0.0).",
+            file=sys.stderr,
+        )
     parser = argparse.ArgumentParser(
         description="Generate SAGE assets.json from a BEACON context document"
     )
@@ -71,7 +82,7 @@ def main() -> None:
         action="store_true",
         help="Skip LLM processing — only valid for JSON context files",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     try:
         ctx = parse(args.context, no_llm=args.no_llm)

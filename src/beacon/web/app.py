@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import datetime as _dt
 import json
+import os
 import secrets
 import tempfile
 from contextlib import asynccontextmanager
@@ -10,7 +12,7 @@ from pathlib import Path
 
 import structlog
 from fastapi import Cookie, FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import JSONResponse, RedirectResponse, Response
+from fastapi.responses import JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from beacon.web.session import cleanup_old_sessions, create_session, load_session, save_session
@@ -22,6 +24,60 @@ templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
 # Maximum upload size: 10 MB
 _MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+
+# Multi-artifact landing-page configuration (Initiative H Phase 6).
+# Artifact filenames are aligned with `docs/api-stability.md` §3.8 and the
+# default outputs of `beacon pir-generate`. JSON / Markdown / YAML are the
+# only three viewer media types — anything else is rejected by name.
+_ARTIFACT_FILENAMES: tuple[str, ...] = (
+    "pir_output.json",
+    "assets.json",
+    "identity_assets.json",
+    "user_accounts.json",
+    "collection_plan.md",
+    "sources_candidate.yaml",
+)
+
+
+def _resolve_output_dir() -> Path:
+    """Return the directory the landing page scans for generated artifacts.
+
+    Defaults to ``./output`` (matches the legacy CLI default). When
+    ``beacon pir-generate`` auto-launches the web UI it sets
+    ``BEACON_OUTPUT_DIR`` so the operator sees that run's artifacts.
+    """
+    env_value = os.environ.get("BEACON_OUTPUT_DIR")
+    if env_value:
+        return Path(env_value)
+    return Path("output")
+
+
+def _scan_artifacts(output_dir: Path) -> list[dict]:
+    """Return descriptors for every present artifact in ``output_dir``.
+
+    Each descriptor carries the filename, size in bytes, ISO-8601 mtime,
+    and a viewer URL. PIR outputs link to ``/review/pir/{pir_id}`` for the
+    first PIR they contain (multi-PIR documents still resolve here because
+    that route fans out from the file); other artifacts go to the
+    readonly ``/review/artifacts/{filename}`` viewer.
+    """
+    descriptors: list[dict] = []
+    for name in _ARTIFACT_FILENAMES:
+        path = output_dir / name
+        if not path.exists() or not path.is_file():
+            continue
+        stat = path.stat()
+        descriptors.append(
+            {
+                "filename": name,
+                "size_bytes": stat.st_size,
+                "mtime_iso": _dt.datetime.fromtimestamp(stat.st_mtime).isoformat(
+                    timespec="seconds"
+                ),
+                "view_url": f"/review/artifacts/{name}",
+            }
+        )
+    return descriptors
 
 
 @asynccontextmanager
@@ -88,8 +144,16 @@ async def _read_upload(file: UploadFile, max_bytes: int = _MAX_UPLOAD_BYTES) -> 
 @app.get("/")
 async def index(request: Request):
     csrf_token = _generate_csrf_token()
+    output_dir = _resolve_output_dir()
+    artifacts = _scan_artifacts(output_dir)
     response = templates.TemplateResponse(
-        request=request, name="index.html", context={"csrf_token": csrf_token}
+        request=request,
+        name="index.html",
+        context={
+            "csrf_token": csrf_token,
+            "artifacts": artifacts,
+            "output_dir": str(output_dir),
+        },
     )
     _set_csrf_cookie(response, csrf_token)
     return response
@@ -316,6 +380,113 @@ async def review_approve(
         {"pir_id": r.pir_id, "issue_number": r.issue_number, "url": r.html_url} for r in results
     ]
     return JSONResponse({"created": created})
+
+
+@app.get("/review/pir/{pir_id}")
+async def review_pir(request: Request, pir_id: str):
+    """Render the prioritized_actors review view for a single PIR (Phase 6).
+
+    Loads ``<output_dir>/pir_output.json`` from the launcher-scoped
+    directory, locates the PIR with the matching ``pir_id``, seeds a
+    review session containing only that PIR, and renders the existing
+    review template. Edits persist in the session only (no file write-
+    back); the existing ``/review/export`` route emits the edited JSON
+    for downstream operator workflow.
+    """
+    output_dir = _resolve_output_dir()
+    pir_path = output_dir / "pir_output.json"
+    if not pir_path.exists():
+        raise HTTPException(status_code=404, detail=f"pir_output.json not found in {output_dir}")
+    try:
+        data = json.loads(pir_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid PIR JSON: {exc}") from exc
+
+    if isinstance(data, dict) and "pirs" in data:
+        all_pirs = data["pirs"]
+    elif isinstance(data, list):
+        all_pirs = data
+    elif isinstance(data, dict):
+        all_pirs = [data]
+    else:
+        raise HTTPException(status_code=400, detail="pir_output.json must be an object or list")
+
+    matching = [p for p in all_pirs if p.get("pir_id") == pir_id]
+    if not matching:
+        raise HTTPException(status_code=404, detail=f"PIR not found: {pir_id}")
+
+    session_id = create_session({"pirs": matching, "collection_plan": ""})
+    csrf_token = _generate_csrf_token()
+    response = templates.TemplateResponse(
+        request=request,
+        name="review.html",
+        context={"pirs": matching, "collection_plan": "", "csrf_token": csrf_token},
+    )
+    response.set_cookie(
+        "beacon_session", session_id, httponly=True, secure=True, samesite="lax", max_age=86400
+    )
+    _set_csrf_cookie(response, csrf_token)
+    return response
+
+
+@app.get("/review/artifacts/{filename}")
+async def review_artifact(request: Request, filename: str):
+    """Read-only viewer for a generated artifact (Initiative H Phase 6).
+
+    Only the six filenames whitelisted in ``_ARTIFACT_FILENAMES`` are
+    served; anything else is a 404. JSON files are pretty-printed,
+    Markdown is rendered in a ``<pre>`` block (no markdown→HTML
+    conversion to keep the dep surface minimal), and YAML is returned
+    verbatim.
+    """
+    if filename not in _ARTIFACT_FILENAMES:
+        raise HTTPException(status_code=404, detail="Unknown artifact")
+    output_dir = _resolve_output_dir()
+    path = output_dir / filename
+    if not path.exists() or not path.is_file():
+        raise HTTPException(status_code=404, detail=f"Artifact not found: {filename}")
+
+    raw_text = path.read_text(encoding="utf-8")
+    suffix = path.suffix.lower()
+    if suffix == ".json":
+        try:
+            parsed = json.loads(raw_text)
+            display_text = json.dumps(parsed, ensure_ascii=False, indent=2)
+        except json.JSONDecodeError:
+            display_text = raw_text
+        viewer_kind = "json"
+    elif suffix in (".md", ".markdown"):
+        display_text = raw_text
+        viewer_kind = "markdown"
+    elif suffix in (".yaml", ".yml"):
+        display_text = raw_text
+        viewer_kind = "yaml"
+    else:  # pragma: no cover - whitelisted to known suffixes
+        display_text = raw_text
+        viewer_kind = "text"
+
+    return templates.TemplateResponse(
+        request=request,
+        name="artifact.html",
+        context={
+            "filename": filename,
+            "display_text": display_text,
+            "viewer_kind": viewer_kind,
+            "size_bytes": path.stat().st_size,
+        },
+    )
+
+
+@app.get("/review/artifacts/{filename}/raw")
+async def review_artifact_raw(filename: str):
+    """Serve an artifact verbatim (text/plain) for download or curl access."""
+    if filename not in _ARTIFACT_FILENAMES:
+        raise HTTPException(status_code=404, detail="Unknown artifact")
+    output_dir = _resolve_output_dir()
+    path = output_dir / filename
+    if not path.exists() or not path.is_file():
+        raise HTTPException(status_code=404, detail=f"Artifact not found: {filename}")
+    return PlainTextResponse(path.read_text(encoding="utf-8"))
 
 
 @app.get("/review/export")

@@ -17,6 +17,11 @@ Schema changelog:
            intrusion_set_profiles (per-group technique_count / software_count /
            sophistication_tier / campaign_last_seen), and _metadata.schema_version.
            (BEACON 0.15.0 / actor triage preparation; plan beacon-actor-triage §1)
+
+.. deprecated:: 1.0.0
+    Invoke as ``beacon taxonomy-refresh`` instead. The
+    ``python -m cmd.update_taxonomy`` form is preserved for 1.x backward
+    compatibility and will be removed in BEACON 2.0.0.
 """
 
 from __future__ import annotations
@@ -785,7 +790,13 @@ def _diff_entry(label: str, orig: dict, upd: dict, lines: list[str]) -> None:
 # --- CLI --------------------------------------------------------------------
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> int:
+    if not _from_beacon_cli:
+        print(
+            "DeprecationWarning: `python -m cmd.update_taxonomy` is deprecated; "
+            "use `beacon taxonomy-refresh` instead (removal scheduled for 2.0.0).",
+            file=sys.stderr,
+        )
     parser = argparse.ArgumentParser(
         description="Regenerate threat_taxonomy.json from MITRE ATT&CK + MISP Galaxy."
     )

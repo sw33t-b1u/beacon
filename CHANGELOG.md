@@ -8,6 +8,41 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ## [Unreleased]
 
+### Added — Initiative H Phase 6: unified `beacon` CLI + web UI auto-launch
+
+- New `beacon` console script (`beacon.cli:cli`) exposes the eight
+  committed subcommands from `docs/api-stability.md` §3.7:
+  `pir-generate`, `assets-generate`, `identity-generate`,
+  `accounts-generate`, `submit-review`, `taxonomy-refresh`,
+  `misp-cache-refresh`, `web`. Each subcommand delegates to the existing
+  `cmd/*.py` `main(argv)` and forwards `_from_beacon_cli=True` to
+  suppress the legacy deprecation banner.
+- `beacon pir-generate` introduces a unified `--output-dir` flag that
+  expands into `--output`, `--collection-plan`, and
+  `--sources-candidate` under that directory. On success the review web
+  UI auto-launches in a detached subprocess and prints its URL; the
+  new `--no-web` flag opts out.
+- `src/beacon/web/launcher.py` (NEW) spawns `cmd/web_app.py` on a free
+  local port, forwards `BEACON_OUTPUT_DIR` to the child env, polls the
+  server until ready, and returns the URL non-blocking.
+- `src/beacon/web/app.py` extends the landing page (`GET /`) with a
+  multi-artifact table — `pir_output.json`, `assets.json`,
+  `identity_assets.json`, `user_accounts.json`, `collection_plan.md`,
+  `sources_candidate.yaml` — scanned from `BEACON_OUTPUT_DIR` (default
+  `./output`). New routes `GET /review/pir/{pir_id}` (PIR-scoped
+  review) and `GET /review/artifacts/{filename}` (read-only viewer,
+  plus `/raw` for download) match the surface committed in §3.8.
+- `cmd/*.py` modules gain a module-level `.. deprecated:: 1.0.0` note
+  + a runtime `DeprecationWarning` printed to stderr when invoked
+  directly (suppressed when invoked through the `beacon` entry point).
+  The legacy invocation form remains supported through BEACON 1.x for
+  backward compatibility.
+- Tests: 71 new (`tests/test_cli.py` 32, `tests/test_web_launcher.py`
+  12, `tests/test_web_multi_artifact.py` 27); brings the suite from
+  749 → 820 passing.
+- `click >= 8.1.0` promoted from transitive to direct dependency
+  (documented in `docs/dependencies.md`).
+
 ### Changed — RULES.md compliance pass
 
 - `high-level-design.md` moved from the project root into `docs/` per
