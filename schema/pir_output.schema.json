@@ -457,7 +457,7 @@
       "type": "object"
     }
   },
-  "description": "Top-level envelope for pir_output.json (BEACON 0.18.0+).\n\nschema_version lets downstream consumers gate on the contract version\nwithout inspecting field presence; pirs holds the ordered list of\nper-decision-point records.",
+  "description": "Top-level envelope for pir_output.json (BEACON 1.0.0+).\n\nschema_version lets downstream consumers gate on the contract version\nwithout inspecting field presence; pirs holds the ordered list of\nper-decision-point records.",
   "properties": {
     "pirs": {
       "items": {
@@ -467,7 +467,7 @@
       "type": "array"
     },
     "schema_version": {
-      "default": "0.18.0",
+      "default": "1.0.0",
       "description": "Semantic version of the pir_output schema (set by BEACON at emit time).",
       "title": "Schema Version",
       "type": "string"

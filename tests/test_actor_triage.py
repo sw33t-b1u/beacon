@@ -1235,13 +1235,13 @@ class TestIRLookbackDaysConfig:
 
 
 # ---------------------------------------------------------------------------
-# Schema version bump — 0.17.0 → 0.18.0 (Initiative G Phase 6)
+# Schema version bump — 0.18.0 → 1.0.0 (Initiative H Phase 4 — pre-1.0 stabilization)
 # ---------------------------------------------------------------------------
 
 
 class TestSchemaVersionBumped:
-    def test_pir_output_document_default_is_0_18_0(self):
+    def test_pir_output_document_default_is_1_0_0(self):
         from beacon.generator.pir_builder import PIROutputDocument  # noqa: PLC0415
 
         doc = PIROutputDocument(pirs=[])
-        assert doc.schema_version == "0.18.0"
+        assert doc.schema_version == "1.0.0"

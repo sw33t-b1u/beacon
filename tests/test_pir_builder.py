@@ -272,12 +272,12 @@ class TestPrioritizedActorsSchemaValidation:
 
 
 # ---------------------------------------------------------------------------
-# Phase 3 — schema_version field tests (BEACON 0.18.0)
+# Phase 3 — schema_version field tests (BEACON 1.0.0)
 # ---------------------------------------------------------------------------
 
 
 class TestSchemaVersion:
-    """PIROutputDocument.schema_version is always present with default '0.18.0'."""
+    """PIROutputDocument.schema_version is always present with default '1.0.0'."""
 
     def _make_doc(self, pirs=None) -> PIROutputDocument:
         if pirs is None:
@@ -312,9 +312,9 @@ class TestSchemaVersion:
 
     def test_schema_version_default_value(self):
         doc = self._make_doc()
-        assert doc.schema_version == "0.18.0"
+        assert doc.schema_version == "1.0.0"
         dumped = doc.model_dump()
-        assert dumped["schema_version"] == "0.18.0"
+        assert dumped["schema_version"] == "1.0.0"
 
     def test_schema_version_is_first_key_in_json(self):
         doc = self._make_doc()
@@ -334,5 +334,5 @@ class TestSchemaVersion:
         assert "pirs" in schema.get("required", [])
 
     def test_schema_version_not_overrideable_accident(self):
-        doc = PIROutputDocument(schema_version="0.18.0", pirs=[])
-        assert doc.schema_version == "0.18.0"
+        doc = PIROutputDocument(schema_version="1.0.0", pirs=[])
+        assert doc.schema_version == "1.0.0"

@@ -54,7 +54,7 @@ def _build_gir_hint(
 def build_sources_candidate_yaml(
     pirs: list[PIROutput],
     elements: ExtractedElements,
-    schema_version: str = "0.17.0",
+    schema_version: str = "1.0.0",
     generated_at: datetime | None = None,
     content_path: Path | None = None,
 ) -> str:
@@ -125,9 +125,7 @@ def build_sources_candidate_yaml(
     lines.append(
         "# NOTE: When ACTIVITY_WINDOW_DAYS=180 is set in the environment, Capability scores"
     )
-    lines.append(
-        "# will differ from BEACON 0.16.x outputs. This is expected per Initiative F window change."
-    )
+    lines.append("# will differ from the BEACON 1.0.0 default-window (90-day) baseline.")
     lines.append("#")
     lines.append("# OPERATOR ACTION: Review each entry, fill in the url field, then merge into")
     lines.append("# TRACE input/sources.yaml. Do NOT overwrite existing sources.yaml entries.")

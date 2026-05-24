@@ -84,7 +84,7 @@ def _pir_output_document_schema_extra(schema: dict) -> None:
 
 
 class PIROutputDocument(BaseModel):
-    """Top-level envelope for pir_output.json (BEACON 0.18.0+).
+    """Top-level envelope for pir_output.json (BEACON 1.0.0+).
 
     schema_version lets downstream consumers gate on the contract version
     without inspecting field presence; pirs holds the ordered list of
@@ -93,7 +93,7 @@ class PIROutputDocument(BaseModel):
 
     model_config = ConfigDict(json_schema_extra=_pir_output_document_schema_extra)
     schema_version: str = Field(
-        default="0.18.0",
+        default="1.0.0",
         description="Semantic version of the pir_output schema (set by BEACON at emit time).",
     )
     pirs: list[PIROutput]
