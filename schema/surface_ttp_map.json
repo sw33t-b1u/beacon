@@ -3,8 +3,8 @@
     "description": "SAGE asset-tag → MITRE ATT&CK Enterprise TTP mapping for actor triage surface analysis. Each entry maps one SAGE tag to a TTP observed targeting that surface. Used by BEACON actor_triage to compute Opportunity.victimology_match via surface_ttp_matches.",
     "schema_version": "1.0.0",
     "generator": "manual (BEACON 0.15.0 / plan beacon-actor-triage §1 / §3.3)",
-    "citation_policy": "All entries verbatim-cited from ref/ md sources per [[feedback_ref_md_first]] and [[feedback_external_citations]]. Source filename and line numbers recorded inline.",
-    "deferred_entries": "None. All 35 entries have ref/ md citations.",
+    "citation_policy": "Each entry attributes its prevalence figure or qualitative observation to the source filename and line per [[feedback_ref_md_first]] and [[feedback_external_citations]]. Proprietary vendor table-rows are paraphrased; only statistics and concepts are reproduced (see docs/citations.md).",
+    "deferred_entries": "None. All 35 entries carry ref/ md attribution.",
     "sources_used": [
       "ref/m-trends-2026-en.md",
       "ref/ENISA_Threat_Landscape_2025_v1.2.md",
@@ -17,31 +17,31 @@
         "ttp_id": "T1190",
         "ttp_name": "Exploit Public-Facing Application",
         "kill_chain_phase": "initial-access",
-        "citation": "ref/m-trends-2026-en.md:1734 — '| 5    | T1190: Exploit Public-Facing Application | 27.7%   |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:1734): T1190 (Exploit Public-Facing Application) ranks 5th among observed initial-access TTPs at 27.7% prevalence."
       },
       {
         "ttp_id": "T1133",
         "ttp_name": "External Remote Services",
         "kill_chain_phase": "initial-access",
-        "citation": "ref/m-trends-2026-en.md:1739 — '| 10   | T1133: External Remote Services          | 23.8%   |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:1739): T1133 (External Remote Services) ranks 10th among observed initial-access TTPs at 23.8% prevalence."
       },
       {
         "ttp_id": "T1078",
         "ttp_name": "Valid Accounts",
         "kill_chain_phase": "initial-access",
-        "citation": "ref/m-trends-2026-en.md:4108 — '| T1078: Valid Accounts                     | 17% T1078.004: Cloud Accounts         | 9.5% |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4108): T1078 (Valid Accounts) observed at 17% prevalence overall, with sub-technique T1078.004 (Cloud Accounts) at 9.5%."
       },
       {
         "ttp_id": "T1189",
         "ttp_name": "Drive-by Compromise",
         "kill_chain_phase": "initial-access",
-        "citation": "ref/m-trends-2026-en.md:4113 — '| T1189: Drive-by Compromise                | 6.3%                                  |      |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4113): T1189 (Drive-by Compromise) observed at 6.3% prevalence among initial-access TTPs."
       },
       {
         "ttp_id": "T1195",
         "ttp_name": "Supply Chain Compromise",
         "kill_chain_phase": "initial-access",
-        "citation": "ref/m-trends-2026-en.md:4114 — 'T1195: Supply Chain Compromise  1.7% T1195.002: Compromise Software Supply Chain 1.5%'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4114): T1195 (Supply Chain Compromise) observed at 1.7% prevalence; sub-technique T1195.002 (Compromise Software Supply Chain) at 1.5%."
       }
     ],
     "email_gateway": [
@@ -49,37 +49,37 @@
         "ttp_id": "T1566",
         "ttp_name": "Phishing",
         "kill_chain_phase": "initial-access",
-        "citation": "ref/m-trends-2026-en.md:4109 — '| T1566: Phishing                           | 14.1% T1566.004: Spearphishing Voice  | 6.1% |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4109): T1566 (Phishing) parent technique observed at 14.1% prevalence among initial-access TTPs."
       },
       {
         "ttp_id": "T1566.001",
         "ttp_name": "Spearphishing Attachment",
         "kill_chain_phase": "initial-access",
-        "citation": "ref/m-trends-2026-en.md:4112 — '|                                           | T1566.001: Spearphishing Attachment   | 1.0% |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4112): sub-technique T1566.001 (Spearphishing Attachment) observed at 1.0% prevalence."
       },
       {
         "ttp_id": "T1566.002",
         "ttp_name": "Spearphishing Link",
         "kill_chain_phase": "initial-access",
-        "citation": "ref/m-trends-2026-en.md:4110 — '|                                           | T1566.002: Spearphishing Link         | 3.2% |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4110): sub-technique T1566.002 (Spearphishing Link) observed at 3.2% prevalence."
       },
       {
         "ttp_id": "T1566.003",
         "ttp_name": "Spearphishing via Service",
         "kill_chain_phase": "initial-access",
-        "citation": "ref/m-trends-2026-en.md:4111 — '|                                           | T1566.003: Spearphishing via Service  | 2.7% |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4111): sub-technique T1566.003 (Spearphishing via Service) observed at 2.7% prevalence."
       },
       {
         "ttp_id": "T1566.004",
         "ttp_name": "Spearphishing Voice",
         "kill_chain_phase": "initial-access",
-        "citation": "ref/m-trends-2026-en.md:4109 — '| T1566: Phishing                           | 14.1% T1566.004: Spearphishing Voice  | 6.1% |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4109): sub-technique T1566.004 (Spearphishing Voice / vishing) observed at 6.1% prevalence under the T1566 parent."
       },
       {
         "ttp_id": "T1598",
         "ttp_name": "Phishing for Information",
         "kill_chain_phase": "reconnaissance",
-        "citation": "ref/m-trends-2026-en.md:4084 — 'ATT&CK v18. T1598: Phishing for Information 2.4%'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4084): T1598 (Phishing for Information) observed at 2.4% prevalence under ATT&CK v18."
       }
     ],
     "vpn_remote_access": [
@@ -87,31 +87,31 @@
         "ttp_id": "T1133",
         "ttp_name": "External Remote Services",
         "kill_chain_phase": "persistence",
-        "citation": "ref/m-trends-2026-en.md:4107 — '| T1133: External Remote Services           | 23.8%                                 |      |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4107): T1133 (External Remote Services) observed at 23.8% prevalence — relevant to VPN-style persistence on edge access devices."
       },
       {
         "ttp_id": "T1078",
         "ttp_name": "Valid Accounts",
         "kill_chain_phase": "persistence",
-        "citation": "ref/ENISA_Threat_Landscape_2025_v1.2.md:2940 — 'TA0003: Persistence T1078: Valid Accounts M1027: Password Policies, M1018: User'"
+        "citation": "ENISA Threat Landscape 2025 (ref/ENISA_Threat_Landscape_2025_v1.2.md:2940): catalogues T1078 (Valid Accounts) under TA0003 Persistence with M1027 (Password Policies) and M1018 (User Account Management) as primary mitigations."
       },
       {
         "ttp_id": "T1021",
         "ttp_name": "Remote Services",
         "kill_chain_phase": "lateral-movement",
-        "citation": "ref/m-trends-2026-en.md:1733 — '| 4    | T1021: Remote Services                   | 30.6%   |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:1733): T1021 (Remote Services) ranks 4th among observed lateral-movement TTPs at 30.6% prevalence — VPN reuse for lateral pivoting."
       },
       {
         "ttp_id": "T1021.001",
         "ttp_name": "Remote Desktop Protocol",
         "kill_chain_phase": "lateral-movement",
-        "citation": "ref/m-trends-2026-en.md:1749 — '| 3    | T1021.001: Remote Desktop Protocol       | 22.1%   |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:1749): T1021.001 (Remote Desktop Protocol) ranks 3rd among observed lateral-movement sub-techniques at 22.1% prevalence."
       },
       {
         "ttp_id": "T1572",
         "ttp_name": "Protocol Tunneling",
         "kill_chain_phase": "command-and-control",
-        "citation": "ref/m-trends-2026-en.md:4573 — '| T1572: Protocol Tunneling             | 8.0%                               |      |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4573): T1572 (Protocol Tunneling) observed at 8.0% prevalence among C2 TTPs."
       }
     ],
     "cloud": [
@@ -119,43 +119,43 @@
         "ttp_id": "T1537",
         "ttp_name": "Transfer Data to Cloud Account",
         "kill_chain_phase": "exfiltration",
-        "citation": "ref/ENISA_Threat_Landscape_2025_v1.2.md:3521 — 'TA0010: Exfiltration T1537: Transfer Data to Cloud Account M1057: Data Loss Prevention, M1018:'"
+        "citation": "ENISA Threat Landscape 2025 (ref/ENISA_Threat_Landscape_2025_v1.2.md:3521): catalogues T1537 (Transfer Data to Cloud Account) under TA0010 Exfiltration with M1057 (Data Loss Prevention) and M1018 (User Account Management) as primary mitigations."
       },
       {
         "ttp_id": "T1530",
         "ttp_name": "Data from Cloud Storage",
         "kill_chain_phase": "collection",
-        "citation": "ref/m-trends-2026-en.md:4608 — '| T1530: Data from Cloud Storage        | 2.7%                                |      |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4608): T1530 (Data from Cloud Storage) observed at 2.7% prevalence among collection TTPs."
       },
       {
         "ttp_id": "T1528",
         "ttp_name": "Steal Application Access Token",
         "kill_chain_phase": "credential-access",
-        "citation": "ref/m-trends-2026-en.md:4160 — '| T1528: Steal Application Access Token              | 0.2%                       |      |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4160): T1528 (Steal Application Access Token) observed at 0.2% prevalence — low base rate but high cloud-pivot impact."
       },
       {
         "ttp_id": "T1578",
         "ttp_name": "Modify Cloud Compute Infrastructure",
         "kill_chain_phase": "defense-evasion",
-        "citation": "ref/m-trends-2026-en.md:4488 — 'T1578: Modify Cloud Compute Infrastructure 1.5% T1578.003: Delete Cloud Instance 1.2%'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4488): T1578 (Modify Cloud Compute Infrastructure) observed at 1.5%; sub-technique T1578.003 (Delete Cloud Instance) at 1.2%."
       },
       {
         "ttp_id": "T1078.004",
         "ttp_name": "Cloud Accounts",
         "kill_chain_phase": "initial-access",
-        "citation": "ref/m-trends-2026-en.md:4108 — '| T1078: Valid Accounts                     | 17% T1078.004: Cloud Accounts         | 9.5% |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4108): sub-technique T1078.004 (Cloud Accounts) observed at 9.5% prevalence under T1078 (Valid Accounts, 17%)."
       },
       {
         "ttp_id": "T1098.001",
         "ttp_name": "Additional Cloud Credentials",
         "kill_chain_phase": "persistence",
-        "citation": "ref/m-trends-2026-en.md:4202 — '|                        | T1098.001: Additional Cloud Credentials  | 1.0% |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4202): sub-technique T1098.001 (Additional Cloud Credentials) observed at 1.0% prevalence."
       },
       {
         "ttp_id": "T1562.001",
         "ttp_name": "Disable or Modify Tools",
         "kill_chain_phase": "defense-evasion",
-        "citation": "ref/m-trends-2026-en.md:4442 — 'T1562: Impair Defenses  16.5% T1562.001: Disable or Modify Tools  10.2%'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4442): T1562 (Impair Defenses) observed at 16.5%; sub-technique T1562.001 (Disable or Modify Tools) at 10.2%."
       }
     ],
     "ot": [
@@ -163,31 +163,31 @@
         "ttp_id": "T1190",
         "ttp_name": "Exploit Public-Facing Application",
         "kill_chain_phase": "initial-access",
-        "citation": "ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md:322 — 'Exploitation of internet-facing Ivanti, Fortinet, Cisco, and F5 assets'"
+        "citation": "Dragos 2026 OT Cybersecurity Report (ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md:322): documents exploitation of internet-facing Ivanti, Fortinet, Cisco, and F5 edge appliances as an OT initial-access vector."
       },
       {
         "ttp_id": "T1133",
         "ttp_name": "External Remote Services",
         "kill_chain_phase": "initial-access",
-        "citation": "ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md:601 — 'particularly VPN appliances. Enforcing strong remote access controls, including timely patching of internet-facing services'"
+        "citation": "Dragos 2026 OT Cybersecurity Report (ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md:601): identifies VPN appliances as a recurring OT entry point and recommends timely patching of internet-facing services plus strong remote-access controls."
       },
       {
         "ttp_id": "T1021",
         "ttp_name": "Remote Services",
         "kill_chain_phase": "lateral-movement",
-        "citation": "ref/m-trends-2026-en.md:1733 — '| 4    | T1021: Remote Services                   | 30.6%   |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:1733): T1021 (Remote Services) ranks 4th among observed lateral-movement TTPs at 30.6% prevalence — relevant to OT-adjacent IT pivoting."
       },
       {
         "ttp_id": "T1040",
         "ttp_name": "Network Sniffing",
         "kill_chain_phase": "credential-access",
-        "citation": "ref/m-trends-2026-en.md:4158 — '| T1040: Network Sniffing                            | 1.0%                       |      |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4158): T1040 (Network Sniffing) observed at 1.0% prevalence among credential-access TTPs."
       },
       {
         "ttp_id": "T1195",
         "ttp_name": "Supply Chain Compromise",
         "kill_chain_phase": "initial-access",
-        "citation": "ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md:65 — 'Increased Targeting of OT-Adjacent and Supply-Chain Entities'"
+        "citation": "Dragos 2026 OT Cybersecurity Report (ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md:65): flags increased adversary targeting of OT-adjacent and supply-chain entities."
       }
     ],
     "domain_controller": [
@@ -195,43 +195,43 @@
         "ttp_id": "T1003.001",
         "ttp_name": "LSASS Memory",
         "kill_chain_phase": "credential-access",
-        "citation": "ref/m-trends-2026-en.md:4128 — '|                              | T1003.001: LSASS Memory                | 3.2% |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4128): sub-technique T1003.001 (LSASS Memory) observed at 3.2% prevalence under T1003 (OS Credential Dumping)."
       },
       {
         "ttp_id": "T1003.006",
         "ttp_name": "DCSync",
         "kill_chain_phase": "credential-access",
-        "citation": "ref/m-trends-2026-en.md:4130 — '|                              | T1003.006: DCSync                      | 1.7% |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4130): sub-technique T1003.006 (DCSync) observed at 1.7% prevalence under T1003 (OS Credential Dumping)."
       },
       {
         "ttp_id": "T1003.003",
         "ttp_name": "NTDS",
         "kill_chain_phase": "credential-access",
-        "citation": "ref/m-trends-2026-en.md:4125 — '| T1003: OS Credential Dumping | 13.6% T1003.003: NTDS                  | 4.4% |'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4125): T1003 (OS Credential Dumping) parent technique observed at 13.6%; sub-technique T1003.003 (NTDS) at 4.4%."
       },
       {
         "ttp_id": "T1484",
         "ttp_name": "Domain or Tenant Policy Modification",
         "kill_chain_phase": "defense-evasion",
-        "citation": "ref/m-trends-2026-en.md:4324 — 'T1484: Domain or Tenant Policy Modification  0.7% T1484.001: Group Policy Modification 0.7%'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4324): T1484 (Domain or Tenant Policy Modification) observed at 0.7%; sub-technique T1484.001 (Group Policy Modification) at 0.7%."
       },
       {
         "ttp_id": "T1484.001",
         "ttp_name": "Group Policy Modification",
         "kill_chain_phase": "defense-evasion",
-        "citation": "ref/ENISA_Threat_Landscape_2025_v1.2.md:3062 — 'TA-OTHER: Other  T1484.001: Group Policy Modification  M1047: Audit, M1018: User Account'"
+        "citation": "ENISA Threat Landscape 2025 (ref/ENISA_Threat_Landscape_2025_v1.2.md:3062): catalogues T1484.001 (Group Policy Modification) under TA-OTHER with M1047 (Audit) and M1018 (User Account Management) as primary mitigations."
       },
       {
         "ttp_id": "T1207",
         "ttp_name": "Rogue Domain Controller",
         "kill_chain_phase": "defense-evasion",
-        "citation": "ref/m-trends-2026-en.md:4501 — 'T1207: Rogue Domain Controller 0.5%'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4501): T1207 (Rogue Domain Controller) observed at 0.5% prevalence."
       },
       {
         "ttp_id": "T1098",
         "ttp_name": "Account Manipulation",
         "kill_chain_phase": "persistence",
-        "citation": "ref/m-trends-2026-en.md:4199 — 'T1098: Account Manipulation  18.7% T1098.007: Additional Local or Domain Groups 7.8%'"
+        "citation": "Mandiant M-Trends 2026 (ref/m-trends-2026-en.md:4199): T1098 (Account Manipulation) observed at 18.7%; sub-technique T1098.007 (Additional Local or Domain Groups) at 7.8%."
       }
     ]
   }

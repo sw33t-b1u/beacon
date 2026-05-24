@@ -16,6 +16,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
   to the new path. `docs/structure.md` / `docs/structure.ja.md` updated
   to reflect the relocation.
 
+### Docs — citations retroactive paraphrase pass
+
+- `docs(citations)`: retroactive paraphrase pass — proprietary vendor
+  verbatim quotes in `schema/surface_ttp_map.json` (35 entries) and
+  `docs/triggers.md` (CrowdStrike GTR 2025, Mandiant M-Trends 2026,
+  IBM Cost of a Data Breach 2025, Cloudflare 2026 Threat Report,
+  Dragos 2026 OT Report, APWG Q4 2025) rewritten to paraphrase + cite
+  per `docs/citations.md` policy. Source filename:line attribution
+  preserved on every entry; statistics and concepts unchanged. NIST,
+  CISA, and Diamond Model quotes preserved verbatim (licence permits
+  verbatim reproduction). ENISA Threat Landscape 2025 short quotes
+  retained (CC BY 4.0). No code-path behaviour changes; documentation
+  and JSON-string content only. Tracks task #122.
+
 ## [0.17.0] — 2026-05-24
 
 Initiative F (Temporal Window + Collection Plan + Summary API + RSS)
@@ -214,8 +228,9 @@ Paired release with TRACE 1.8.0 and SAGE 0.10.0.
 - **`schema/surface_ttp_map.json`**: SAGE asset-tag → MITRE ATT&CK
   Enterprise TTP mapping. 35 entries across 6 surfaces
   (external-facing, email_gateway, vpn_remote_access, cloud, ot,
-  domain_controller). All entries verbatim-cited from `ref/` md
-  sources (m-trends-2026-en.md, ENISA_Threat_Landscape_2025_v1.2.md,
+  domain_controller). All entries cite `ref/` md sources with
+  filename:line attribution (m-trends-2026-en.md,
+  ENISA_Threat_Landscape_2025_v1.2.md,
   Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md).
 - **MITRE ATT&CK STIX parser expansion** (`cmd/update_taxonomy.py`):
   `kill_chain_phases` extraction per attack-pattern, `software_count`
@@ -297,8 +312,8 @@ Paired release with TRACE 1.8.0 and SAGE 0.10.0.
   entries) added to `src/beacon/analysis/element_extractor.py` with
   per-country rationale comments.
 - `docs/triggers.md` + `docs/triggers.ja.md` extended with §8 / §9 /
-  §10 sections including verbatim ref/ citations (file path + line
-  number for each quote). Update procedure §1 now references the
+  §10 sections including attributed `ref/` citations (file path + line
+  number for each citation). Update procedure §1 now references the
   wider corpus (Cloudflare / IOCTA / APWG added) and a new step §4
   requires ref/-cited rationale for any `HIGH_RISK_GEOPOLITICAL_ZONES`
   revision.

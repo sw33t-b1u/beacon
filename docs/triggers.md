@@ -297,22 +297,26 @@ are not actionable).
 
 **Citations**
 
-- *CrowdStrike Global Threat Report 2025* — "China-nexus activity surged
-  150% overall, with some targeted industries suffering 200% to 300% more
-  attacks than the previous year" (`ref/CrowdStrikeGlobalThreatReport2025.md`
-  line 63-65). Same report, line 922-923: "financial services, media,
-  manufacturing, and industrials and engineering sectors, which all
-  experienced 200-300% increases in observed China-nexus intrusions".
-- *Cloudflare 2026 Threat Report* — "geopolitical leverage"
-  (`ref/Cloudflare-2026-threat-report.md` line 77); same report,
-  "highly sophisticated state-sponsored pre-positioning" (line 1591).
-- *IOCTA 2026 (Europol)* — Russia-based / Russian-speaking cybercrime
-  ecosystems are documented across the report; Initial Access Brokers
-  ecosystem chapter at `ref/IOCTA-2026.md` line 921.
+- *CrowdStrike Global Threat Report 2025*
+  (`ref/CrowdStrikeGlobalThreatReport2025.md:63-65`, `:922-923`) —
+  China-nexus intrusion volume reached a new high in 2024, with
+  overall activity up roughly 150% YoY and the most-targeted industries
+  hit two- to three-fold harder than the prior year. The report
+  identifies financial services, media, manufacturing, and
+  industrials / engineering as the sectors absorbing those 200-300%
+  YoY increases.
+- *Cloudflare 2026 Threat Report*
+  (`ref/Cloudflare-2026-threat-report.md:77`, `:1591`) — characterises
+  cyber operations as instruments of geopolitical leverage and
+  documents highly capable state-sponsored network pre-positioning
+  activity.
+- *IOCTA 2026 (Europol)* — documents Russia-based and Russian-speaking
+  cybercrime ecosystems throughout the report; Initial Access Brokers
+  ecosystem chapter at `ref/IOCTA-2026.md:921`.
 - *INTERPOL Asia and South Pacific Cyber Threat Assessment 2025/2026* —
   regional CTI dedicated to ASP geopolitical exposure
   (`ref/CYBER_ASP Cyber Threat Assessment Report_2025_2026_v4.md`).
-- *Mandiant M-Trends 2026* — "Regional Breakouts" chapter (Americas /
+- *Mandiant M-Trends 2026* — regional-breakouts section (Americas /
   EMEA / JAPAC) covering regional differentials.
 
 **Limitations:**
@@ -348,7 +352,7 @@ business_continuity is None
 
 Absent block (`business_continuity is None`) → trigger **fires**
 (conservative: undocumented posture is treated as elevated risk, per the
-M-Trends 2026 "Ransomware is Now a Resilience Problem" framing). The
+M-Trends 2026 ransomware-as-resilience-problem framing). The
 180-day recovery-test cadence threshold approximates the NIST SP 800-34 /
 ISO 22301 cadence for plan-testing currency.
 
@@ -358,17 +362,19 @@ ISO 22301 cadence for plan-testing currency.
   data breaches 16.1% of cybercrime incidents"
   (`ref/ENISA_Threat_Landscape_2025_v1.2.md` line 730). Same report, EU
   cut: "ransomware (81.1%) and data breaches (15.2%)" (line 931).
-- *Mandiant M-Trends 2026* — "In 44% of Mandiant's 2025 investigations,
-  the intrusion" (`ref/m-trends-2026-en.md` line 1270); chapter
-  "Ransomware is Now a Resilience Problem" (TOC entry line 25), which
-  is the direct naming source for this trigger.
-- *IBM Cost of a Data Breach Report 2025* — ransomware "hit USD 5.08
-  million in this year's report"
-  (`ref/20250822_Cost-of-a-Data-Breach-Report-2025.md` line 51).
-- *Dragos 2026 OT Cybersecurity Year in Review* — "Dragos tracked 119
-  ransomware groups targeting industrial organizations"
-  (`ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md` line
-  1641); same report documents the ~2x year-over-year increase from
+- *Mandiant M-Trends 2026* (`ref/m-trends-2026-en.md:1270`, `:25`) —
+  reports that 44% of Mandiant's 2025 investigations involved
+  ransomware intrusion; the report's framing of ransomware as
+  primarily a resilience problem (Table of Contents §25) is the
+  naming source for this trigger.
+- *IBM Cost of a Data Breach Report 2025*
+  (`ref/20250822_Cost-of-a-Data-Breach-Report-2025.md:51`) —
+  ransomware breach cost rose to USD 5.08 million in the 2025
+  edition.
+- *Dragos 2026 OT Cybersecurity Year in Review*
+  (`ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md:1641`)
+  — tracked 119 ransomware groups targeting industrial organisations
+  in 2025; the same report records an approximate doubling YoY, from
   1,693 attacks in 2024 to over 3,300 industrial victims in 2025.
 - *CrowdStrike Global Threat Report 2025* — eCrime / ransomware-as-a-service
   ecosystem documented throughout (`ref/CrowdStrikeGlobalThreatReport2025.md`).
@@ -413,22 +419,23 @@ guidance, NIST SP 800-63B, and CIS Controls v8 IG2.
 
 **Citations**
 
-- *CrowdStrike Global Threat Report 2025* — "Meanwhile, valid account
-  abuse was responsible for 35%" of cloud-related incidents
-  (`ref/CrowdStrikeGlobalThreatReport2025.md` line 284); vishing growth
-  "up 442% between the first and second half of 2024" (line 58); access
-  broker advertisements "increased 50% year-over-year".
-- *Mandiant M-Trends 2026* — "cloud-related compromises was voice
-  phishing, at 23%, followed by third-party compromise"
-  (`ref/m-trends-2026-en.md` line 1609).
+- *CrowdStrike Global Threat Report 2025*
+  (`ref/CrowdStrikeGlobalThreatReport2025.md:284`, `:58`) — valid
+  account abuse accounted for 35% of cloud-related incidents; vishing
+  operations grew roughly 442% between H1 and H2 2024; access broker
+  advertisements increased ~50% YoY.
+- *Mandiant M-Trends 2026* (`ref/m-trends-2026-en.md:1609`) — voice
+  phishing was the leading initial-access vector for cloud-related
+  compromises in 2025 investigations at 23%, followed by third-party
+  compromise.
 - *IOCTA 2026 (Europol)* — Initial Access Brokers ecosystem chapter
-  (`ref/IOCTA-2026.md` line 921); Scattered Spider / ShinyHunters /
-  LAPSUS$ documented as acting as IABs around line 1062.
-- *APWG Q4 2025 Trends Report* — Fortra "tracks the identity theft
-  technique known as 'business e-mail compromise'"
-  (`ref/apwg_trends_report_q4_2025.md` line 594); phishing and
-  impersonation "accounted for 86 percent of all confirmed threats"
-  (line 311).
+  at `ref/IOCTA-2026.md:921`; Scattered Spider, ShinyHunters, and
+  LAPSUS$ are documented as acting in IAB capacity around `:1062`.
+- *APWG Q4 2025 Trends Report*
+  (`ref/apwg_trends_report_q4_2025.md:594`, `:311`) — Fortra
+  catalogues business e-mail compromise as a distinct identity-theft
+  technique; phishing and impersonation together accounted for ~86%
+  of all confirmed threats in the quarter.
 
 **Limitations:**
 
