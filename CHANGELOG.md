@@ -6,7 +6,66 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
-## [Unreleased]
+## [1.0.0] — 2026-05-24
+
+**Initiative H — 1.0 Stabilization release.** BEACON 1.0.0 commits
+to the public surface documented in `docs/api-stability.md` under a
+90-day backward-compatibility guarantee. Paired triple: BEACON 1.0.0
++ TRACE 1.12.0 + SAGE 1.0.0.
+
+### Committed surface
+
+See `docs/api-stability.md` §3 for the authoritative inventory. Summary:
+
+- PIR output schema (`schema_version: "1.0.0"` from this release;
+  TRACE 1.12.0+ accepts only `"1.0.0"`).
+- `sources_candidate.yaml`, `collection_plan.md`, `content_ja.json`
+  (multi-dimensional schema from Initiative F),
+  `content_ja.schema.json`, `source_aliases.json`,
+  `business_context.schema.json`.
+- Unified `beacon` console-script entry + 8 subcommands.
+- Web UI route paths + multi-artifact landing view.
+- Environment variables: `ACTIVITY_WINDOW_DAYS`,
+  `BEACON_IR_LOOKBACK_DAYS`, `SAGE_API_URL`, `SAGE_API_AUTH_TOKEN`.
+
+### Migration guide (operator steps)
+
+The Initiative H triple release is a coordinated cut over the three
+repos. Apply in order:
+
+1. **BEACON 1.0.0** (this release). Re-run `beacon pir-generate`
+   (or the legacy `python -m cmd.generate_pir`) so the emitted
+   `pir_output.json` carries `schema_version: "1.0.0"`. TRACE 1.12.0
+   will reject any prior version with a per-version error message.
+2. **TRACE 1.12.0**. Strict validator restricted to
+   `schema_version: "1.0.0"`. Wrapped envelope required
+   (`{"schema_version": "1.0.0", "pirs": [...]}`); bare-list inputs
+   are rejected with the migration message.
+3. **SAGE 1.0.0**. BEACON 0.12.x compatibility shims removed
+   (`HIGH_VALUE_IMPERSONATION_ROLES`, related upsert branches);
+   identity_assets must carry `is_high_value_impersonation_target`
+   directly. PIR ingest requires the wrapped envelope.
+
+Operators on BEACON ≤ 0.12.x must upgrade BEACON before SAGE
+1.0.0 deployment.
+
+### Forward-looking note
+
+BEACON 1.0.0 starts a **90-day backward-compatibility window** for
+every item listed in `docs/api-stability.md` §3 (Committed surface).
+Within that window:
+
+- **Minor releases** (`1.X.0`) ship additive changes only —
+  new optional fields, new endpoints, new CLI subcommands, new env
+  vars. Existing committed items keep working unchanged.
+- **Breaking changes** to any committed surface item require a new
+  major release (`2.0.0`). Deprecation path: announce in 1.X.Y
+  CHANGELOG + emit `DeprecationWarning` at runtime + remove in
+  `2.0.0` after the 90-day BC window and at least one further minor.
+
+Items marked Evolving in `docs/api-stability.md` §4 (internal Python
+modules, HTML/CSS internals, operator-curated data files, dev tools)
+remain free to change in any minor.
 
 ### Added — Initiative H Phase 6: unified `beacon` CLI + web UI auto-launch
 
