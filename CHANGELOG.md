@@ -30,6 +30,77 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
   retained (CC BY 4.0). No code-path behaviour changes; documentation
   and JSON-string content only. Tracks task #122.
 
+## [0.18.0] — 2026-05-24
+
+Initiative G (IR Feedback Ingestion + Diamond Model Support) release —
+paired with TRACE 1.11.0 + SAGE 0.13.0.
+
+### Added
+
+- **SAGE client `get_recent_incidents()`** (Phase 6, `2256ba5`):
+  `src/beacon/sage/client.py` extended with own-org incident reader.
+  Filters by `since`/`until`/`actor_stix_id`/`limit`. Bearer auth via
+  `SAGE_API_AUTH_TOKEN` env (sent when set; absent header otherwise).
+- **IR-observed Capability and Opportunity factors** (Phase 6,
+  `2256ba5`): `CapabilityComponent` gains `ir_observed_capability:
+  float = 1.0`; `OpportunityComponent` gains
+  `ir_observed_opportunity: float = 1.0`. Both fields default to
+  neutral 1.0 (identity in the geometric-mean aggregation) when SAGE
+  is unreachable or skipped, so existing pipelines without SAGE
+  produce unchanged outputs.
+
+  Aggregation extended to 4-factor geometric means preserving the
+  [0, 1] scale established in Initiative E:
+  ```
+  Depth       = (sophistication × tool_sophistication × evasion_capability × ir_observed_capability) ** (1/4)
+  Opportunity = (victimology_match × geographic_match × surface_ttp_coverage × ir_observed_opportunity) ** (1/4)
+  ```
+
+  Boost logic per actor (when SAGE-fed incidents available):
+  - `ir_observed_capability` = 1.0 if ≥1 own-org incident in
+    lookback uses this actor's known TTPs; else 0.5 (neutral,
+    not 0 — absence of own incidents should not zero out external
+    attribution).
+  - `ir_observed_opportunity` = 1.0 if actor ever attacked own org
+    in lookback; else 0.7 (residual neutral — prior targeting is a
+    strong Opportunity signal but no prior incident is not punitive).
+- **`BEACON_IR_LOOKBACK_DAYS` env var** (Phase 6, `2256ba5`, default
+  365): single global setting. Per-actor configurability deferred.
+- **`--no-sage` flag in `cmd/generate_pir.py`** (Phase 6, `2256ba5`):
+  bypasses SAGE call entirely (air-gapped / SAGE not deployed).
+  Sets `data_quality.ir_boost_skipped=True` so caller can distinguish
+  "deliberate skip" from "unintended degraded".
+- **MITRE Cyber Prep methodology docstring extension in
+  `actor_triage.py`** (Phase 6, `2256ba5`): notes that
+  `ir_observed_capability` satisfies the "knowledge" element of
+  Cyber Prep's Capability definition (Bodeau et al.) and
+  `ir_observed_opportunity` satisfies the "how persistently the
+  adversary targets a specific organization" element of Cyber Prep's
+  Targeting.
+- **Cross-repo `docs/ir-feedback-flow.md`** (Phase 8, `422d180`):
+  relative symlink to `sage/docs/ir-feedback-flow.md` (authoritative
+  source). Update once in SAGE, both BEACON and TRACE see the change.
+
+### Changed (BREAKING)
+
+- **`schema_version` bumped to `"0.18.0"`** in emitted PIR documents
+  (Phase 6, `2256ba5`). TRACE 1.11.0 accepts `{"0.16.0", "0.17.0",
+  "0.18.0"}`; consumers unable to upgrade must continue reading the
+  prior versions.
+- **`PIROutput` gains `mitre_attack_groups: list[str]` field**
+  inherited from F Phase 2 (`718480f`) and populated via
+  `source_matcher.resolve_group_ids(cluster.notable_groups)`.
+- **`CapabilityComponent` and `OpportunityComponent` shape change**:
+  4-factor geometric mean changes Likelihood numerics for actors with
+  any IR-observed history. Schema_version gate enforces consumer
+  ack.
+
+### Fixed
+
+- **`uv.lock` sync** (`ba65b61`): `name = "beacon", version = "..."`
+  pinned to package version. Drift from earlier release commits
+  surfaced during the task #122 audit.
+
 ## [0.17.0] — 2026-05-24
 
 Initiative F (Temporal Window + Collection Plan + Summary API + RSS)
