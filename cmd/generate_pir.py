@@ -75,6 +75,15 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Query SAGE Analysis API (SAGE_API_URL) to boost likelihood from observation data.",
     )
+    parser.add_argument(
+        "--no-sage",
+        action="store_true",
+        help=(
+            "Skip the SAGE /api/incidents IR-boost call for actor_triage"
+            " (air-gapped / SAGE-not-deployed). Sets data_quality.ir_boost_skipped"
+            " on every prioritized_actor; IR factors default to neutral 1.0."
+        ),
+    )
     args = parser.parse_args(argv)
 
     # Lazy imports to keep startup fast
@@ -126,7 +135,10 @@ def main(argv: list[str] | None = None) -> int:
     use_llm = not args.no_llm
     cfg = load_config()
 
-    # SAGE client setup
+    # SAGE client setup. Two independent code paths consume SAGE:
+    #   - risk_scorer (--use-sage): observation-count boost (fail-open).
+    #   - actor_triage IR-boost (always-on unless --no-sage):
+    #       per-actor /api/incidents lookup (fail-soft on the actor entry).
     sage_client = None
     use_sage = False
     if args.use_sage:
@@ -137,6 +149,19 @@ def main(argv: list[str] | None = None) -> int:
 
         sage_client = SageAPIClient(cfg.sage_api_url)
         use_sage = True
+
+    # Resolve actor_triage IR-boost path: --no-sage or unset SAGE_API_URL
+    # → skip the SAGE call; otherwise reuse `sage_client` (if --use-sage)
+    # or construct one for the IR-boost call alone.
+    triage_sage_client = None
+    ir_boost_skipped = bool(args.no_sage) or not cfg.sage_api_url
+    if not ir_boost_skipped:
+        if sage_client is not None:
+            triage_sage_client = sage_client
+        else:
+            from beacon.sage.client import SageAPIClient  # noqa: PLC0415
+
+            triage_sage_client = SageAPIClient(cfg.sage_api_url)
 
     elements = extract(ctx)
     asset_tag_list = map_asset_tags(elements, asset_tags_dict)
@@ -155,7 +180,14 @@ def main(argv: list[str] | None = None) -> int:
     _misp_cache = _beacon_root / "cache" / "misp-threat-actor.json"
     _misp_client = MispClient(cache_path=_misp_cache if _misp_cache.exists() else None)
     _actors = prioritize_actors(
-        ctx, taxonomy, _surface_ttp_map, _misp_client, window_days=cfg.activity_window_days
+        ctx,
+        taxonomy,
+        _surface_ttp_map,
+        _misp_client,
+        window_days=cfg.activity_window_days,
+        sage_client=triage_sage_client,
+        ir_lookback_days=cfg.ir_lookback_days,
+        ir_boost_skipped=ir_boost_skipped,
     )
     _top_likelihood = max((a.likelihood for a in _actors), default=0.0)
 

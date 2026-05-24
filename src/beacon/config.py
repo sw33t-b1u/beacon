@@ -57,6 +57,14 @@ class Config:
         default_factory=lambda: int(os.environ.get("ACTIVITY_WINDOW_DAYS", "90"))
     )
 
+    # IR lookback window for actor_triage IR-boost (env: BEACON_IR_LOOKBACK_DAYS,
+    # default 365). Controls the (today - N) .. today window over which BEACON
+    # queries SAGE /api/incidents to compute ir_observed_capability /
+    # ir_observed_opportunity per actor (Initiative G Phase 6).
+    ir_lookback_days: int = field(
+        default_factory=lambda: int(os.environ.get("BEACON_IR_LOOKBACK_DAYS", "365"))
+    )
+
 
 def load_config() -> Config:
     return Config()

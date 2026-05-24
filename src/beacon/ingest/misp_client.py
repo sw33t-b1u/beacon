@@ -70,6 +70,11 @@ class ActorAttributes(BaseModel):
     active: bool | None = None
     degraded: bool = False
     source: Literal["misp_cache", "misp_live", "none"] = "none"
+    # MISP cluster UUID — used by actor_triage IR-boost to construct the STIX
+    # intrusion-set id sent to SAGE (`intrusion-set--{actor_uuid}`). Optional
+    # because the field is only populated when the underlying MISP entry
+    # carried a uuid; live-mode entries may omit it.
+    actor_uuid: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -230,6 +235,9 @@ class MispClient:
         if isinstance(synonyms, list):
             aliases = [s for s in synonyms if isinstance(s, str)]
 
+        raw_uuid = actor.get("uuid")
+        actor_uuid = raw_uuid if isinstance(raw_uuid, str) and raw_uuid else None
+
         return ActorAttributes(
             primary_motivation=primary_motivation,
             secondary_motivations=secondary_motivations,
@@ -240,4 +248,5 @@ class MispClient:
             active=None,
             degraded=False,
             source=self._source,
+            actor_uuid=actor_uuid,
         )

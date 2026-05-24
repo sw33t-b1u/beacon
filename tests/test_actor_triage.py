@@ -646,11 +646,13 @@ class TestCapabilityGoldenAPT28:
         assert evasion_capability_score(self.p["defense_evasion_ttp_count"]) == pytest.approx(0.9)
 
     def test_depth(self):
+        # Initiative G Phase 6 — 4-factor geometric mean (ir_observed_capability=1.0
+        # default when SAGE is not consulted).
         _soph = sophistication_score("expert")
         _tool = tool_sophistication_score(self.p["software_count"])
         _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
-        depth = (_soph * _tool * _evas) ** (1 / 3)
-        assert depth == pytest.approx(0.7034, abs=1e-3)
+        depth = (_soph * _tool * _evas * 1.0) ** (1 / 4)
+        assert depth == pytest.approx(0.7681, abs=1e-3)
 
     def test_breadth(self):
         _ttp_n = ttp_count_norm(self.p["technique_count"])
@@ -674,9 +676,9 @@ class TestCapabilityGoldenAPT28:
             self.p["campaign_last_seen"],
         )
         _rec = recency_active_campaigns(self.p["campaign_last_seen"], reference=_REF_DATE)
-        depth = (_soph * _tool * _evas) ** (1 / 3)
+        depth = (_soph * _tool * _evas * 1.0) ** (1 / 4)
         breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
-        assert depth * breadth == pytest.approx(0.2678, abs=1e-3)
+        assert depth * breadth == pytest.approx(0.2924, abs=1e-3)
 
 
 class TestCapabilityGoldenAPT41:
@@ -714,11 +716,12 @@ class TestCapabilityGoldenAPT41:
         ) == pytest.approx(0.25)
 
     def test_depth(self):
+        # Initiative G Phase 6 — 4-factor geometric mean (ir_observed_capability=1.0).
         _soph = sophistication_score("expert")
         _tool = tool_sophistication_score(self.p["software_count"])
         _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
-        depth = (_soph * _tool * _evas) ** (1 / 3)
-        assert depth == pytest.approx(0.7528, abs=1e-3)
+        depth = (_soph * _tool * _evas * 1.0) ** (1 / 4)
+        assert depth == pytest.approx(0.8082, abs=1e-3)
 
     def test_capability_score(self):
         _soph = sophistication_score("expert")
@@ -731,9 +734,9 @@ class TestCapabilityGoldenAPT41:
             self.p["campaign_last_seen"],
         )
         _rec = recency_active_campaigns(self.p["campaign_last_seen"], reference=_REF_DATE)
-        depth = (_soph * _tool * _evas) ** (1 / 3)
+        depth = (_soph * _tool * _evas * 1.0) ** (1 / 4)
         breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
-        assert depth * breadth == pytest.approx(0.3153, abs=1e-3)
+        assert depth * breadth == pytest.approx(0.3384, abs=1e-3)
 
 
 class TestCapabilityGoldenMustangPanda:
@@ -771,11 +774,12 @@ class TestCapabilityGoldenMustangPanda:
         ) == pytest.approx(0.25)
 
     def test_depth(self):
+        # Initiative G Phase 6 — 4-factor geometric mean (ir_observed_capability=1.0).
         _soph = sophistication_score("expert")
         _tool = tool_sophistication_score(self.p["software_count"])
         _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
-        depth = (_soph * _tool * _evas) ** (1 / 3)
-        assert depth == pytest.approx(0.6744, abs=1e-3)
+        depth = (_soph * _tool * _evas * 1.0) ** (1 / 4)
+        assert depth == pytest.approx(0.7442, abs=1e-3)
 
     def test_capability_score(self):
         _soph = sophistication_score("expert")
@@ -788,9 +792,9 @@ class TestCapabilityGoldenMustangPanda:
             self.p["campaign_last_seen"],
         )
         _rec = recency_active_campaigns(self.p["campaign_last_seen"], reference=_REF_DATE)
-        depth = (_soph * _tool * _evas) ** (1 / 3)
+        depth = (_soph * _tool * _evas * 1.0) ** (1 / 4)
         breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
-        assert depth * breadth == pytest.approx(0.2234, abs=1e-3)
+        assert depth * breadth == pytest.approx(0.2465, abs=1e-3)
 
 
 # ---------------------------------------------------------------------------
@@ -937,3 +941,307 @@ class TestActivityWindowDaysConfig:
         cap90 = results90[0].score_breakdown.capability.score
         cap180 = results180[0].score_breakdown.capability.score
         assert cap180 > cap90, f"Expected cap180 ({cap180}) > cap90 ({cap90})"
+
+
+# ---------------------------------------------------------------------------
+# Initiative G Phase 6 — IR-boost integration tests
+# ---------------------------------------------------------------------------
+
+
+class _StubSageClient:
+    """Configurable mock matching SageAPIClient.get_recent_incidents.
+
+    Use `incidents_by_actor` to map actor_stix_id → incident list. Set
+    `raise_exc` to simulate network failure on every call.
+    """
+
+    def __init__(
+        self,
+        incidents_by_actor: dict[str, list[dict]] | None = None,
+        raise_exc: Exception | None = None,
+    ) -> None:
+        self.incidents_by_actor = incidents_by_actor or {}
+        self.raise_exc = raise_exc
+        self.calls: list[dict] = []
+
+    def get_recent_incidents(
+        self,
+        since,
+        until,
+        actor_stix_id=None,
+        limit: int = 50,
+    ) -> list[dict]:
+        self.calls.append(
+            {
+                "since": since,
+                "until": until,
+                "actor_stix_id": actor_stix_id,
+                "limit": limit,
+            }
+        )
+        if self.raise_exc:
+            raise self.raise_exc
+        if actor_stix_id is None:
+            return [inc for incs in self.incidents_by_actor.values() for inc in incs]
+        return self.incidents_by_actor.get(actor_stix_id, [])
+
+
+def _apt29_window_taxonomy() -> dict:
+    """Single-actor taxonomy keyed by APT29 (matches MISP fixture).
+
+    Geographies / priority_ttps populated so the actor passes Intent gate
+    and has at least one known TTP for the capability boost test.
+    """
+    return {
+        "actor_categories": {
+            "state_sponsored": {
+                "Russia": {
+                    "mitre_groups": ["APT29"],
+                    "target_industries": ["Private sector"],
+                    "target_geographies": ["Japan"],
+                    "priority_ttps": ["T1190", "T1078"],
+                    "tags": [],
+                }
+            }
+        },
+        "intrusion_set_profiles": {
+            "APT29": {
+                "technique_count": 50,
+                "software_count": 10,
+                "sophistication_tier": "expert",
+                "campaign_last_seen": "2025-12-16T00:00:00Z",
+                "campaign_first_seen": "2023-01-01T00:00:00Z",
+                "campaign_count": 2,
+                "defense_evasion_ttp_count": 10,
+            }
+        },
+    }
+
+
+_APT29_STIX_ID = "intrusion-set--test-apt29-triage"
+
+
+class TestIRBoostFactorsPresentByDefault:
+    """Without a SAGE client, IR factors default to 1.0 and ir_boost_skipped=False."""
+
+    def setup_method(self):
+        self.misp = MispClient(cache_path=_TRIAGE_MISP_FIXTURE)
+        self.taxonomy = _apt29_window_taxonomy()
+        self.bctx = _finance_context()
+
+    def test_no_sage_client_yields_neutral_ir_factors(self):
+        actors = prioritize_actors(
+            self.bctx,
+            self.taxonomy,
+            _make_empty_surface_map(),
+            self.misp,
+            sage_client=None,
+        )
+        assert len(actors) == 1
+        cap = actors[0].score_breakdown.capability
+        opp = actors[0].score_breakdown.opportunity
+        assert cap.ir_observed_capability == 1.0
+        assert opp.ir_observed_opportunity == 1.0
+
+    def test_no_sage_client_does_not_set_ir_boost_skipped(self):
+        actors = prioritize_actors(
+            self.bctx,
+            self.taxonomy,
+            _make_empty_surface_map(),
+            self.misp,
+            sage_client=None,
+        )
+        # ir_boost_skipped is only set when the caller explicitly passes
+        # ir_boost_skipped=True (e.g. --no-sage CLI flag).
+        assert actors[0].score_breakdown.data_quality.ir_boost_skipped is False
+
+
+class TestIRBoostFactorsWithMockedSage:
+    """Mocked SAGE responses lock the N≥1 / N=0 boost numerics."""
+
+    def setup_method(self):
+        self.misp = MispClient(cache_path=_TRIAGE_MISP_FIXTURE)
+        self.taxonomy = _apt29_window_taxonomy()
+        self.bctx = _finance_context()
+
+    def test_no_incidents_yields_neutral_residual(self):
+        # N=0 → ir_observed_capability=0.5, ir_observed_opportunity=0.7.
+        sage = _StubSageClient(incidents_by_actor={})
+        actors = prioritize_actors(
+            self.bctx,
+            self.taxonomy,
+            _make_empty_surface_map(),
+            self.misp,
+            sage_client=sage,
+        )
+        cap = actors[0].score_breakdown.capability
+        opp = actors[0].score_breakdown.opportunity
+        assert cap.ir_observed_capability == 0.5
+        assert opp.ir_observed_opportunity == 0.7
+
+    def test_incident_matching_ttp_yields_full_capability_boost(self):
+        # N=1, incident TTP (T1190) intersects actor priority_ttps → cap=1.0, opp=1.0
+        sage = _StubSageClient(
+            incidents_by_actor={
+                _APT29_STIX_ID: [
+                    {
+                        "incident_stix_id": "incident--abc-1",
+                        "ttps": [{"ttp_id": "T1190"}],
+                    }
+                ]
+            }
+        )
+        actors = prioritize_actors(
+            self.bctx,
+            self.taxonomy,
+            _make_empty_surface_map(),
+            self.misp,
+            sage_client=sage,
+        )
+        cap = actors[0].score_breakdown.capability
+        opp = actors[0].score_breakdown.opportunity
+        assert cap.ir_observed_capability == 1.0
+        assert opp.ir_observed_opportunity == 1.0
+
+    def test_incident_no_ttp_overlap_yields_half_capability_full_opportunity(self):
+        # Incident exists (so opp=1.0) but its TTP (T9999) doesn't intersect
+        # actor priority_ttps → cap=0.5 (no overlap), opp=1.0 (still targeted).
+        sage = _StubSageClient(
+            incidents_by_actor={
+                _APT29_STIX_ID: [
+                    {
+                        "incident_stix_id": "incident--abc-2",
+                        "ttps": [{"ttp_id": "T9999"}],
+                    }
+                ]
+            }
+        )
+        actors = prioritize_actors(
+            self.bctx,
+            self.taxonomy,
+            _make_empty_surface_map(),
+            self.misp,
+            sage_client=sage,
+        )
+        cap = actors[0].score_breakdown.capability
+        opp = actors[0].score_breakdown.opportunity
+        assert cap.ir_observed_capability == 0.5
+        assert opp.ir_observed_opportunity == 1.0
+
+    def test_sage_call_uses_lookback_window(self):
+        sage = _StubSageClient(incidents_by_actor={})
+        prioritize_actors(
+            self.bctx,
+            self.taxonomy,
+            _make_empty_surface_map(),
+            self.misp,
+            sage_client=sage,
+            ir_lookback_days=180,
+        )
+        assert len(sage.calls) == 1
+        call = sage.calls[0]
+        assert (call["until"] - call["since"]).days == 180
+        assert call["actor_stix_id"] == _APT29_STIX_ID
+
+    def test_ir_boost_skipped_flag_skips_sage_call(self):
+        sage = _StubSageClient(
+            incidents_by_actor={
+                _APT29_STIX_ID: [{"incident_stix_id": "incident--x", "ttps": [{"ttp_id": "T1190"}]}]
+            }
+        )
+        actors = prioritize_actors(
+            self.bctx,
+            self.taxonomy,
+            _make_empty_surface_map(),
+            self.misp,
+            sage_client=sage,
+            ir_boost_skipped=True,
+        )
+        # SAGE call MUST NOT happen when the flag is set, regardless of client presence.
+        assert sage.calls == []
+        cap = actors[0].score_breakdown.capability
+        opp = actors[0].score_breakdown.opportunity
+        assert cap.ir_observed_capability == 1.0
+        assert opp.ir_observed_opportunity == 1.0
+        assert actors[0].score_breakdown.data_quality.ir_boost_skipped is True
+
+
+class TestIRBoostFailSoft:
+    """Network failures degrade gracefully — neutral factors + data_quality.degraded."""
+
+    def setup_method(self):
+        self.misp = MispClient(cache_path=_TRIAGE_MISP_FIXTURE)
+        self.taxonomy = _apt29_window_taxonomy()
+        self.bctx = _finance_context()
+
+    def test_httpx_timeout_sets_degraded_and_neutral_factors(self):
+        import httpx  # noqa: PLC0415
+
+        sage = _StubSageClient(raise_exc=httpx.TimeoutException("simulated"))
+        actors = prioritize_actors(
+            self.bctx,
+            self.taxonomy,
+            _make_empty_surface_map(),
+            self.misp,
+            sage_client=sage,
+        )
+        cap = actors[0].score_breakdown.capability
+        opp = actors[0].score_breakdown.opportunity
+        dq = actors[0].score_breakdown.data_quality
+        assert cap.ir_observed_capability == 1.0
+        assert opp.ir_observed_opportunity == 1.0
+        assert dq.degraded is True
+        assert "sage_incidents" in dq.missing_sources
+
+    def test_httpx_http_error_sets_degraded_and_neutral_factors(self):
+        from unittest.mock import MagicMock  # noqa: PLC0415
+
+        import httpx  # noqa: PLC0415
+
+        sage = _StubSageClient(
+            raise_exc=httpx.HTTPStatusError("500", request=MagicMock(), response=MagicMock())
+        )
+        actors = prioritize_actors(
+            self.bctx,
+            self.taxonomy,
+            _make_empty_surface_map(),
+            self.misp,
+            sage_client=sage,
+        )
+        dq = actors[0].score_breakdown.data_quality
+        assert dq.degraded is True
+        assert "sage_incidents" in dq.missing_sources
+
+
+# ---------------------------------------------------------------------------
+# Config: ir_lookback_days reads BEACON_IR_LOOKBACK_DAYS env var
+# ---------------------------------------------------------------------------
+
+
+class TestIRLookbackDaysConfig:
+    def test_default_is_365(self, monkeypatch):
+        monkeypatch.delenv("BEACON_IR_LOOKBACK_DAYS", raising=False)
+        from beacon.config import load_config  # noqa: PLC0415
+
+        cfg = load_config()
+        assert cfg.ir_lookback_days == 365
+
+    def test_env_var_overrides_to_30(self, monkeypatch):
+        monkeypatch.setenv("BEACON_IR_LOOKBACK_DAYS", "30")
+        from beacon.config import load_config  # noqa: PLC0415
+
+        cfg = load_config()
+        assert cfg.ir_lookback_days == 30
+
+
+# ---------------------------------------------------------------------------
+# Schema version bump — 0.17.0 → 0.18.0 (Initiative G Phase 6)
+# ---------------------------------------------------------------------------
+
+
+class TestSchemaVersionBumped:
+    def test_pir_output_document_default_is_0_18_0(self):
+        from beacon.generator.pir_builder import PIROutputDocument  # noqa: PLC0415
+
+        doc = PIROutputDocument(pirs=[])
+        assert doc.schema_version == "0.18.0"

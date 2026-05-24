@@ -20,6 +20,21 @@ ref/mitre_threat.md L141–149):
   three-factor decomposition `Likelihood = Intent × Capability ×
   Opportunity` is methodologically aligned with this framework.
 
+IR-observed boost (Initiative G Phase 6):
+  Cyber Prep names "knowledge" as a constituent of Capability; observation
+  of the actor's past attacks against the organisation directly supplies
+  that knowledge signal. `ir_observed_capability` is therefore added as a
+  4th Depth factor and toggles 1.0 when ≥1 own-org incident in the
+  lookback window uses TTPs the actor is known for, otherwise 0.5
+  (neutral — absence of own incidents should not zero out external
+  attribution). Cyber Prep's "how persistently the adversary targets a
+  specific organization" maps to `ir_observed_opportunity`, which
+  toggles 1.0 when the actor has ever attacked the org in the window
+  and 0.7 otherwise (residual neutral — prior targeting is a strong
+  Opportunity signal, but no prior incident is not punitive). Both
+  factors fail-soft to 1.0 when SAGE is unreachable (data_quality.degraded)
+  or skipped (data_quality.ir_boost_skipped).
+
 Formula (product form, sign-off 1):
   Likelihood = Intent × Capability × Opportunity
   Intent == 0 hard gate: actor is emitted with likelihood=0.0 and
@@ -30,13 +45,17 @@ See docs/citations.md for license terms governing each reference.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
+from typing import TYPE_CHECKING
 
 import structlog
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from beacon.ingest.misp_client import ActorAttributes, MispClient
 from beacon.ingest.schema import BusinessContext
+
+if TYPE_CHECKING:
+    from beacon.sage.client import SageAPIClient
 
 _log = structlog.get_logger(__name__)
 
@@ -122,6 +141,11 @@ class CapabilityComponent(BaseModel):
     evasion_capability: float = Field(default=0.0, ge=0.0, le=1.0)
     depth: float = Field(default=0.0, ge=0.0, le=1.0)
     breadth: float = Field(default=0.0, ge=0.0, le=1.0)
+    # Initiative G Phase 6 — IR-observed Capability boost (4th Depth factor).
+    # 1.0 = ≥1 own-org incident in lookback uses this actor's TTPs;
+    # 0.5 = no own-org incidents matched (neutral, not 0); 1.0 = SAGE skipped /
+    # unreachable (identity in geometric mean; data_quality flag set).
+    ir_observed_capability: float = Field(default=1.0, ge=0.0, le=1.0)
 
 
 class OpportunityComponent(BaseModel):
@@ -130,11 +154,21 @@ class OpportunityComponent(BaseModel):
     victimology_match: float = Field(ge=0.0, le=1.0)
     geographic_match: float = Field(ge=0.0, le=1.0)
     surface_ttp_coverage: float = Field(ge=0.0, le=1.0)
+    # Initiative G Phase 6 — IR-observed Opportunity boost (4th factor).
+    # 1.0 = actor ever attacked own org in lookback window;
+    # 0.7 = never observed (residual neutral, prior targeting is a strong
+    # Opportunity signal but no prior incident is not punitive); 1.0 = SAGE
+    # skipped / unreachable (identity in geometric mean; data_quality flag set).
+    ir_observed_opportunity: float = Field(default=1.0, ge=0.0, le=1.0)
 
 
 class DataQualityComponent(BaseModel):
     degraded: bool = False
     missing_sources: list[str] = Field(default_factory=list)
+    # Initiative G Phase 6 — set True when the SAGE IR-boost call was skipped
+    # (--no-sage CLI flag or SAGE_API_URL unset). Distinct from `degraded`
+    # which marks unintended SAGE failure (network/HTTP error).
+    ir_boost_skipped: bool = False
 
 
 class ScoreBreakdown(BaseModel):
@@ -389,6 +423,73 @@ def _surface_ttp_coverage(actor_ttps: list[str], surface_ttps: set[str]) -> floa
     return len(set(actor_ttps) & surface_ttps) / len(surface_ttps)
 
 
+def _resolve_actor_stix_id(misp_attr: ActorAttributes | None) -> str | None:
+    """Return the STIX intrusion-set id for SAGE /api/incidents filter.
+
+    The MISP cluster `uuid` is reused as the intrusion-set UUID — this matches
+    OpenCTI-ingested MITRE ATT&CK actors that flow through SAGE. Operators
+    using a different ingest pipeline whose actor STIX IDs are not derived
+    from MISP UUIDs will see empty IR-boost matches and should override this
+    mapping at the deployment layer.
+    """
+    if misp_attr is None or not misp_attr.actor_uuid:
+        return None
+    return f"intrusion-set--{misp_attr.actor_uuid}"
+
+
+def _incident_ttp_ids(incident: dict) -> set[str]:
+    """Extract the set of TTP IDs from a SAGE incident payload.
+
+    SAGE Phase 1 response shape includes `ttps[]` and/or `kill_chain_phases[]`.
+    Each entry may carry either an ATT&CK external id (`T1190`) under `ttp_id`
+    or a STIX attack-pattern id under `x_ttp_stix_id`. This helper extracts
+    whatever IDs are present, normalised to plain strings — callers compare
+    by intersection so additional irrelevant entries do no harm.
+    """
+    ids: set[str] = set()
+    for entry in incident.get("ttps", []) or []:
+        if not isinstance(entry, dict):
+            continue
+        for key in ("ttp_id", "external_id", "x_ttp_stix_id", "id"):
+            val = entry.get(key)
+            if isinstance(val, str) and val:
+                ids.add(val)
+    for entry in incident.get("kill_chain_phases", []) or []:
+        if not isinstance(entry, dict):
+            continue
+        for key in ("ttp_id", "external_id", "x_ttp_stix_id"):
+            val = entry.get(key)
+            if isinstance(val, str) and val:
+                ids.add(val)
+    return ids
+
+
+def _compute_ir_boost(
+    incidents: list[dict],
+    actor_ttps: list[str],
+) -> tuple[float, float]:
+    """Translate own-org incidents into (ir_observed_capability, ir_observed_opportunity).
+
+    Returns the pair (capability_boost, opportunity_boost):
+      * ir_observed_capability = 1.0 when ≥1 incident's TTPs intersect this
+        actor's known TTPs; otherwise 0.5 (neutral).
+      * ir_observed_opportunity = 1.0 when ≥1 incident was attributed to
+        this actor in the lookback window; otherwise 0.7 (residual neutral).
+
+    The opportunity signal assumes the caller already filtered `incidents`
+    to this actor via SAGE's `actor_stix_id` query parameter.
+    """
+    if not incidents:
+        return 0.5, 0.7
+    actor_ttp_set = {t for t in actor_ttps if t}
+    if not actor_ttp_set:
+        # No known TTPs for this actor → cannot match; treat as no overlap.
+        return 0.5, 1.0
+    matched = any(_incident_ttp_ids(inc) & actor_ttp_set for inc in incidents)
+    cap = 1.0 if matched else 0.5
+    return cap, 1.0
+
+
 def _build_actor_cat_map(taxonomy: dict) -> dict[str, dict]:
     """Build a reverse map: actor_name → category metadata from taxonomy.
 
@@ -436,17 +537,28 @@ def prioritize_actors(
     misp_client: MispClient,
     *,
     window_days: int = 90,
+    sage_client: SageAPIClient | None = None,
+    ir_lookback_days: int = 365,
+    ir_boost_skipped: bool = False,
 ) -> list[PrioritizedActor]:
     """Score and rank threat actors using the I × C × O likelihood triad.
 
     Iterates intrusion_set_profiles from taxonomy. For each actor:
       1. Queries MispClient for additional attributes (degraded if None).
-      2. Computes Intent, Capability, Opportunity scores and their sub-factors.
-      3. Sets likelihood = Intent × Capability × Opportunity.
+      2. Optionally queries SAGE for own-org incidents in the last
+         `ir_lookback_days` (Initiative G Phase 6 IR-boost). Skipped when
+         `sage_client is None` or `ir_boost_skipped=True`; fails soft (sets
+         data_quality.degraded=True + neutral 1.0 IR factors) on network /
+         HTTP error.
+      3. Computes Intent, Capability, Opportunity scores and their sub-factors.
+      4. Sets likelihood = Intent × Capability × Opportunity.
          Intent == 0.0 triggers the hard gate: likelihood stays 0.0 and
          rationale records "Intent gate failed".
     Returns list sorted by likelihood descending.
     """
+    # Lazy import to avoid a runtime dependency on httpx when sage_client is None.
+    import httpx  # noqa: PLC0415
+
     org = business_context.organization
     business_misp_sector = _BEACON_TO_MISP_SECTOR.get(org.industry, "Private sector")
     business_sectors: list[str] = [business_misp_sector]
@@ -463,6 +575,14 @@ def prioritize_actors(
     }
 
     _now = datetime.now(UTC)
+    _today: date = _now.date()
+    _ir_since: date = _today - timedelta(days=ir_lookback_days)
+
+    # Track whether SAGE became unreachable mid-loop: a single failure flips
+    # `sage_degraded` and short-circuits subsequent per-actor calls so that we
+    # do not hammer a dead endpoint N times.
+    sage_degraded = False
+
     results: list[PrioritizedActor] = []
 
     for actor_name, profile in taxonomy.get("intrusion_set_profiles", {}).items():
@@ -507,9 +627,50 @@ def prioritize_actors(
             )
             continue
 
+        # ------ IR-boost (Initiative G Phase 6) ------
+        # Per-actor SAGE /api/incidents lookup; fail-soft on network error
+        # (sets data_quality.degraded=True for that actor and downgrades the
+        # remaining loop iterations to skip the SAGE call). When skipped or
+        # unreachable, the IR factors default to 1.0 (identity in the
+        # geometric mean), so external attribution dominates.
+        _ir_cap: float = 1.0
+        _ir_opp: float = 1.0
+        ir_degraded_this_actor = False
+        if sage_client is not None and not ir_boost_skipped and not sage_degraded:
+            _actor_stix_id = _resolve_actor_stix_id(misp_attr)
+            if _actor_stix_id is not None:
+                try:
+                    _incidents = sage_client.get_recent_incidents(
+                        since=_ir_since,
+                        until=_today,
+                        actor_stix_id=_actor_stix_id,
+                    )
+                    # Actor's known TTPs = taxonomy priority_ttps ∪ MISP-derived (none here).
+                    _ir_cap, _ir_opp = _compute_ir_boost(_incidents, cat_ttps)
+                except (httpx.HTTPError, httpx.TimeoutException) as exc:
+                    _log.warning(
+                        "actor_triage_sage_unreachable",
+                        actor=actor_name,
+                        actor_stix_id=_actor_stix_id,
+                        error=str(exc),
+                    )
+                    sage_degraded = True
+                    ir_degraded_this_actor = True
+                except Exception as exc:  # noqa: BLE001
+                    _log.warning(
+                        "actor_triage_sage_unexpected_error",
+                        actor=actor_name,
+                        actor_stix_id=_actor_stix_id,
+                        error=str(exc),
+                    )
+                    sage_degraded = True
+                    ir_degraded_this_actor = True
+
         # ------ Capability — Depth × Breadth aggregation (Initiative E Phase 1) ------
-        # Depth  = geometric mean of quality factors  (HOW capable the actor is)
-        # Breadth = geometric mean of quantity factors (HOW MUCH the actor operates)
+        # Depth: 4-factor geometric mean of quality factors (HOW capable the
+        # actor is) — Initiative G Phase 6 extends with ir_observed_capability.
+        # Breadth: geometric mean of quantity factors (HOW MUCH the actor
+        # operates) — unchanged from Initiative E.
         # Both collapse to 0 if any constituent factor is 0 (geometric mean property).
         _soph = sophistication_score(stix_soph)
         _ttp_n = ttp_count_norm(profile.get("technique_count", 0))
@@ -525,15 +686,18 @@ def prioritize_actors(
             profile.get("campaign_last_seen"),
         )
         _evas = evasion_capability_score(profile.get("defense_evasion_ttp_count", 0))
-        _depth = (_soph * _tool * _evas) ** (1 / 3)
+        _depth = (_soph * _tool * _evas * _ir_cap) ** (1 / 4)
         _breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
         capability_score = min(max(_depth * _breadth, 0.0), 1.0)
 
-        # ------ Opportunity ------
+        # ------ Opportunity — 4-factor geometric mean (Initiative G Phase 6) ------
         _vic = victimology_match(actor_industries, business_sectors)
         _geo = geographic_match(actor_geos, business_geos)
         _surf = _surface_ttp_coverage(cat_ttps, all_surface_ttps)
-        opportunity_score = min(max(_vic * _geo * _surf, 0.0), 1.0)
+        opportunity_score = min(
+            max((_vic * _geo * _surf * _ir_opp) ** (1 / 4), 0.0),
+            1.0,
+        )
 
         likelihood = min(intent_score * capability_score * opportunity_score, 1.0)
         rationale_text = (
@@ -566,16 +730,24 @@ def prioritize_actors(
                         evasion_capability=_evas,
                         depth=_depth,
                         breadth=_breadth,
+                        ir_observed_capability=_ir_cap,
                     ),
                     opportunity=OpportunityComponent(
                         score=opportunity_score,
                         victimology_match=_vic,
                         geographic_match=_geo,
                         surface_ttp_coverage=_surf,
+                        ir_observed_opportunity=_ir_opp,
                     ),
                     data_quality=DataQualityComponent(
-                        degraded=degraded,
-                        missing_sources=missing_sources,
+                        degraded=degraded or ir_degraded_this_actor or sage_degraded,
+                        missing_sources=(
+                            [*missing_sources, "sage_incidents"]
+                            if (ir_degraded_this_actor or sage_degraded)
+                            and "sage_incidents" not in missing_sources
+                            else missing_sources
+                        ),
+                        ir_boost_skipped=ir_boost_skipped,
                     ),
                 ),
                 rationale=Rationale(
@@ -593,11 +765,13 @@ def prioritize_actors(
                         "evasion_capability": _evas,
                         "depth": _depth,
                         "breadth": _breadth,
+                        "ir_observed_capability": _ir_cap,
                     },
                     opportunity_factors={
                         "victimology_match": _vic,
                         "geographic_match": _geo,
                         "surface_ttp_coverage": _surf,
+                        "ir_observed_opportunity": _ir_opp,
                     },
                 ),
             )
