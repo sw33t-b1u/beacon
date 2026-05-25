@@ -214,7 +214,7 @@ intersection of:
   the European finance sector.
 - *ENISA Sectoral Threat Landscapes* (Public Administration, Energy, Health,
   Transport, Telecom — Public Administration and Finance are the two
-  sectoral reports currently in `ref/`; Energy / Health / Transport / Telecom
+  sectoral reports; Energy / Health / Transport / Telecom
   remain to be added as their volumes are reissued).
 
 **Update cadence:** annually, when ENISA / Verizon / CrowdStrike publish
@@ -288,7 +288,7 @@ any(value in HIGH_RISK_GEOPOLITICAL_ZONES for value in (
 `{UA, RU, IL, PS, TW, CN, IR, KP, SY, YE}`. The set is sourced from the
 intersection of active-conflict zones and state-sponsored cyber-activity
 hubs in the 2025-2026 reporting window. Extension requires explicit
-re-review against the ref/ corpus — it is a judgement-laden constant.
+re-review against the annual threat-report corpus — it is a judgement-laden constant.
 
 Absent block (`geopolitical_exposure is None`) → trigger does **not** fire.
 Unlike the two resilience triggers below, lack-of-information here is not
@@ -297,25 +297,22 @@ are not actionable).
 
 **Citations**
 
-- *CrowdStrike Global Threat Report 2025*
-  (`ref/CrowdStrikeGlobalThreatReport2025.md:63-65`, `:922-923`) —
+- *CrowdStrike Global Threat Report 2025* —
   China-nexus intrusion volume reached a new high in 2024, with
   overall activity up roughly 150% YoY and the most-targeted industries
   hit two- to three-fold harder than the prior year. The report
   identifies financial services, media, manufacturing, and
   industrials / engineering as the sectors absorbing those 200-300%
   YoY increases.
-- *Cloudflare 2026 Threat Report*
-  (`ref/Cloudflare-2026-threat-report.md:77`, `:1591`) — characterises
+- *Cloudflare 2026 Threat Report* — characterises
   cyber operations as instruments of geopolitical leverage and
   documents highly capable state-sponsored network pre-positioning
   activity.
 - *IOCTA 2026 (Europol)* — documents Russia-based and Russian-speaking
   cybercrime ecosystems throughout the report; Initial Access Brokers
-  ecosystem chapter at `ref/IOCTA-2026.md:921`.
+  ecosystem chapter.
 - *INTERPOL Asia and South Pacific Cyber Threat Assessment 2025/2026* —
-  regional CTI dedicated to ASP geopolitical exposure
-  (`ref/CYBER_ASP Cyber Threat Assessment Report_2025_2026_v4.md`).
+  regional CTI dedicated to ASP geopolitical exposure.
 - *Mandiant M-Trends 2026* — regional-breakouts section (Americas /
   EMEA / JAPAC) covering regional differentials.
 
@@ -326,8 +323,8 @@ are not actionable).
 - HQ-in-zone vs customer-in-zone vs supply-chain-in-zone have different
   risk semantics (active vs passive exposure) but are currently treated
   symmetrically. Differential weighting is a future-revision candidate.
-- Set extension or revision should reference the same ref/ corpus to
-  avoid drift from empirical evidence into political judgement.
+- Set extension or revision should reference the same annual threat-report
+  corpus to avoid drift from empirical evidence into political judgement.
 
 ---
 
@@ -359,25 +356,21 @@ ISO 22301 cadence for plan-testing currency.
 **Citations**
 
 - *ENISA Threat Landscape 2025* — "ransomware accounting for 83.9% and
-  data breaches 16.1% of cybercrime incidents"
-  (`ref/ENISA_Threat_Landscape_2025_v1.2.md` line 730). Same report, EU
-  cut: "ransomware (81.1%) and data breaches (15.2%)" (line 931).
-- *Mandiant M-Trends 2026* (`ref/m-trends-2026-en.md:1270`, `:25`) —
+  data breaches 16.1% of cybercrime incidents". Same report, EU
+  cut: "ransomware (81.1%) and data breaches (15.2%)".
+- *Mandiant M-Trends 2026* —
   reports that 44% of Mandiant's 2025 investigations involved
   ransomware intrusion; the report's framing of ransomware as
-  primarily a resilience problem (Table of Contents §25) is the
-  naming source for this trigger.
-- *IBM Cost of a Data Breach Report 2025*
-  (`ref/20250822_Cost-of-a-Data-Breach-Report-2025.md:51`) —
+  primarily a resilience problem is the naming source for this trigger.
+- *IBM Cost of a Data Breach Report 2025* —
   ransomware breach cost rose to USD 5.08 million in the 2025
   edition.
-- *Dragos 2026 OT Cybersecurity Year in Review*
-  (`ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md:1641`)
-  — tracked 119 ransomware groups targeting industrial organisations
+- *Dragos 2026 OT Cybersecurity Year in Review* —
+  tracked 119 ransomware groups targeting industrial organisations
   in 2025; the same report records an approximate doubling YoY, from
   1,693 attacks in 2024 to over 3,300 industrial victims in 2025.
 - *CrowdStrike Global Threat Report 2025* — eCrime / ransomware-as-a-service
-  ecosystem documented throughout (`ref/CrowdStrikeGlobalThreatReport2025.md`).
+  ecosystem documented throughout.
 
 **Limitations:**
 
@@ -419,20 +412,18 @@ guidance, NIST SP 800-63B, and CIS Controls v8 IG2.
 
 **Citations**
 
-- *CrowdStrike Global Threat Report 2025*
-  (`ref/CrowdStrikeGlobalThreatReport2025.md:284`, `:58`) — valid
+- *CrowdStrike Global Threat Report 2025* — valid
   account abuse accounted for 35% of cloud-related incidents; vishing
   operations grew roughly 442% between H1 and H2 2024; access broker
   advertisements increased ~50% YoY.
-- *Mandiant M-Trends 2026* (`ref/m-trends-2026-en.md:1609`) — voice
+- *Mandiant M-Trends 2026* — voice
   phishing was the leading initial-access vector for cloud-related
   compromises in 2025 investigations at 23%, followed by third-party
   compromise.
-- *IOCTA 2026 (Europol)* — Initial Access Brokers ecosystem chapter
-  at `ref/IOCTA-2026.md:921`; Scattered Spider, ShinyHunters, and
-  LAPSUS$ are documented as acting in IAB capacity around `:1062`.
-- *APWG Q4 2025 Trends Report*
-  (`ref/apwg_trends_report_q4_2025.md:594`, `:311`) — Fortra
+- *IOCTA 2026 (Europol)* — Initial Access Brokers ecosystem chapter;
+  Scattered Spider, ShinyHunters, and LAPSUS$ are documented as
+  acting in IAB capacity.
+- *APWG Q4 2025 Trends Report* — Fortra
   catalogues business e-mail compromise as a distinct identity-theft
   technique; phishing and impersonation together accounted for ~86%
   of all confirmed threats in the quarter.
@@ -487,8 +478,9 @@ without external citation; it was removed in 0.10.0.
    `docs/triggers.ja.md`** in the same commit, plus the relevant
    `tests/test_element_extractor.py` cases.
 4. **`HIGH_RISK_GEOPOLITICAL_ZONES` revisions** must cite specific
-   ref/ corpus evidence (e.g. CrowdStrike GTR / Cloudflare nation-state
-   chapter / IOCTA regional ecosystem) for any country added or removed.
+   annual threat-report evidence (e.g. CrowdStrike GTR / Cloudflare
+   nation-state chapter / IOCTA regional ecosystem) for any country added
+   or removed.
    The set is empirically grounded, not a normative judgement.
 
 ---

@@ -34,7 +34,6 @@ def _run_pir(tmp_path):
         argv = [
             "--context",
             str(_FIXTURE),
-            "--no-llm",
             "--output",
             str(out),
             "--collection-plan",
@@ -43,7 +42,8 @@ def _run_pir(tmp_path):
             "/dev/null",
             *extra_args,
         ]
-        rc = _mod.main(argv)
+        with patch("beacon.llm.client.call_llm_json", return_value={}):
+            rc = _mod.main(argv)
         assert rc == 0
         return json.loads(out.read_text())
 

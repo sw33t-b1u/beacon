@@ -204,7 +204,7 @@ organization.industry in {finance, healthcare, energy, manufacturing,
   は EU で 3 番目に標的化されたセクター (公共行政・運輸に次ぐ)。2023 年
   の NIS 重大インシデント報告のうち 12% が EU finance sector。
 - *ENISA Sectoral Threat Landscapes*（公共行政・エネルギー・医療・運輸・
-  通信 — 公共行政 / Finance のみ `ref/` に保持。エネルギー / 医療 /
+  通信 — 公共行政 / Finance のみ。エネルギー / 医療 /
   運輸 / 通信は次版発行時に追加）。
 
 **更新頻度:** 年次。ENISA / Verizon / CrowdStrike の翌年版発行時に経験的
@@ -273,7 +273,7 @@ HIGH_RISK_GEOPOLITICAL_ZONES に以下のいずれかが含まれる:
 `HIGH_RISK_GEOPOLITICAL_ZONES` は ISO 3166-1 alpha-2 コードの frozenset:
 `{UA, RU, IL, PS, TW, CN, IR, KP, SY, YE}`。2025-2026 reporting window 中の
 紛争ゾーンと state-sponsored サイバー活動拠点の交差を経験的に抽出。
-集合の拡張・改訂は ref/ コーパスに対する明示的な再 review が必要 —
+集合の拡張・改訂は年次脅威レポートコーパスに対する明示的な再 review が必要 —
 politically judgemental な constant である。
 
 ブロック未指定（`geopolitical_exposure is None`）の場合、本 trigger は
@@ -284,19 +284,17 @@ politically judgemental な constant である。
 
 - *CrowdStrike Global Threat Report 2025* — "China-nexus activity surged
   150% overall, with some targeted industries suffering 200% to 300% more
-  attacks than the previous year"（`ref/CrowdStrikeGlobalThreatReport2025.md`
-  63-65 行目）。同 922-923 行: "financial services, media, manufacturing,
+  attacks than the previous year"。同レポートは "financial services, media, manufacturing,
   and industrials and engineering sectors, which all experienced 200-300%
   increases in observed China-nexus intrusions"。
 - *Cloudflare 2026 Threat Report* — "geopolitical leverage"
-  （`ref/Cloudflare-2026-threat-report.md` 77 行）、"highly sophisticated
-  state-sponsored pre-positioning"（1591 行）。
+  "highly sophisticated state-sponsored pre-positioning"。
 - *IOCTA 2026 (Europol)* — Russia-based / Russian-speaking cybercrime
   ecosystems を全編に記述; Initial Access Brokers エコシステム章は
-  `ref/IOCTA-2026.md` 921 行。
+  同レポート IAB エコシステム章に記述。
 - *INTERPOL Asia and South Pacific Cyber Threat Assessment 2025/2026* —
   ASP 地政学的曝露専用 regional CTI
-  （`ref/CYBER_ASP Cyber Threat Assessment Report_2025_2026_v4.md`）。
+  ASP 地政学的曝露専用 regional CTI。
 - *Mandiant M-Trends 2026* — "Regional Breakouts" 章（Americas / EMEA /
   JAPAC）が regional differential を扱う。
 
@@ -307,8 +305,8 @@ politically judgemental な constant である。
 - HQ 在所・顧客所在・サプライチェーン所在の semantic は本来異なる
   （能動曝露 vs 受動曝露）が、現状は対称に扱っている。差別重みは
   将来 revision 候補。
-- 集合の拡張・改訂は同じ ref/ コーパスを参照することで、経験的根拠から
-  political judgement への drift を回避する。
+- 集合の拡張・改訂は同じ年次脅威レポートコーパスを参照することで、
+  経験的根拠から political judgement への drift を回避する。
 
 ---
 
@@ -340,18 +338,15 @@ threshold は NIST SP 800-34 / ISO 22301 の plan-testing currency 推奨に
 
 - *ENISA Threat Landscape 2025* — "ransomware accounting for 83.9% and
   data breaches 16.1% of cybercrime incidents"
-  （`ref/ENISA_Threat_Landscape_2025_v1.2.md` 730 行）。同 EU 切り口
-  931 行: "ransomware (81.1%) and data breaches (15.2%)"。
+  同レポート EU 切り口: "ransomware (81.1%) and data breaches (15.2%)"。
 - *Mandiant M-Trends 2026* — "In 44% of Mandiant's 2025 investigations,
-  the intrusion"（`ref/m-trends-2026-en.md` 1270 行）、章 "Ransomware
+  the intrusion"、章 "Ransomware
   is Now a Resilience Problem"（TOC 25 行）— 本 trigger 命名の直接根拠。
 - *IBM Cost of a Data Breach Report 2025* — ransomware "hit USD 5.08
   million in this year's report"
-  （`ref/20250822_Cost-of-a-Data-Breach-Report-2025.md` 51 行）。
 - *Dragos 2026 OT Cybersecurity Year in Review* — "Dragos tracked 119
   ransomware groups targeting industrial organizations"
-  （`ref/Dragos-2026-OT-Cybersecurity-Report-A-Year-in-Review.md` 1641
-  行）; 2024 年の 1,693 件から 2025 年の 3,300+ 件へほぼ 2 倍化。
+  2024 年の 1,693 件から 2025 年の 3,300+ 件へほぼ 2 倍化。
 - *CrowdStrike Global Threat Report 2025* — eCrime / ransomware-as-a-service
   ecosystem を全編で扱う。
 
@@ -393,18 +388,17 @@ CISA Shields Up guidance / NIST SP 800-63B / CIS Controls v8 IG2 で示される
 
 - *CrowdStrike Global Threat Report 2025* — "Meanwhile, valid account
   abuse was responsible for 35%"（cloud incidents の 35%）
-  （`ref/CrowdStrikeGlobalThreatReport2025.md` 284 行）; vishing growth
+  vishing growth
   "up 442% between the first and second half of 2024"（58 行）;
   access broker 広告 "increased 50% year-over-year"。
 - *Mandiant M-Trends 2026* — "cloud-related compromises was voice
   phishing, at 23%, followed by third-party compromise"
-  （`ref/m-trends-2026-en.md` 1609 行）。
 - *IOCTA 2026 (Europol)* — Initial Access Brokers エコシステム章
-  （`ref/IOCTA-2026.md` 921 行）; Scattered Spider / ShinyHunters /
+  Scattered Spider / ShinyHunters /
   LAPSUS$ を IAB として記述（1062 行）。
 - *APWG Q4 2025 Trends Report* — Fortra "tracks the identity theft
   technique known as 'business e-mail compromise'"
-  （`ref/apwg_trends_report_q4_2025.md` 594 行）; phishing と impersonation
+  phishing と impersonation
   "accounted for 86 percent of all confirmed threats"（311 行）。
 
 **Limitations:**
@@ -454,7 +448,7 @@ CISA Shields Up guidance / NIST SP 800-63B / CIS Controls v8 IG2 で示される
    commit で更新**し、`tests/test_element_extractor.py` の該当ケースも
    併せて更新すること。
 4. **`HIGH_RISK_GEOPOLITICAL_ZONES` の改訂**は、追加・削除する国ごとに
-   ref/ コーパスの具体的根拠（CrowdStrike GTR / Cloudflare 国家主体章 /
+   年次脅威レポートの具体的根拠（CrowdStrike GTR / Cloudflare 国家主体章 /
    IOCTA 地域エコシステムなど）を citation すること。集合は経験的根拠で
    定まる constant であり、規範的判断ではない。
 

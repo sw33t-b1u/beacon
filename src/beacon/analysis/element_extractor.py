@@ -47,7 +47,7 @@ _HIGH_RISK_SECTORS: frozenset[str] = frozenset(
 # (Taiwan / regional ASP exposure); M-Trends 2026 Regional Breakouts chapter.
 # See docs/triggers.md §8 for the per-citation breakdown. This set is a
 # judgement-laden constant — extension requires explicit re-review against
-# the ref/ corpus.
+# the annual threat-report corpus.
 HIGH_RISK_GEOPOLITICAL_ZONES: frozenset[str] = frozenset(
     {
         "UA",  # Ukraine — active conflict zone, Russia-nexus targeting

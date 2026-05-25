@@ -4,11 +4,8 @@ Reads a BusinessContext (Markdown or JSON) and converts the Critical Assets
 section into the JSON format expected by SAGE's cmd/load_assets.py.
 
 Usage:
-    # From Markdown (requires LLM / Vertex AI)
     uv run python cmd/generate_assets.py --context input/context.md
-
-    # From JSON (no LLM required)
-    uv run python cmd/generate_assets.py --context input/context.json --no-llm
+    uv run python cmd/generate_assets.py --context input/context.json
 
     # Specify output path
     uv run python cmd/generate_assets.py --context input/context.md --output output/assets.json
@@ -69,7 +66,7 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> No
         "--context",
         required=True,
         metavar="PATH",
-        help="Path to context document (.md requires LLM; .json works with --no-llm)",
+        help="Path to context document (.md or .json)",
     )
     parser.add_argument(
         "--output",
@@ -77,15 +74,10 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> No
         default=_DEFAULT_OUTPUT,
         help=f"Output path for assets.json (default: {_DEFAULT_OUTPUT})",
     )
-    parser.add_argument(
-        "--no-llm",
-        action="store_true",
-        help="Skip LLM processing — only valid for JSON context files",
-    )
     args = parser.parse_args(argv)
 
     try:
-        ctx = parse(args.context, no_llm=args.no_llm)
+        ctx = parse(args.context)
     except (FileNotFoundError, NotImplementedError) as exc:
         logger.error("context_parse_failed", error=str(exc))
         sys.exit(1)

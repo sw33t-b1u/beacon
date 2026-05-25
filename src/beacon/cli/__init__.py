@@ -105,6 +105,7 @@ def cli() -> None:
 )
 @click.option(
     "--context",
+    "-c",
     required=True,
     type=click.Path(),
     help="Path to strategy document (.md) or business_context.json.",
@@ -157,12 +158,6 @@ def cli() -> None:
     help="Override pir_output.json path (default: <output-dir>/pir_output.json).",
 )
 @click.option(
-    "--no-llm",
-    is_flag=True,
-    default=False,
-    help="Dictionary-only mode (no Vertex AI calls). JSON context only.",
-)
-@click.option(
     "--use-sage",
     is_flag=True,
     default=False,
@@ -189,7 +184,6 @@ def pir_generate(
     collection_plan: str | None,
     sources_candidate: str | None,
     output: str | None,
-    no_llm: bool,
     use_sage: bool,
     no_sage: bool,
     no_web: bool,
@@ -222,8 +216,6 @@ def pir_generate(
         argv += ["--asset-tags", asset_tags]
     if save_context is not None:
         argv += ["--save-context", save_context]
-    if no_llm:
-        argv.append("--no-llm")
     if use_sage:
         argv.append("--use-sage")
     if no_sage:

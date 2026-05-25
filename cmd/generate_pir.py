@@ -79,11 +79,6 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> in
         " (e.g. output/business_context.json)",
     )
     parser.add_argument(
-        "--no-llm",
-        action="store_true",
-        help="Use dictionary-only mode (no Vertex AI calls). JSON input only.",
-    )
-    parser.add_argument(
         "--use-sage",
         action="store_true",
         help="Query SAGE Analysis API (SAGE_API_URL) to boost likelihood from observation data.",
@@ -123,7 +118,7 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> in
         return 1
 
     try:
-        ctx = parse(context_path, no_llm=args.no_llm)
+        ctx = parse(context_path)
     except NotImplementedError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
@@ -145,7 +140,7 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> in
 
     from beacon.config import load_config  # noqa: PLC0415
 
-    use_llm = not args.no_llm
+    use_llm = True
     cfg = load_config()
 
     # SAGE client setup. Two independent code paths consume SAGE:

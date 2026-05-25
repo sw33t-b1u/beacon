@@ -14,7 +14,6 @@ Initiative F decision record (2026-05-23).
 | License | MITRE ATT&CK Terms of Use |
 | Canonical URL | https://attack.mitre.org/ |
 | Bundle URL | https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json |
-| Local snapshot | `ref/enterprise-attack-19.1.json` (53 MB) — project-root `ref/` only, never copied into BEACON repo |
 
 **How BEACON uses it:**
 `scripts/derive_source_groups.py` reads the STIX 2.1 bundle at derivation
@@ -48,7 +47,6 @@ carry ATT&CK Group IDs as references, not ATT&CK text.
 | License | Intel 471 CU-GIR Framework License (custom) |
 | Canonical URL | https://github.com/intel471/CU-GIR |
 | STIX JSON | `STIX/Current/intel471_cu-gir.json` in the repository above |
-| Local snapshot | `ref/cu-gir.json` — project-root `ref/` only, never copied into BEACON repo |
 
 **License summary (Intel 471 CU-GIR Framework License):**
 The license grants a royalty-free, perpetual, worldwide license to
@@ -66,12 +64,6 @@ in `schema/content_ja.json` `intelligence_requirements[].gir_id` entries
 as classification references. Descriptions and EEI text in BEACON are
 written independently by BEACON authors and do not reproduce CU-GIR text.
 
-**NOT used:** The CU-GIRH PDF handbook (`ref/CU-GIRH_v7.{md,pdf}`) is
-licensed under CC-BY-NC-ND 4.0 (NoDerivatives + NonCommercial) and is
-strictly more restrictive. It serves as background reading for human
-reviewers only. No CU-GIRH handbook text is reproduced in any committed
-BEACON artifact.
-
 **Required attribution:**
 > CU-GIR Framework by Intel 471, Inc.
 > Licensed under the Intel 471 CU-GIR Framework License.
@@ -86,7 +78,6 @@ BEACON artifact.
 | Edition used | 2025 |
 | License | Creative Commons Attribution-NonCommercial-ShareAlike 4.0 (CC BY-NC-SA 4.0) |
 | Canonical URL | https://www.verizon.com/business/resources/reports/dbir/ |
-| Local snapshot | `ref/2025-dbir-data-breach-investigations-report.{md,pdf}` — project-root only |
 
 **How BEACON uses it:**
 Statistical citations in `schema/content_ja.json` `trigger_actions` fields
@@ -104,7 +95,6 @@ text is reproduced; only statistics are cited with attribution.
 | Edition used | 2025 |
 | License | IBM proprietary (non-exclusive use for citation purposes) |
 | Canonical URL | https://www.ibm.com/reports/data-breach |
-| Local snapshot | `ref/20250822_Cost-of-a-Data-Breach-Report-2025.{md,pdf}` — project-root only |
 
 **How BEACON uses it:**
 Statistical citation in `schema/content_ja.json` `trigger_actions`
@@ -129,14 +119,9 @@ Statistical citation in `schema/content_ja.json` `trigger_actions`
 | SP 800-30r1 | `src/beacon/analysis/actor_triage.py` (docstring) | Adversary capability + intent assessment tables D-3 / D-4 |
 | SP 800-37r2 | `src/beacon/analysis/risk_scorer.py` (comment); `docs/data-model.ja.md` | Event-driven trigger framework for tactical → operational level promotion |
 | SP 800-53 | `docs/context_template.ja.md` | AC-2 / AC-3 / IA-2 / IA-4 access control framework |
-| SP 800-61r3 | (G phase work) `sage/docs/ir-feedback-flow.md` | IR Lifecycle Model + Roles for direct-API IR ingest justification |
 | SP 800-82r3 | `src/beacon/analysis/element_extractor.py` (comment) | ICS/OT security guidance referenced for IT/OT convergence trigger |
 | SP 800-161r1 | `src/beacon/analysis/element_extractor.py` (comment) | Supply chain risk management reference |
 | SP 800-207 | `docs/context_template.ja.md` | Zero Trust architecture reference |
-
-Local snapshots: `ref/nistspecialpublication800-30r1.md`, `ref/NIST.SP.800-61r3.{md,pdf}` —
-project-root `ref/` only, never copied into BEACON repo. Other SPs are referenced
-by number without local snapshot.
 
 **Required attribution:** Standard NIST citation form (e.g., "NIST SP 800-61r3
 §2.1, April 2025"). No copyright notice required.
@@ -151,7 +136,6 @@ by number without local snapshot.
 | Publisher | The MITRE Corporation |
 | Title | *"How Do You Assess Your Organization's Cyber Threat Level?"* |
 | License | © The MITRE Corporation. All rights reserved (academic fair use only — short quotes with attribution) |
-| Local snapshot | `ref/mitre_threat.md` — project-root only |
 
 **How BEACON uses it:**
 Methodology foundation for the `Likelihood = Intent × Capability × Opportunity`
@@ -171,72 +155,42 @@ citation acceptable; do NOT reproduce paper text in bulk.
 
 ---
 
-## Diamond Model of Intrusion Analysis
-
-| Attribute | Detail |
-|---|---|
-| Authors | Sergio Caltagirone, Andrew Pendergast, Christopher Betz |
-| Publisher | Center for Cyber Intelligence Analysis and Threat Research (CCIATR) |
-| Title | *"The Diamond Model of Intrusion Analysis"* |
-| License | "Approved for public release; distribution is unlimited" — most permissive (verbatim quotation and redistribution freely permitted, attribution required) |
-| Local snapshot | `ref/diamondmodel.{md,pdf}` — project-root only |
-
-**How BEACON uses it:**
-BEACON does not directly use the Diamond Model in this initiative (it is
-SAGE-side under Initiative G: `Incident.diamond_model JSON` column + the
-`sage/cmd/register_incident.py` 4-quadrant prompt CLI). This entry is
-recorded here for cross-repo consistency; the canonical citation lives in
-`sage/docs/citations.md` once SAGE is updated under Initiative G.
-
-**Required attribution:** "Caltagirone, Pendergast, Betz. 'The Diamond Model
-of Intrusion Analysis.' CCIATR. Approved for public release."
-
----
-
 ## SANS Internet Storm Center / Reading Room
 
 | Attribute | Detail |
 |---|---|
 | Publisher | SANS Institute |
 | License | Citation permitted under SANS fair-use guidelines |
-| Local snapshot | `ref/SANS_blog.md` |
 
 **How BEACON uses it:**
 Source for the SANS I-O-C (Intent / Opportunity / Capability) actor-triage triad
 cited in `src/beacon/analysis/actor_triage.py` docstring. Short verbatim quote
-with line-number attribution.
+with attribution.
 
 ---
 
 ## Other Annual Threat Reports
 
-The following reports are stored in `ref/` as background reading for BEACON
-maintainers. Per 2026-05-23 policy, verbatim text from these proprietary reports
+The following reports are referenced by BEACON for statistical citations.
+Per 2026-05-23 policy, verbatim text from these proprietary reports
 is NOT reproduced in committed BEACON artifacts; only short statistical
 citations with explicit attribution (`source_name (year): statistic`) are used,
-and longer paraphrases are preferred over verbatim. See task #122 for the
-audit pass that retroactively paraphrases existing references.
+and longer paraphrases are preferred over verbatim.
 
 | Report | Publisher | Approx. License |
 |---|---|---|
 | CrowdStrike Global Threat Report 2025 | CrowdStrike | Proprietary (citation permitted) |
 | Mandiant M-Trends 2026 | Google / Mandiant | Proprietary (citation permitted) |
-| Microsoft Digital Defense Report 2025 | Microsoft | Proprietary (citation permitted) |
 | ENISA Threat Landscape 2025 | ENISA | CC BY 4.0 |
 | ENISA Public Administration Threat Landscape 2024 | ENISA | CC BY 4.0 |
 | ENISA Finance Threat Landscape 2024 | ENISA | CC BY 4.0 |
 | Dragos OT Cybersecurity Report 2026 | Dragos | Proprietary (citation permitted) |
 | Cloudflare 2026 Threat Report | Cloudflare | Proprietary (citation permitted) |
-| WEF Global Cybersecurity Outlook 2026 | WEF | Proprietary |
 | APWG eCrime Trends Q4 2025 | APWG | Proprietary |
 | IOCTA 2026 | Europol | Proprietary (typically open with attribution) |
-| Cost of a Data Breach Report 2025 | IBM | Proprietary (see dedicated entry above) |
 | TrendMicro 2026 Predictions | Trend Micro | Proprietary (citation permitted) |
 | CYBER ASP Cyber Threat Assessment 2025/26 | CYBER ASP | See report |
-| Global Digital Trust Insights 2026 | PwC | Proprietary (citation permitted) |
 | AI Safety Report 2026 | International AI Safety Initiative | Likely open with attribution |
-| IRPF 3.17.2025 | CISA / DHS | US gov work (likely public domain) |
-| CU-GIRH v7 PDF Handbook | Intel 471 | CC-BY-NC-ND 4.0 — **NOT used** (background only; see CU-GIR Framework entry above for the source actually used) |
 
 ---
 

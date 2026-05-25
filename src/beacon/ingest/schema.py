@@ -236,7 +236,7 @@ class RecentIncident(BaseModel):
 # Optional posture / continuity / IAM-maturity blocks consumed by
 # element_extractor._detect_triggers. All fields default to safe values so
 # existing 0.13.x BusinessContext payloads remain valid without migration.
-# See docs/triggers.md §8–§10 for definitions and ref/ citations.
+# See docs/triggers.md §8–§10 for definitions and external citations.
 
 
 class GeopoliticalExposure(BaseModel):

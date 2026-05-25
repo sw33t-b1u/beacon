@@ -163,7 +163,6 @@ async def index(request: Request):
 async def generate(
     request: Request,
     context_file: UploadFile = File(...),
-    no_llm: str = Form(default="true"),
     model_simple: str = Form(default=""),
     model_medium: str = Form(default=""),
     model_complex: str = Form(default=""),
@@ -173,7 +172,6 @@ async def generate(
     """Run PIR pipeline on uploaded business context file, store results in session."""
     _verify_csrf(beacon_csrf, csrf_token)
 
-    no_llm_bool = no_llm.lower() not in {"false", "0", "no"}
     cfg = _build_config(model_simple, model_medium, model_complex)
 
     content = await _read_upload(context_file)
@@ -183,7 +181,7 @@ async def generate(
         tmp_path = Path(tmp.name)
 
     try:
-        pirs, collection_plan_md = _run_pipeline(tmp_path, no_llm=no_llm_bool, config=cfg)
+        pirs, collection_plan_md = _run_pipeline(tmp_path, config=cfg)
     finally:
         tmp_path.unlink(missing_ok=True)
 
@@ -526,13 +524,11 @@ async def api_pir(beacon_session: str = Cookie(default="")):
 @app.post("/api/generate")
 async def api_generate(
     context_file: UploadFile = File(...),
-    no_llm: str = Form(default="true"),
     model_simple: str = Form(default=""),
     model_medium: str = Form(default=""),
     model_complex: str = Form(default=""),
 ):
     """REST endpoint: run pipeline and return PIR JSON directly."""
-    no_llm_bool = no_llm.lower() not in {"false", "0", "no"}
     cfg = _build_config(model_simple, model_medium, model_complex)
 
     content = await _read_upload(context_file)
@@ -542,7 +538,7 @@ async def api_generate(
         tmp_path = Path(tmp.name)
 
     try:
-        pirs, collection_plan_md = _run_pipeline(tmp_path, no_llm=no_llm_bool, config=cfg)
+        pirs, collection_plan_md = _run_pipeline(tmp_path, config=cfg)
     finally:
         tmp_path.unlink(missing_ok=True)
 
@@ -568,7 +564,7 @@ def _build_config(model_simple: str, model_medium: str, model_complex: str):
     return cfg
 
 
-def _run_pipeline(context_path: Path, *, no_llm: bool, config=None) -> tuple[list[dict], str]:
+def _run_pipeline(context_path: Path, *, config=None) -> tuple[list[dict], str]:
     """Execute the BEACON pipeline and return (pirs_as_dicts, collection_plan_markdown)."""
     from beacon.analysis.asset_mapper import load_asset_tags, map_asset_tags  # noqa: PLC0415
     from beacon.analysis.element_extractor import extract  # noqa: PLC0415
@@ -578,18 +574,16 @@ def _run_pipeline(context_path: Path, *, no_llm: bool, config=None) -> tuple[lis
     from beacon.generator.report_builder import build_collection_plan  # noqa: PLC0415
     from beacon.ingest.context_parser import parse  # noqa: PLC0415
 
-    use_llm = not no_llm
-
-    ctx = parse(context_path, no_llm=no_llm, config=config)
+    ctx = parse(context_path, config=config)
     taxonomy = load_taxonomy(None)
     asset_tags_dict = load_asset_tags(None)
 
     elements = extract(ctx)
     asset_tag_list = map_asset_tags(elements, asset_tags_dict)
     threat = map_threats(elements, taxonomy)
-    risk = score(elements, threat, use_llm=use_llm, config=config)
+    risk = score(elements, threat, use_llm=True, config=config)
     pirs = build_pirs(
-        elements, threat, risk, asset_tag_list, asset_tags_dict, use_llm=use_llm, config=config
+        elements, threat, risk, asset_tag_list, asset_tags_dict, use_llm=True, config=config
     )
 
     plan = build_collection_plan(elements, threat, risk, pirs)

@@ -1,16 +1,16 @@
 """Actor prioritization using the SANS I-O-C Threat triad.
 
-Triad source (verbatim, ref/SANS_blog.md L18):
+Triad source (SANS Internet Storm Center, verbatim):
   "To understand, differentiate, and properly respond to threats, it is
   helpful to divide this concept into a further three components: Intent,
   Opportunity, and Capability (IOC)."
 
-NIST SP 800-30 r1 operationalization (ref/nistspecialpublication800-30r1.md L1767–1768):
+NIST SP 800-30 r1 operationalization (§3.2.1, Table D-3 / D-4):
   "Assess adversary capability (see Table D-3, as tailored by the organization)."
   "Assess adversary intent (see Table D-4, as tailored by the organization)."
 
 MITRE Cyber Prep methodology (Bodeau, Fabius-Greene, Graubart,
-ref/mitre_threat.md L141–149):
+"How Do You Assess Your Organization's Cyber Threat Level?"):
   Cyber Prep characterizes the cyber threat in terms of an adversary's
   Capability ("resources, skill or expertise, knowledge, and opportunity"),
   Intent ("goals or outcomes the adversary seeks; consequences the

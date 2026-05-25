@@ -125,7 +125,7 @@ class TestGenerateRoute:
             resp = session_client.post(
                 "/generate",
                 files={"context_file": ("sample.json", context_bytes, "application/json")},
-                data={"no_llm": "true", "csrf_token": csrf_token},
+                data={"csrf_token": csrf_token},
                 follow_redirects=False,
             )
 
@@ -141,7 +141,7 @@ class TestGenerateRoute:
             resp = session_client.post(
                 "/generate",
                 files={"context_file": ("sample.json", context_bytes, "application/json")},
-                data={"no_llm": "true", "csrf_token": csrf_token},
+                data={"csrf_token": csrf_token},
                 follow_redirects=False,
             )
 
@@ -154,7 +154,7 @@ class TestGenerateRoute:
             resp = fresh.post(
                 "/generate",
                 files={"context_file": ("sample.json", context_bytes, "application/json")},
-                data={"no_llm": "true"},
+                data={},
                 follow_redirects=False,
             )
         assert resp.status_code == 403
@@ -168,7 +168,7 @@ class TestGenerateRoute:
             resp = session_client.post(
                 "/generate",
                 files={"context_file": ("sample.json", context_bytes, "application/json")},
-                data={"no_llm": "true", "csrf_token": "wrong-token"},
+                data={"csrf_token": "wrong-token"},
                 follow_redirects=False,
             )
         assert resp.status_code == 403
@@ -183,7 +183,7 @@ def _create_session_with_csrf() -> tuple[str, dict[str, str]]:
         resp = session_client.post(
             "/generate",
             files={"context_file": ("sample.json", context_bytes, "application/json")},
-            data={"no_llm": "true", "csrf_token": csrf_token},
+            data={"csrf_token": csrf_token},
             follow_redirects=False,
         )
     sid = resp.cookies.get("beacon_session", "")
@@ -318,7 +318,7 @@ class TestUploadSizeLimit:
             resp = session_client.post(
                 "/generate",
                 files={"context_file": ("huge.json", huge, "application/json")},
-                data={"no_llm": "true", "csrf_token": csrf_token},
+                data={"csrf_token": csrf_token},
                 follow_redirects=False,
             )
         assert resp.status_code == 413

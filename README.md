@@ -70,6 +70,7 @@ BEACON provides four output pipelines, all driven from the same context document
 | [docs/data-model.md](docs/data-model.md) | BusinessContext schema, PIR output format, `identity_assets.json` / `user_accounts.json` schemas, intelligence levels, threat taxonomy |
 | [docs/sage_integration.md](docs/sage_integration.md) | PIR deployment to SAGE and ETL verification procedure |
 | [docs/dependencies.md](docs/dependencies.md) | Dependency rationale and license information |
+| [docs/pipeline-guide.md](docs/pipeline-guide.md) | End-to-end CTI pipeline workflow: BEACON → TRACE → SAGE ([ja](docs/pipeline-guide.ja.md)) |
 
 ## Quick Start
 

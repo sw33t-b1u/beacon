@@ -118,18 +118,9 @@ class TestParseMarkdownMocked:
         with patch("beacon.llm.client.call_llm_json", return_value=mock_response):
             from beacon.ingest.context_parser import parse
 
-            ctx = parse(md_path, no_llm=False)
+            ctx = parse(md_path)
 
         assert ctx.organization.industry == "finance"
-
-    def test_parse_no_llm_md_raises(self):
-        """parse() with --no-llm and .md input should raise NotImplementedError."""
-        md_path = FIXTURES / "sample_context_finance.md"
-
-        from beacon.ingest.context_parser import parse
-
-        with pytest.raises(NotImplementedError, match="Markdown input requires LLM"):
-            parse(md_path, no_llm=True)
 
     def test_parse_markdown_validates_schema(self):
         """Returned object must pass Pydantic validation."""

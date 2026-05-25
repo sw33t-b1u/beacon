@@ -39,14 +39,7 @@
       <label for="context_file">Business Context File (.json or .md)</label>
       <input type="file" id="context_file" name="context_file" accept=".json,.md" required>
     </div>
-    <div style="margin-bottom:1rem;">
-      <label for="no_llm">モード</label>
-      <select id="no_llm" name="no_llm" onchange="toggleModelOptions(this)">
-        <option value="true" selected>Dictionary only（LLM なし / GCP 不要）</option>
-        <option value="false">LLM mode（GCP 必要・高精度）</option>
-      </select>
-    </div>
-    <div id="model_options" style="display:none; background:#f5f8ff; border:1px solid #d0dff5; border-radius:4px; padding:1rem; margin-bottom:1rem;">
+    <div id="model_options" style="background:#f5f8ff; border:1px solid #d0dff5; border-radius:4px; padding:1rem; margin-bottom:1rem;">
       <p style="font-size:0.83rem; color:#555; margin-bottom:0.75rem;">
         使用モデルを選択（空白 = <code>.env</code> のデフォルト値）
       </p>
@@ -103,10 +96,4 @@
   <strong>Dictionary only</strong>: GCP 不要。辞書ベースの高速 PIR 生成。<br>
   <strong>LLM mode</strong>: <code>GCP_PROJECT_ID</code> と ADC 設定が必要。文脈を考慮した高精度な説明・収集フォーカスを生成。
 </div>
-
-<script>
-function toggleModelOptions(sel) {
-  document.getElementById('model_options').style.display = sel.value === 'false' ? 'block' : 'none';
-}
-</script>
 {% endblock %}

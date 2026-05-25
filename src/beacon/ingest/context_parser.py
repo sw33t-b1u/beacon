@@ -47,16 +47,11 @@ def parse_markdown(
     return ctx
 
 
-def parse(source: str | Path, no_llm: bool = False, config=None) -> BusinessContext:
-    """Dispatch to the appropriate parser based on file extension and flags."""
+def parse(source: str | Path, config=None) -> BusinessContext:
+    """Dispatch to the appropriate parser based on file extension."""
     path = Path(source) if not isinstance(source, Path) else source
 
     if path.suffix.lower() in {".md", ".markdown"}:
-        if no_llm:
-            raise NotImplementedError(
-                "Markdown input requires LLM processing. "
-                "Use a JSON file with --no-llm, or omit --no-llm to enable LLM support."
-            )
         return parse_markdown(path, config=config)
 
     return parse_json(path)
