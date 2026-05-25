@@ -6,6 +6,44 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [1.1.0] — 2026-05-25
+
+**Initiative I — Unified Dashboard + Storage Abstraction.** Paired
+triple: BEACON 1.1.0 + SAGE 1.1.0 + TRACE 1.13.0.
+
+### Added
+
+- **StorageBackend abstraction layer** — `LocalStorage` (filesystem)
+  and `GCSStorage` (Google Cloud Storage) implementations behind an
+  ABC. Artifacts are written to category-based paths (`pir/`,
+  `assets/`, `stix/`, `plans/`) with `YYYYMMDDHHmm` timestamps.
+  Env vars: `BEACON_STORAGE`, `BEACON_STORAGE_BASE_DIR`,
+  `BEACON_GCS_BUCKET`, `BEACON_GCS_PREFIX`.
+- **5-tab unified web dashboard** — replaces the 2-tab Generate/Review
+  layout with Dashboard / PIR / Collection / Threats / Settings tabs.
+- **PIR tab** — merges Generate + Review into one page with
+  StorageBackend auto-load of existing PIR files.
+- **Collection tab** — runs TRACE `crawl-single` / `crawl-batch` via
+  subprocess from the web UI. Shows crawl history from
+  `crawl_state.json`.
+- **Threats tab** — SAGE API proxy with actor name search, TTP
+  display, and per-asset threat summary. Time-range presets
+  (1M/3M/6M/1Y/custom).
+- **Dashboard tab** — pipeline-wide summary: PIR count, collection
+  status, choke-points top-5, recent incidents.
+- **Settings tab** — persistent configuration via
+  `.beacon_settings.json` (priority: env > file > default). SAGE
+  connection test, storage mode switching.
+- `beacon.trace.runner` module for TRACE subprocess integration.
+- `beacon.settings.SettingsManager` for settings persistence.
+
+### Deprecated
+
+- `beacon submit-review` CLI — replaced by web approval flow.
+  Scheduled for removal in BEACON 2.0.0.
+
+---
+
 ## [1.0.0] — 2026-05-24
 
 **Initiative H — 1.0 Stabilization release.** BEACON 1.0.0 commits
