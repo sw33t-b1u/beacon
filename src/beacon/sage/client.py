@@ -1,16 +1,21 @@
 """SAGE Analysis API client — fetches actor observation data + recent incidents.
 
-Two endpoints are consumed:
+Three categories of endpoints are consumed:
 
 - `GET /asset-exposure` — actor-tag observation count for risk_scorer
   likelihood boost. Fail-open (returns 0 on error).
 - `GET /api/incidents` — recent IR-registered incidents for actor_triage
   IR-boost (Initiative G Phase 6). Fail-loud (raises on error; caller
   handles fail-soft + data_quality.degraded flag).
+- Threats tab endpoints (Initiative I Phase 3) — all fail-soft (return
+  empty list / dict on error so the web UI degrades gracefully):
+    - `GET /actors?name=<query>&limit=<n>` — actor name search
+    - `GET /actor-ttps?actor_id=<id>&since=<date>&until=<date>` — TTP list
+    - `GET /threat-summary?asset=<id>&since=<date>&until=<date>` — threat summary
 
-The two error-handling policies differ deliberately: risk_scorer treats
-SAGE as advisory; actor_triage propagates IR-availability into the PIR's
-data_quality block so analysts know when the IR-boost was skipped.
+The two original error-handling policies differ deliberately: risk_scorer
+treats SAGE as advisory; actor_triage propagates IR-availability into the
+PIR's data_quality block so analysts know when the IR-boost was skipped.
 """
 
 from __future__ import annotations
@@ -124,3 +129,125 @@ class SageAPIClient:
             until=until.isoformat(),
         )
         return incidents
+
+    # ------------------------------------------------------------------
+    # Threats-tab methods (Initiative I Phase 3) — all fail-soft
+    # ------------------------------------------------------------------
+
+    def search_actors(self, name: str, limit: int = 20) -> list[dict]:
+        """Search SAGE for threat actors matching *name*.
+
+        Calls ``GET /actors?name={name}&limit={limit}``.
+        Returns an empty list on any error (fail-soft — web UI degrades
+        gracefully when SAGE is unavailable or slow).
+        """
+        url = f"{self._base_url}/actors"
+        params: dict[str, str | int] = {"name": name, "limit": limit}
+        try:
+            resp = httpx.get(url, params=params, headers=self._auth_headers(), timeout=5)
+            resp.raise_for_status()
+            data = resp.json()
+        except httpx.TimeoutException as exc:
+            logger.warning("sage_search_actors_timeout", url=url, error=str(exc))
+            return []
+        except httpx.HTTPError as exc:
+            logger.warning("sage_search_actors_error", url=url, error=str(exc))
+            return []
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("sage_search_actors_unexpected", url=url, error=str(exc))
+            return []
+
+        actors: list[dict] = []
+        if isinstance(data, dict):
+            actors = data.get("actors", [])
+        elif isinstance(data, list):
+            actors = data
+
+        logger.info("sage_search_actors", name=name, count=len(actors))
+        return actors
+
+    def get_actor_ttps(
+        self,
+        actor_id: str,
+        since: str | None = None,
+        until: str | None = None,
+    ) -> list[dict]:
+        """Fetch TTPs for a specific actor.
+
+        Calls ``GET /actor-ttps?actor_id={actor_id}&since={since}&until={until}``.
+        Returns an empty list on any error (fail-soft).
+        """
+        url = f"{self._base_url}/actor-ttps"
+        params: dict[str, str] = {"actor_id": actor_id}
+        if since:
+            params["since"] = since
+        if until:
+            params["until"] = until
+
+        try:
+            resp = httpx.get(url, params=params, headers=self._auth_headers(), timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+        except httpx.TimeoutException as exc:
+            logger.warning("sage_actor_ttps_timeout", url=url, actor_id=actor_id, error=str(exc))
+            return []
+        except httpx.HTTPError as exc:
+            logger.warning("sage_actor_ttps_error", url=url, actor_id=actor_id, error=str(exc))
+            return []
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("sage_actor_ttps_unexpected", url=url, actor_id=actor_id, error=str(exc))
+            return []
+
+        ttps: list[dict] = []
+        if isinstance(data, dict):
+            ttps = data.get("ttps", [])
+        elif isinstance(data, list):
+            ttps = data
+
+        logger.info("sage_actor_ttps_fetched", actor_id=actor_id, count=len(ttps))
+        return ttps
+
+    def get_threat_summary(
+        self,
+        asset_id: str,
+        since: str | None = None,
+        until: str | None = None,
+    ) -> dict:
+        """Fetch threat summary for a given asset.
+
+        Calls ``GET /threat-summary?asset={asset_id}&since={since}&until={until}``.
+        Returns an empty dict on any error (fail-soft).
+        """
+        url = f"{self._base_url}/threat-summary"
+        params: dict[str, str] = {"asset": asset_id}
+        if since:
+            params["since"] = since
+        if until:
+            params["until"] = until
+
+        try:
+            resp = httpx.get(url, params=params, headers=self._auth_headers(), timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+        except httpx.TimeoutException as exc:
+            logger.warning(
+                "sage_threat_summary_timeout", url=url, asset_id=asset_id, error=str(exc)
+            )
+            return {}
+        except httpx.HTTPError as exc:
+            logger.warning("sage_threat_summary_error", url=url, asset_id=asset_id, error=str(exc))
+            return {}
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "sage_threat_summary_unexpected", url=url, asset_id=asset_id, error=str(exc)
+            )
+            return {}
+
+        if not isinstance(data, dict):
+            logger.warning(
+                "sage_threat_summary_unexpected_shape", url=url, asset_id=asset_id, shape=type(data)
+            )
+            return {}
+
+        logger.info("sage_threat_summary_fetched", asset_id=asset_id)
+        return data

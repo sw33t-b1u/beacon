@@ -175,15 +175,81 @@ async def collection(request: Request):
 
 @app.get("/threats")
 async def threats(request: Request):
-    """Threats tab placeholder — full implementation in Phase 3."""
+    """Threats tab — actor / asset views with SAGE API proxy."""
+    from beacon.config import load_config  # noqa: PLC0415
+
+    cfg = load_config()
+    sage_configured = bool(cfg.sage_api_url)
     return templates.TemplateResponse(
         request=request,
-        name="base.html",
+        name="threats.html",
         context={
             "active_tab": "threats",
-            "content_override": "Threats — coming in Phase 3",
+            "sage_api_url": cfg.sage_api_url,
+            "sage_configured": sage_configured,
         },
     )
+
+
+@app.get("/threats/api/actors")
+async def threats_api_actors(name: str = ""):
+    """JSON proxy: search SAGE for threat actors matching *name*."""
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.sage.client import SageAPIClient  # noqa: PLC0415
+
+    cfg = load_config()
+    if not cfg.sage_api_url:
+        return JSONResponse({"actors": [], "error": "SAGE not configured"})
+
+    client = SageAPIClient(cfg.sage_api_url)
+    actors = client.search_actors(name)
+    return JSONResponse({"actors": actors})
+
+
+@app.get("/threats/api/actor-ttps")
+async def threats_api_actor_ttps(
+    actor_id: str = "",
+    since: str = "",
+    until: str = "",
+):
+    """JSON proxy: fetch TTPs for a specific actor from SAGE."""
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.sage.client import SageAPIClient  # noqa: PLC0415
+
+    cfg = load_config()
+    if not cfg.sage_api_url:
+        return JSONResponse({"ttps": [], "error": "SAGE not configured"})
+
+    client = SageAPIClient(cfg.sage_api_url)
+    ttps = client.get_actor_ttps(
+        actor_id,
+        since=since or None,
+        until=until or None,
+    )
+    return JSONResponse({"ttps": ttps})
+
+
+@app.get("/threats/api/threat-summary")
+async def threats_api_threat_summary(
+    asset: str = "",
+    since: str = "",
+    until: str = "",
+):
+    """JSON proxy: fetch threat summary for an asset from SAGE."""
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.sage.client import SageAPIClient  # noqa: PLC0415
+
+    cfg = load_config()
+    if not cfg.sage_api_url:
+        return JSONResponse({"error": "SAGE not configured"})
+
+    client = SageAPIClient(cfg.sage_api_url)
+    summary = client.get_threat_summary(
+        asset,
+        since=since or None,
+        until=until or None,
+    )
+    return JSONResponse(summary)
 
 
 @app.get("/settings")
