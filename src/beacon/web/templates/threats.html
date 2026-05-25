@@ -177,9 +177,9 @@
 
   function renderActorCard(actor, idx) {
     const aliases = (actor.aliases || []).join(', ') || '—';
-    const soph = actor.sophistication || '—';
+    const soph = actor.sophistication_level || '—';
     const lastSeen = actor.last_seen ? actor.last_seen.slice(0, 10) : '—';
-    const actorId = escapeHtml(actor.actor_id || actor.id || '');
+    const actorId = escapeHtml(actor.stix_id || actor.id || '');
     return `
       <div class="actor-card">
         <div class="actor-card-header" onclick="toggleActor(${idx})">

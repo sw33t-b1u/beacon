@@ -70,10 +70,10 @@ class TestThreatsApiActors:
         monkeypatch.setenv("SAGE_API_URL", "http://sage:8080")
         fake_actors = [
             {
-                "actor_id": "apt28",
+                "stix_id": "intrusion-set--apt28",
                 "name": "APT28",
                 "aliases": ["Fancy Bear"],
-                "sophistication": "advanced",
+                "sophistication_level": "advanced",
                 "last_seen": "2026-01-15",
             },
         ]
@@ -239,7 +239,7 @@ class TestSageClientSearchActors:
         import httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
-        fake_data = {"actors": [{"actor_id": "apt28", "name": "APT28"}]}
+        fake_data = {"actors": [{"stix_id": "intrusion-set--apt28", "name": "APT28"}]}
         mock_resp = MagicMock()
         mock_resp.json.return_value = fake_data
         mock_resp.raise_for_status.return_value = None
@@ -284,7 +284,7 @@ class TestSageClientSearchActors:
 
         client_obj = self._make_client()
         mock_resp = MagicMock()
-        mock_resp.json.return_value = [{"actor_id": "lazarus", "name": "Lazarus"}]
+        mock_resp.json.return_value = [{"stix_id": "intrusion-set--lazarus", "name": "Lazarus"}]
         mock_resp.raise_for_status.return_value = None
 
         with patch("beacon.sage.client.httpx") as mock_httpx:
