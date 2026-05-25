@@ -162,15 +162,164 @@ async def dashboard(request: Request):
 
 @app.get("/collection")
 async def collection(request: Request):
-    """Collection tab placeholder — full implementation in Phase 4."""
-    return templates.TemplateResponse(
+    """Collection tab — TRACE crawl runner + history (Initiative I Phase 4)."""
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.trace.runner import load_crawl_state  # noqa: PLC0415
+
+    cfg = load_config()
+    trace_configured = bool(cfg.trace_root_path)
+    crawl_history: list[dict] = []
+    if trace_configured:
+        try:
+            crawl_history = load_crawl_state(cfg.trace_root_path)
+        except Exception:  # noqa: BLE001
+            crawl_history = []
+
+    csrf_token = _generate_csrf_token()
+    response = templates.TemplateResponse(
         request=request,
-        name="base.html",
+        name="collection.html",
         context={
             "active_tab": "collection",
-            "content_override": "Collection — coming in Phase 4",
+            "trace_configured": trace_configured,
+            "crawl_history": crawl_history,
+            "csrf_token": csrf_token,
+            "crawl_result": None,
         },
     )
+    _set_csrf_cookie(response, csrf_token)
+    return response
+
+
+@app.post("/collection/crawl-single")
+async def collection_crawl_single(
+    request: Request,
+    url: str = Form(...),
+    csrf_token: str = Form(default=""),
+    beacon_csrf: str = Cookie(default=""),
+):
+    """Run TRACE crawl-single for a single URL."""
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.trace.runner import load_crawl_state, run_crawl_single  # noqa: PLC0415
+
+    cfg = load_config()
+    result = run_crawl_single(url, cfg.trace_root_path)
+
+    trace_configured = bool(cfg.trace_root_path)
+    crawl_history: list[dict] = []
+    if trace_configured:
+        try:
+            crawl_history = load_crawl_state(cfg.trace_root_path)
+        except Exception:  # noqa: BLE001
+            crawl_history = []
+
+    new_csrf = _generate_csrf_token()
+    response = templates.TemplateResponse(
+        request=request,
+        name="collection.html",
+        context={
+            "active_tab": "collection",
+            "trace_configured": trace_configured,
+            "crawl_history": crawl_history,
+            "csrf_token": new_csrf,
+            "crawl_result": {
+                "mode": "single",
+                "url": url,
+                "success": result.success,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "return_code": result.return_code,
+                "stix_object_count": result.stix_object_count,
+                "pir_relevance_score": result.pir_relevance_score,
+            },
+        },
+    )
+    _set_csrf_cookie(response, new_csrf)
+    return response
+
+
+@app.post("/collection/crawl-batch")
+async def collection_crawl_batch(
+    request: Request,
+    sources_file: UploadFile = File(...),
+    csrf_token: str = Form(default=""),
+    beacon_csrf: str = Cookie(default=""),
+):
+    """Accept a YAML sources file and run TRACE crawl-batch."""
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    import tempfile  # noqa: PLC0415 (already imported at module level but safe to re-import)
+
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.trace.runner import load_crawl_state, run_crawl_batch  # noqa: PLC0415
+
+    cfg = load_config()
+
+    content = await _read_upload(sources_file)
+    # Save to a temp file; the path is passed to crawl_batch
+    suffix = Path(sources_file.filename or "sources.yaml").suffix or ".yaml"
+    tmp_yaml_path: str = ""
+    try:
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+            tmp.write(content)
+            tmp_yaml_path = tmp.name
+
+        result = run_crawl_batch(tmp_yaml_path, cfg.trace_root_path)
+    finally:
+        if tmp_yaml_path:
+            Path(tmp_yaml_path).unlink(missing_ok=True)
+
+    trace_configured = bool(cfg.trace_root_path)
+    crawl_history: list[dict] = []
+    if trace_configured:
+        try:
+            crawl_history = load_crawl_state(cfg.trace_root_path)
+        except Exception:  # noqa: BLE001
+            crawl_history = []
+
+    new_csrf = _generate_csrf_token()
+    response = templates.TemplateResponse(
+        request=request,
+        name="collection.html",
+        context={
+            "active_tab": "collection",
+            "trace_configured": trace_configured,
+            "crawl_history": crawl_history,
+            "csrf_token": new_csrf,
+            "crawl_result": {
+                "mode": "batch",
+                "filename": sources_file.filename or "sources.yaml",
+                "success": result.success,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "return_code": result.return_code,
+                "stix_object_count": result.stix_object_count,
+                "pir_relevance_score": result.pir_relevance_score,
+            },
+        },
+    )
+    _set_csrf_cookie(response, new_csrf)
+    return response
+
+
+@app.get("/collection/api/crawl-state")
+async def collection_api_crawl_state():
+    """JSON endpoint returning the TRACE crawl history from crawl_state.json."""
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.trace.runner import load_crawl_state  # noqa: PLC0415
+
+    cfg = load_config()
+    if not cfg.trace_root_path:
+        return JSONResponse({"entries": [], "error": "TRACE パスが設定されていません"})
+
+    try:
+        entries = load_crawl_state(cfg.trace_root_path)
+    except Exception as exc:  # noqa: BLE001
+        return JSONResponse({"entries": [], "error": str(exc)})
+
+    return JSONResponse({"entries": entries})
 
 
 @app.get("/threats")

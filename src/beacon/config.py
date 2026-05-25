@@ -77,6 +77,11 @@ class Config:
     # BEACON_GCS_PREFIX: optional key prefix for all GCS objects.
     gcs_prefix: str = field(default_factory=lambda: os.environ.get("BEACON_GCS_PREFIX", ""))
 
+    # TRACE integration (Initiative I Phase 4).
+    # TRACE_ROOT_PATH: absolute path to the TRACE repository root.
+    # When empty the Collection tab shows a "TRACE パスが設定されていません" message.
+    trace_root_path: str = field(default_factory=lambda: os.environ.get("TRACE_ROOT_PATH", ""))
+
 
 def load_config() -> Config:
     return Config()

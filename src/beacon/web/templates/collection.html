@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}BEACON — Collection{% endblock %}
+{% block content %}
+<h1>Collection</h1>
+
+{% if not trace_configured %}
+<div class="alert alert-info" style="border-left-color:#e67e22; background:#fef9e7;">
+  <strong>TRACE パスが設定されていません</strong> — <code>TRACE_ROOT_PATH</code> 環境変数が未設定です。
+  <a href="/settings">Settings</a> で TRACE root path を設定してください。
+</div>
+{% else %}
+
+{# ------------------------------------------------------------------ #}
+{# Crawl Single URL                                                     #}
+{# ------------------------------------------------------------------ #}
+<div class="card">
+  <h2 style="margin-top:0;">Crawl Single URL</h2>
+  <form method="post" action="/collection/crawl-single">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div style="display:flex; gap:0.75rem; align-items:flex-end; flex-wrap:wrap;">
+      <div style="flex:1; min-width:200px;">
+        <label for="crawl-url-input">URL (http/https)</label>
+        <input type="text" id="crawl-url-input" name="url"
+               placeholder="https://example.com/threat-report"
+               value="{{ crawl_result.url if crawl_result and crawl_result.mode == 'single' else '' }}"
+               required>
+      </div>
+      <button type="submit" class="btn btn-primary">Crawl</button>
+    </div>
+  </form>
+
+  {% if crawl_result and crawl_result.mode == 'single' %}
+  <div style="margin-top:1rem;">
+    {% if crawl_result.success %}
+    <div class="alert" style="background:#d5f5e3; border-left:4px solid #27ae60;">
+      <strong>成功</strong> — STIX objects: {{ crawl_result.stix_object_count }}
+      {% if crawl_result.pir_relevance_score > 0 %}
+      | PIR relevance: {{ "%.2f"|format(crawl_result.pir_relevance_score) }}
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="alert" style="background:#fadbd8; border-left:4px solid #c0392b;">
+      <strong>失敗</strong> — return code: {{ crawl_result.return_code }}
+    </div>
+    {% endif %}
+
+    {% if crawl_result.stdout %}
+    <details style="margin-top:0.5rem;">
+      <summary style="cursor:pointer; font-size:0.88rem; color:#555;">stdout</summary>
+      <pre style="background:#f5f5f5; padding:0.75rem; border-radius:4px; font-size:0.8rem;
+                  overflow-x:auto; white-space:pre-wrap; margin-top:0.4rem;">{{ crawl_result.stdout | e }}</pre>
+    </details>
+    {% endif %}
+
+    {% if crawl_result.stderr %}
+    <details style="margin-top:0.25rem;">
+      <summary style="cursor:pointer; font-size:0.88rem; color:#c0392b;">stderr</summary>
+      <pre style="background:#fff5f5; padding:0.75rem; border-radius:4px; font-size:0.8rem;
+                  overflow-x:auto; white-space:pre-wrap; margin-top:0.4rem; color:#c0392b;">{{ crawl_result.stderr | e }}</pre>
+    </details>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Crawl Batch (YAML Upload)                                           #}
+{# ------------------------------------------------------------------ #}
+<div class="card">
+  <h2 style="margin-top:0;">Crawl Batch</h2>
+  <form method="post" action="/collection/crawl-batch" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div style="display:flex; gap:0.75rem; align-items:flex-end; flex-wrap:wrap;">
+      <div style="flex:1; min-width:200px;">
+        <label for="sources-file-input">Sources YAML ファイル</label>
+        <input type="file" id="sources-file-input" name="sources_file"
+               accept=".yaml,.yml" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Run Batch</button>
+    </div>
+    <p style="font-size:0.83rem; color:#777; margin-top:0.4rem;">
+      TRACE の <code>sources_candidate.yaml</code> 形式に準拠した YAML ファイルをアップロードしてください。
+    </p>
+  </form>
+
+  {% if crawl_result and crawl_result.mode == 'batch' %}
+  <div style="margin-top:1rem;">
+    <p style="font-size:0.88rem; color:#555; margin-bottom:0.5rem;">
+      ファイル: <code>{{ crawl_result.filename | e }}</code>
+    </p>
+    {% if crawl_result.success %}
+    <div class="alert" style="background:#d5f5e3; border-left:4px solid #27ae60;">
+      <strong>成功</strong> — STIX objects: {{ crawl_result.stix_object_count }}
+      {% if crawl_result.pir_relevance_score > 0 %}
+      | PIR relevance: {{ "%.2f"|format(crawl_result.pir_relevance_score) }}
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="alert" style="background:#fadbd8; border-left:4px solid #c0392b;">
+      <strong>失敗</strong> — return code: {{ crawl_result.return_code }}
+    </div>
+    {% endif %}
+
+    {% if crawl_result.stdout %}
+    <details style="margin-top:0.5rem;">
+      <summary style="cursor:pointer; font-size:0.88rem; color:#555;">stdout</summary>
+      <pre style="background:#f5f5f5; padding:0.75rem; border-radius:4px; font-size:0.8rem;
+                  overflow-x:auto; white-space:pre-wrap; margin-top:0.4rem;">{{ crawl_result.stdout | e }}</pre>
+    </details>
+    {% endif %}
+
+    {% if crawl_result.stderr %}
+    <details style="margin-top:0.25rem;">
+      <summary style="cursor:pointer; font-size:0.88rem; color:#c0392b;">stderr</summary>
+      <pre style="background:#fff5f5; padding:0.75rem; border-radius:4px; font-size:0.8rem;
+                  overflow-x:auto; white-space:pre-wrap; margin-top:0.4rem; color:#c0392b;">{{ crawl_result.stderr | e }}</pre>
+    </details>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Crawl History                                                        #}
+{# ------------------------------------------------------------------ #}
+<div class="card">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
+    <h2 style="margin:0;">Crawl History</h2>
+    <button class="btn btn-secondary" onclick="refreshHistory()" style="font-size:0.83rem;">
+      Refresh
+    </button>
+  </div>
+
+  <div id="history-container">
+    {% if crawl_history %}
+    <table>
+      <thead>
+        <tr>
+          <th>URL</th>
+          <th>Status</th>
+          <th>Timestamp</th>
+          <th>STIX Objects</th>
+        </tr>
+      </thead>
+      <tbody id="history-tbody">
+        {% for entry in crawl_history %}
+        <tr>
+          <td style="max-width:320px; word-break:break-all;">
+            <a href="{{ entry.url | e }}" target="_blank" rel="noopener noreferrer"
+               style="font-size:0.83rem;">{{ entry.url | e }}</a>
+          </td>
+          <td>
+            {% if entry.status == 'success' %}
+            <span class="badge" style="background:#27ae60; color:#fff;">success</span>
+            {% elif entry.status == 'fail' or entry.status == 'error' %}
+            <span class="badge" style="background:#c0392b; color:#fff;">{{ entry.status | e }}</span>
+            {% else %}
+            <span class="badge" style="background:#777; color:#fff;">{{ entry.status | e }}</span>
+            {% endif %}
+          </td>
+          <td style="font-size:0.83rem; white-space:nowrap;">
+            {{ entry.timestamp | e if entry.timestamp else '—' }}
+          </td>
+          <td style="text-align:right;">
+            {{ entry.stix_object_count if entry.stix_object_count is defined else '—' }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p id="history-empty-msg" style="font-size:0.88rem; color:#777;">
+      収集履歴がありません。crawl_state.json が見つからないか、まだ収集が実行されていません。
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+{% endif %}
+
+<script>
+  async function refreshHistory() {
+    try {
+      const resp = await fetch('/collection/api/crawl-state');
+      const data = await resp.json();
+      const entries = data.entries || [];
+      const container = document.getElementById('history-container');
+      if (!container) return;
+
+      if (entries.length === 0) {
+        container.innerHTML = '<p style="font-size:0.88rem; color:#777;">収集履歴がありません。</p>';
+        return;
+      }
+
+      const rows = entries.map(e => {
+        const statusBg = e.status === 'success' ? '#27ae60'
+                       : (e.status === 'fail' || e.status === 'error') ? '#c0392b'
+                       : '#777';
+        const url = escHtml(e.url || '');
+        const ts = escHtml(e.timestamp || '—');
+        const cnt = e.stix_object_count !== undefined ? e.stix_object_count : '—';
+        const status = escHtml(e.status || 'unknown');
+        return `<tr>
+          <td style="max-width:320px; word-break:break-all;">
+            <a href="${url}" target="_blank" rel="noopener noreferrer" style="font-size:0.83rem;">${url}</a>
+          </td>
+          <td><span class="badge" style="background:${statusBg}; color:#fff;">${status}</span></td>
+          <td style="font-size:0.83rem; white-space:nowrap;">${ts}</td>
+          <td style="text-align:right;">${cnt}</td>
+        </tr>`;
+      }).join('');
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr><th>URL</th><th>Status</th><th>Timestamp</th><th>STIX Objects</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } catch (err) {
+      console.error('refreshHistory failed:', err);
+    }
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+</script>
+{% endblock %}
