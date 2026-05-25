@@ -51,12 +51,37 @@ Edit `.env` and fill in the required values:
 | `BEACON_LLM_SIMPLE` | No | `gemini-2.5-flash-lite` | Simple task model |
 | `BEACON_LLM_MEDIUM` | No | `gemini-2.5-flash` | Medium task model |
 | `BEACON_LLM_COMPLEX` | No | `gemini-2.5-pro` | Complex reasoning model |
-| `GHE_TOKEN` | GHE review | — | GitHub / GHE Personal Access Token |
-| `GHE_REPO` | GHE review | — | `owner/repo` format |
+| `GHE_TOKEN` | No (deprecated) | — | GitHub / GHE Personal Access Token (`submit_for_review.py` — deprecated in 1.1.0) |
+| `GHE_REPO` | No (deprecated) | — | `owner/repo` format (deprecated in 1.1.0) |
 | `GHE_API_BASE` | No | `https://api.github.com` | Override for self-hosted GHE |
-| `SAGE_API_URL` | SAGE mode | — | SAGE Analysis API URL |
+| `SAGE_API_URL` | SAGE mode | — | SAGE Analysis API URL (also configurable via Settings tab) |
+| `BEACON_STORAGE` | No | `local` | Storage backend: `local` or `gcs` |
+| `BEACON_STORAGE_BASE_DIR` | No | `output/` | Base directory for `local` backend |
+| `BEACON_GCS_BUCKET` | GCS mode | — | GCS bucket name (required when `BEACON_STORAGE=gcs`) |
+| `BEACON_GCS_PREFIX` | No | `beacon/` | Key prefix within the GCS bucket |
+| `TRACE_ROOT_PATH` | No | — | Absolute path to TRACE repo root (enables Collection tab in dashboard) |
 
 `GCP_PROJECT_ID` is **not required** when using `--no-llm` mode.
+
+---
+
+## Step 3b: Configure StorageBackend (optional)
+
+By default, artifacts are written to `output/` (local backend). To use Google Cloud
+Storage instead:
+
+```bash
+# Install the optional GCS dependency
+uv sync --extra gcs
+
+# Set env vars (or configure via the Settings tab in the web dashboard)
+export BEACON_STORAGE=gcs
+export BEACON_GCS_BUCKET=my-beacon-artifacts
+export BEACON_GCS_PREFIX=prod/   # optional; defaults to "beacon/"
+```
+
+Artifacts are stored with the filename pattern `<category>_<YYYYMMDDHHmm>.json`.
+To revert to local storage: `export BEACON_STORAGE=local`.
 
 ---
 
@@ -245,16 +270,17 @@ cd ../SAGE  && uv run python cmd/load_user_accounts.py \
    cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json --assets assets.json
    ```
 
-2. **Review** — inspect and edit `pir_output.json` manually, or use the Web UI:
+2. **Review** — inspect and edit `pir_output.json` manually, or open the web dashboard:
 
    ```bash
-   uv run python cmd/web_app.py --port 8080
-   # Open http://localhost:8080 → upload context → review → export
+   uv run beacon web   # http://localhost:8000 → PIR tab → review → export
    ```
 
-3. **Submit for GHE review** (optional) — create GitHub Issues for analyst sign-off:
+3. **Submit for review** (optional) — use the web dashboard's **Settings** tab for
+   pipeline approval workflows. The legacy GHE CLI is deprecated:
 
    ```bash
+   # Deprecated since BEACON 1.1.0 — use the web dashboard instead
    uv run python cmd/submit_for_review.py --pir pir_output.json
    ```
 
@@ -288,21 +314,31 @@ Options:
 
 ---
 
-## Web UI (optional)
+## Web Dashboard
 
 ```bash
-uv run python cmd/web_app.py --port 8080
+uv run beacon web   # default http://localhost:8000
 ```
 
-Open `http://localhost:8080` in your browser.
+Open `http://localhost:8000` in your browser.
 
-The Web UI provides two workflows:
+The dashboard is organized into five tabs:
 
-**Generate from business context** — Upload a `business_context.json` or Markdown strategy document. Choose between:
-- **Dictionary only** (no LLM, no GCP required) — fast, rule-based PIR generation
-- **LLM mode** (requires GCP) — enriched descriptions, rationale, and collection focus via Google Gen AI (Gemini). When LLM mode is selected, you can override the default models for each complexity tier (simple / medium / complex) directly in the UI; leave blank to use the `.env` defaults.
+| Tab | Description |
+|-----|-------------|
+| **Dashboard** | Pipeline summary: PIR count, collection status, choke-points from SAGE |
+| **PIR** | Generate PIR from a context document; review and export output; auto-loads the latest artifact from StorageBackend |
+| **Collection** | Run TRACE `crawl-single` / `crawl-batch` as a subprocess directly from the browser (requires `TRACE_ROOT_PATH`) |
+| **Threats** | Proxy to the SAGE Analysis API: actor search, TTP lookup, threat-summary (requires `SAGE_API_URL`) |
+| **Settings** | Configure storage mode, SAGE URL, TRACE path; changes are persisted to `.beacon_settings.json` |
 
-**Load existing PIR JSON** — Upload a previously generated `pir_output.json` to review, edit, and re-export without re-running the pipeline.
+**PIR tab** provides two workflows:
+- **Generate from business context** — Upload a context document, choose LLM or dictionary-only mode.
+- **Load existing PIR JSON** — Upload a previously generated `pir_output.json` for review without re-running the pipeline.
+
+> **Deprecated:** `cmd/submit_for_review.py` (GHE Issue creation) is deprecated as of
+> BEACON 1.1.0 and will be removed in a future release. Use the Settings tab for
+> pipeline approval workflows.
 
 ---
 

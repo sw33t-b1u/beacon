@@ -76,8 +76,63 @@ uv run beacon identity-generate --context input/context.md
 uv run beacon accounts-generate --context input/context.md
 ```
 
-`output/assets.json`、`output/identity_assets.json`、
-`output/user_accounts.json` が生成される。
+成果物は設定済み StorageBackend（下記参照）に保存される。
+
+### 1.4 StorageBackend — 成果物の永続化
+
+BEACON が生成するすべての成果物は `output/` への直接書き込みではなく、
+プラガブルな **StorageBackend** を経由して保存される。バックエンドは
+`BEACON_STORAGE` 環境変数で選択する。
+
+```
+BEACON パイプライン
+      │
+      ├─── StorageBackend.save(category="pir",   filename="pir_202506011430.json")
+      ├─── StorageBackend.save(category="assets", filename="assets_202506011430.json")
+      └─── StorageBackend.save(category="plans",  filename="plans_202506011430.json")
+```
+
+**ローカルバックエンド（デフォルト）:**
+
+```bash
+export BEACON_STORAGE=local
+export BEACON_STORAGE_BASE_DIR=output/   # 任意（デフォルトは output/）
+uv run beacon pir-generate --context input/context.md
+```
+
+**GCS バックエンド:**
+
+```bash
+# 事前に: uv sync --extra gcs
+export BEACON_STORAGE=gcs
+export BEACON_GCS_BUCKET=my-beacon-artifacts
+export BEACON_GCS_PREFIX=prod/          # 任意; デフォルトは "beacon/"
+uv run beacon pir-generate --context input/context.md
+```
+
+ファイル名形式: `<category>_<YYYYMMDDHHmm>.json`（例: `pir_202506011430.json`）。
+Dashboard・PIR タブは各カテゴリの最新ファイルを自動ロードする。
+
+### 1.5 Web ダッシュボード
+
+ダッシュボードを起動してパイプライン状況を一元管理できる:
+
+```bash
+uv run beacon web   # デフォルト http://localhost:8000
+```
+
+| タブ | できること |
+|------|-----------|
+| **Dashboard** | PIR 件数・収集状況・SAGE から取得したチョークポイントを確認 |
+| **PIR** | PIR 生成の実行、生成結果レビュー、StorageBackend からの過去実行読み込み |
+| **Collection** | TRACE の `crawl-single` / `crawl-batch` をブラウザからサブプロセスとして起動 |
+| **Threats** | SAGE API プロキシ経由でアクター検索・TTP ルックアップ・`/threat-summary` 取得 |
+| **Settings** | ストレージモード・SAGE URL・TRACE パスを設定し `.beacon_settings.json` に永続化 |
+
+設定優先順位: **環境変数**（最高）> **`.beacon_settings.json`** > **組み込みデフォルト**
+
+> Collection タブを TRACE に接続するには、`TRACE_ROOT_PATH` に TRACE リポジトリルートの
+> 絶対パス（例: `/path/to/TRACE`）を設定すること。
 
 ---
 
@@ -118,6 +173,10 @@ uv run trace crawl-single \
 L2 PIR relevance gate が自動適用される。PIR との関連度がしきい値未満の記事は
 スキップされ、関連度が高い記事のみ STIX 2.1 バンドル + LLM 抽出 IoC として出力。
 
+デフォルトでは **StorageBackend** にバンドルが書き込まれる
+（`LocalStorage` の場合: `output/stix/stix_bundle_<YYYYMMDDHHmm>.json`）。
+明示パスに書き出したい場合は `--output <path>` を指定すると StorageBackend をバイパスする。
+
 **バッチ収集（推奨ソース一括）:**
 
 ```bash
@@ -126,12 +185,40 @@ cp ../BEACON/output/sources_candidate.yaml input/sources.yaml
 
 uv run trace crawl-batch \
   --sources input/sources.yaml \
-  --pir ../BEACON/output/pir_output.json \
-  --output-dir output/stix/
+  --pir ../BEACON/output/pir_output.json
 ```
 
 `sources_candidate.yaml` に列挙された各ソース URL をクロールし、
 PIR relevance gate を通過したもののみ STIX バンドル化する。
+各バンドルは StorageBackend の `stix/` カテゴリに保存される
+（デフォルト: `output/stix/stix_bundle_<YYYYMMDDHHmm>.json`）。
+明示ディレクトリに書き出す場合は `--output-dir <dir>` を指定する。
+
+#### TRACE StorageBackend 設定
+
+| 変数 | デフォルト | 説明 |
+|------|-----------|------|
+| `TRACE_STORAGE` | `local` | `local` または `gcs` |
+| `TRACE_STORAGE_BASE_DIR` | `output/` | `LocalStorage` のルートディレクトリ |
+| `TRACE_GCS_BUCKET` | — | `TRACE_STORAGE=gcs` 時に必須 |
+| `TRACE_GCS_PREFIX` | `trace/` | GCS バケット内のキープレフィックス |
+
+#### BEACON Collection タブとの連携
+
+BEACON の **Collection** タブは `crawl-batch` をサブプロセスとして起動する。
+TRACE は各バンドルを StorageBackend に書き込み、BEACON は `stix/` カテゴリを
+スキャンして結果を一覧表示する。
+
+```
+BEACON Web UI（Collection タブ）
+  └─► サブプロセス: uv run trace crawl-batch --pir pir_output.json
+        └─► StorageBackend.write("stix", "stix_bundle_YYYYMMDDHHmm.json", data)
+              └─► output/stix/stix_bundle_YYYYMMDDHHmm.json  (LocalStorage)
+                  gs://<bucket>/trace/stix/stix_bundle_YYYYMMDDHHmm.json  (GCSStorage)
+```
+
+BEACON は自身の StorageBackend（同一ベースディレクトリまたは GCS バケットを参照）
+の `stix/` カテゴリからバンドル一覧を読み取る。
 
 ### 2.3 収集済み STIX バンドルの検証
 
@@ -171,31 +258,45 @@ uv run sage init-schema
 
 ### 3.2 BEACON アセットデータのロード
 
+`SAGE_STORAGE_BASE_DIR` が BEACON の出力ディレクトリを指している場合、
+`--input` を省略すると StorageBackend の `assets/` カテゴリから最新ファイルを
+自動取得する:
+
 ```bash
+# --input を明示（常に動作）
 uv run sage load-assets           --input ../BEACON/output/assets.json
 uv run sage load-identity-assets  --input ../BEACON/output/identity_assets.json
 uv run sage load-user-accounts    --input ../BEACON/output/user_accounts.json
+
+# --input 省略 — StorageBackend から自動取得（SAGE_STORAGE_BASE_DIR/assets/）
+uv run sage load-assets
+uv run sage load-identity-assets
+uv run sage load-user-accounts
 ```
 
 ### 3.3 STIX バンドルの取り込み（ETL）
 
+**StorageBackend モード（推奨）:** `--input` なしの `run-etl` は、StorageBackend の
+`stix/` カテゴリにある**全バンドル**を読み込んで処理する。TRACE が `output/stix/` に
+バンドルを書き込む標準パスがこれに該当する:
+
 ```bash
 export PIR_FILE_PATH=../BEACON/output/pir_output.json
 
-uv run sage run-etl --input ../TRACE/output/stix/bundle.json
+# StorageBackend の stix/ カテゴリから全バンドルを処理
+uv run sage run-etl
 ```
 
-`PIR_FILE_PATH` 環境変数で BEACON の PIR 出力を指定する（取り込み時の
-relevance filtering に必要）。`--input` は単一の STIX バンドル
-ファイルを受け付ける。複数バンドルの場合はシェルループで繰り返す:
+**単一ファイルモード:** 特定のバンドルを処理する場合は `--input` を指定する:
 
 ```bash
-for f in ../TRACE/output/stix/*.json; do uv run sage run-etl --input "$f"; done
+uv run sage run-etl --input ../TRACE/output/stix/bundle.json
 ```
 
 ETL パイプラインは STIX 2.1 バンドルをパースし、Spanner Graph のノード・エッジに
 マッピングする。`FollowedBy` エッジの weight は kill chain phase 順の
 アクター間遷移確率として自動計算され、PIR ベースのアセット criticality 調整も適用。
+StorageBackend モードでは全バンドルの統計を集計して単一の Slack 通知を送信する。
 
 ### 3.4 Analysis API の起動
 
@@ -209,6 +310,7 @@ uv run sage serve-api --port 8080
 |---|---|---|
 | `/threat-summary?asset=<id>` | GET | アセット単位の脅威サマリ: 関連アクター・攻撃パス・チョークポイント・脆弱性・インシデント |
 | `/actor-ttps?actor_id=<id>&since=YYYY-MM-DD&until=YYYY-MM-DD` | GET | アクター別 TTP 一覧（期間指定可） |
+| `/actors?name=<query>&limit=20` | GET | アクター名の大小文字を区別しない部分一致検索（最小 2 文字）; `{"actors":[…],"count":N}` を返す |
 | `/attack-paths?asset_id=<id>&limit=N` | GET | 多段攻撃パス探索（アクター → アセット） |
 | `/choke-points` | GET | 防御優先度 — グラフ全体のチョークポイント計算 |
 | `/asset-exposure?since=YYYY-MM-DD` | GET | 外部露出アセットと到達可能な TTP 数（時間ウィンドウ指定） |
@@ -286,6 +388,11 @@ actor triage の Likelihood スコア（`ir_observed_capability` +
 | `BEACON_LLM_COMPLEX` | `gemini-2.5-pro` | 複雑な推論（PIR 生成）用モデル |
 | `SAGE_API_URL` | (なし) | SAGE API ベース URL（`--use-sage` 有効化） |
 | `BEACON_IR_LOOKBACK_DAYS` | `365` | IR boost ルックバックウィンドウ（日数） |
+| `BEACON_STORAGE` | `local` | ストレージバックエンド: `local` または `gcs` |
+| `BEACON_STORAGE_BASE_DIR` | `output/` | `local` バックエンドのベースディレクトリ |
+| `BEACON_GCS_BUCKET` | (なし) | GCS バケット名（`gcs` バックエンドで必須） |
+| `BEACON_GCS_PREFIX` | `beacon/` | GCS バケット内のキープレフィックス |
+| `TRACE_ROOT_PATH` | (なし) | TRACE リポジトリルートの絶対パス（Collection タブ有効化） |
 
 ### TRACE
 
@@ -297,6 +404,10 @@ actor triage の Likelihood スコア（`ir_observed_capability` +
 | `TRACE_RELEVANCE_THRESHOLD` | `0.5` | L2 PIR relevance gate しきい値（0.0–1.0） |
 | `TRACE_CRAWL_CONCURRENCY` | `4` | 並列クロールワーカー数 |
 | `TRACE_FEED_MAX_ENTRIES` | `50` | RSS フィードあたりの最大エントリ数 |
+| `TRACE_STORAGE` | `local` | ストレージバックエンド: `local` または `gcs` |
+| `TRACE_STORAGE_BASE_DIR` | `output/` | `local` バックエンドのベースディレクトリ |
+| `TRACE_GCS_BUCKET` | (なし) | GCS バケット名（`gcs` バックエンドで必須） |
+| `TRACE_GCS_PREFIX` | `trace/` | GCS バケット内のキープレフィックス |
 
 ### SAGE
 
@@ -307,6 +418,10 @@ actor triage の Likelihood スコア（`ir_observed_capability` +
 | `SPANNER_DB` | (必須) | Spanner データベース ID |
 | `SAGE_API_AUTH_TOKEN` | (なし) | API 認証用 Bearer トークン; 未設定時 POST は 503 を返す |
 | `PIR_FILE_PATH` | `/config/pir.json` | BEACON の pir_output.json へのパス（ETL の relevance filtering に使用） |
+| `SAGE_STORAGE` | `local` | ストレージバックエンド: `local` または `gcs` |
+| `SAGE_STORAGE_BASE_DIR` | `output` | ローカルストレージのベースディレクトリ（TRACE/BEACON と共有） |
+| `SAGE_GCS_BUCKET` | (なし) | GCS バケット名（`SAGE_STORAGE=gcs` 時に必須） |
+| `SAGE_GCS_PREFIX` | (なし) | GCS オブジェクトキーのプレフィックス（任意） |
 
 ---
 
@@ -318,7 +433,7 @@ uv run beacon pir-generate --context input/context.md
 uv run beacon assets-generate --context input/context.md
 uv run beacon identity-generate --context input/context.md
 uv run beacon accounts-generate --context input/context.md
-uv run beacon web                                           # レビュー UI のみ起動
+uv run beacon web                                           # 5 タブダッシュボード（http://localhost:8000）
 
 # --- Phase 2: TRACE ---
 uv run trace validate-all --pir ../BEACON/output/pir_output.json --it-assets ../BEACON/output/assets.json
@@ -330,10 +445,13 @@ uv run trace search-iocs --ioc <indicator>
 
 # --- Phase 3: SAGE ---
 uv run sage init-schema
-uv run sage load-assets --input ../BEACON/output/assets.json
-uv run sage run-etl --input ../TRACE/output/stix/bundle.json
+uv run sage load-assets                                         # StorageBackend 自動取得
+uv run sage load-assets --input ../BEACON/output/assets.json   # 明示パス
+uv run sage run-etl                                             # StorageBackend: 全 stix/ バンドル
+uv run sage run-etl --input ../TRACE/output/stix/bundle.json   # 単一ファイルモード
 uv run sage serve-api --port 8080
 uv run sage query-attack-paths --asset-id <id>
+curl "http://localhost:8080/actors?name=apt&limit=10"           # アクター名検索
 uv run sage visualize-graph
 uv run sage incident-register
 ```

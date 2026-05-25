@@ -51,12 +51,37 @@ cp .env.example .env
 | `BEACON_LLM_SIMPLE` | 任意 | `gemini-2.5-flash-lite` | 軽量タスク用モデル |
 | `BEACON_LLM_MEDIUM` | 任意 | `gemini-2.5-flash` | 中程度タスク用モデル |
 | `BEACON_LLM_COMPLEX` | 任意 | `gemini-2.5-pro` | 複雑推論用モデル |
-| `GHE_TOKEN` | GHE レビュー | — | GitHub / GHE Personal Access Token |
-| `GHE_REPO` | GHE レビュー | — | `owner/repo` 形式 |
+| `GHE_TOKEN` | 任意（非推奨） | — | GitHub / GHE Personal Access Token（`submit_for_review.py` — 1.1.0 で非推奨化） |
+| `GHE_REPO` | 任意（非推奨） | — | `owner/repo` 形式（1.1.0 で非推奨化） |
 | `GHE_API_BASE` | 任意 | `https://api.github.com` | セルフホスト GHE 用に上書き |
-| `SAGE_API_URL` | SAGE モード | — | SAGE Analysis API の URL |
+| `SAGE_API_URL` | SAGE モード | — | SAGE Analysis API の URL（Settings タブからも設定可） |
+| `BEACON_STORAGE` | 任意 | `local` | ストレージバックエンド: `local` または `gcs` |
+| `BEACON_STORAGE_BASE_DIR` | 任意 | `output/` | `local` バックエンドのベースディレクトリ |
+| `BEACON_GCS_BUCKET` | GCS モード | — | GCS バケット名（`BEACON_STORAGE=gcs` 時必須） |
+| `BEACON_GCS_PREFIX` | 任意 | `beacon/` | GCS バケット内のキープレフィックス |
+| `TRACE_ROOT_PATH` | 任意 | — | TRACE リポジトリルートの絶対パス（ダッシュボードの Collection タブ有効化） |
 
 `--no-llm` モード使用時は `GCP_PROJECT_ID` は**不要**。
+
+---
+
+## Step 3b: StorageBackend の設定（オプション）
+
+デフォルトでは成果物は `output/` ディレクトリに保存されます（ローカルバックエンド）。
+Google Cloud Storage を使用する場合は以下を設定してください:
+
+```bash
+# オプション依存パッケージをインストール
+uv sync --extra gcs
+
+# 環境変数を設定（または Web ダッシュボードの Settings タブから設定可）
+export BEACON_STORAGE=gcs
+export BEACON_GCS_BUCKET=my-beacon-artifacts
+export BEACON_GCS_PREFIX=prod/   # 任意; デフォルトは "beacon/"
+```
+
+成果物のファイル名は `<category>_<YYYYMMDDHHmm>.json` 形式です。
+ローカルバックエンドに戻す場合: `export BEACON_STORAGE=local`
 
 ---
 
@@ -244,16 +269,17 @@ cd ../SAGE  && uv run python cmd/load_user_accounts.py \
    cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json --assets assets.json
    ```
 
-2. **レビュー** — `pir_output.json` を手動で確認・編集するか、Web UI を使用:
+2. **レビュー** — `pir_output.json` を手動で確認・編集するか、Web ダッシュボードを使用:
 
    ```bash
-   uv run python cmd/web_app.py --port 8080
-   # ブラウザで http://localhost:8080 → コンテキストをアップロード → レビュー → エクスポート
+   uv run beacon web   # http://localhost:8000 → PIR タブ → レビュー → エクスポート
    ```
 
-3. **GHE レビュー依頼**（任意）— アナリストのサインオフ用に GitHub Issue を作成:
+3. **レビュー依頼**（任意）— Web ダッシュボードの **Settings** タブで承認ワークフローを管理。
+   旧 GHE CLI は非推奨:
 
    ```bash
+   # BEACON 1.1.0 で非推奨 — Web ダッシュボードを使用してください
    uv run python cmd/submit_for_review.py --pir pir_output.json
    ```
 
@@ -287,21 +313,30 @@ uv run python -m cmd.update_taxonomy
 
 ---
 
-## Web UI（オプション）
+## Web ダッシュボード
 
 ```bash
-uv run python cmd/web_app.py --port 8080
+uv run beacon web   # デフォルト http://localhost:8000
 ```
 
-ブラウザで `http://localhost:8080` を開く。
+ブラウザで `http://localhost:8000` を開く。
 
-Web UI は 2 つのワークフローを提供します。
+ダッシュボードは 5 つのタブで構成されています:
 
-**Business Context から生成** — `business_context.json` または Markdown 形式の戦略ドキュメントをアップロードし、モードを選択:
-- **Dictionary only**（LLM なし / GCP 不要） — 高速な辞書ベース PIR 生成
-- **LLM mode**（GCP 必要） — Google Gen AI（Gemini）による説明・根拠・収集フォーカスの拡充。LLM モード選択時は、各タスクレベル（simple / medium / complex）のモデルを UI 上で上書き可能（空白のままにすると `.env` のデフォルト値を使用）
+| タブ | 説明 |
+|------|------|
+| **Dashboard** | パイプラインサマリ: PIR 件数・収集状況・SAGE のチョークポイント |
+| **PIR** | PIR 生成、出力レビュー、StorageBackend からの最新成果物自動ロード |
+| **Collection** | TRACE の `crawl-single` / `crawl-batch` をブラウザからサブプロセスとして起動（`TRACE_ROOT_PATH` が必要） |
+| **Threats** | SAGE API プロキシ: アクター検索・TTP ルックアップ・threat-summary（`SAGE_API_URL` が必要） |
+| **Settings** | ストレージモード・SAGE URL・TRACE パスを設定し `.beacon_settings.json` に永続化 |
 
-**既存の PIR JSON を読み込む** — 生成済みの `pir_output.json` をアップロードして、パイプラインを再実行せずにレビュー・編集・エクスポートできます。
+**PIR タブ** は 2 つのワークフローを提供します:
+- **Business Context から生成** — コンテキストドキュメントをアップロードし、LLM モードまたは辞書のみモードを選択
+- **既存 PIR JSON の読み込み** — 生成済みの `pir_output.json` をパイプライン再実行なしにレビュー・編集・エクスポート
+
+> **非推奨:** `cmd/submit_for_review.py`（GHE Issue 作成）は BEACON 1.1.0 で非推奨となり、
+> 将来のリリースで削除予定です。承認ワークフローには Settings タブを使用してください。
 
 ---
 

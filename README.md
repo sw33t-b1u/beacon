@@ -72,6 +72,55 @@ BEACON provides four output pipelines, all driven from the same context document
 | [docs/dependencies.md](docs/dependencies.md) | Dependency rationale and license information |
 | [docs/pipeline-guide.md](docs/pipeline-guide.md) | End-to-end CTI pipeline workflow: BEACON → TRACE → SAGE ([ja](docs/pipeline-guide.ja.md)) |
 
+## Storage Backend (Initiative I)
+
+BEACON 1.1.0 introduces a **StorageBackend** abstraction for artifact persistence. All
+generated artifacts (`pir_output.json`, `assets.json`, STIX bundles, etc.) are saved
+through a pluggable backend instead of writing directly to `output/`.
+
+| Backend | Description | Activation |
+|---------|-------------|------------|
+| `local` (default) | Writes to a local directory | `BEACON_STORAGE=local` |
+| `gcs` | Writes to Google Cloud Storage | `BEACON_STORAGE=gcs` |
+
+**Environment variables:**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BEACON_STORAGE` | `local` | Storage backend: `local` or `gcs` |
+| `BEACON_STORAGE_BASE_DIR` | `output/` | Base directory for `local` backend |
+| `BEACON_GCS_BUCKET` | — | GCS bucket name (required for `gcs` backend) |
+| `BEACON_GCS_PREFIX` | `beacon/` | Key prefix within the GCS bucket |
+
+GCS support requires `google-cloud-storage` (optional install):
+
+```bash
+uv sync --extra gcs
+```
+
+Artifact filenames follow the pattern `<type>_<YYYYMMDDHHmm>.json`
+(e.g., `pir_202506011430.json`). Categories: `pir`, `assets`, `stix`, `plans`, `crawl_state`.
+
+## Web Dashboard (Initiative I)
+
+The web UI (`uv run beacon web`, default `http://localhost:8000`) has been unified into a
+**5-tab dashboard**:
+
+| Tab | Purpose |
+|-----|---------|
+| **Dashboard** | Pipeline summary: PIR count, collection status, choke-points |
+| **PIR** | Generate PIR, review output, StorageBackend auto-load of previous runs |
+| **Collection** | Run TRACE `crawl-single` / `crawl-batch` via subprocess |
+| **Threats** | SAGE API proxy: actor search, TTP lookup, threat-summary |
+| **Settings** | Configure storage mode, SAGE URL, TRACE path; persisted to `.beacon_settings.json` |
+
+Settings follow the priority chain: **env vars > `.beacon_settings.json` > defaults**.
+
+> **Deprecation (BEACON 1.1.0):** `cmd/submit_for_review.py` (GHE Issue creation) is
+> deprecated and will be removed in a future release. The **Settings tab** in the web
+> dashboard replaces the GHE approval workflow with a built-in web approval flow. Set
+> `TRACE_ROOT_PATH` to point the Collection tab at your TRACE installation.
+
 ## Quick Start
 
 ```bash
