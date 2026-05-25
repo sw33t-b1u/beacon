@@ -9,6 +9,7 @@ success=False and a descriptive stderr message.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -53,8 +54,12 @@ def _parse_stdout_metadata(stdout: str) -> tuple[int, float]:
     Returns (stix_object_count, pir_relevance_score). Defaults to (0, 0.0)
     when nothing can be parsed.
 
-    TRACE crawl-single emits JSON lines; we look for keys like
-    ``stix_objects`` / ``stix_count`` and ``pir_relevance`` / ``relevance_score``.
+    Parsing strategy (in order):
+    1. JSON lines: look for keys like ``stix_objects`` / ``stix_count`` and
+       ``pir_relevance`` / ``relevance_score``.
+    2. Plain-text regex fallback: TRACE crawl_single.py prints lines like
+       ``STIX bundle written: output/stix_bundle_*.json (42 objects)``
+       and optionally ``Skipped (relevance score 0.45 < threshold 0.50)``.
     """
     stix_count = 0
     relevance = 0.0
@@ -78,13 +83,24 @@ def _parse_stdout_metadata(stdout: str) -> tuple[int, float]:
                     relevance = float(data[key])
                     break
         except (json.JSONDecodeError, ValueError):
-            continue
+            # Regex fallback for plain-text TRACE output
+            # "STIX bundle written: output/stix_bundle_*.json (42 objects)"
+            m = re.search(r"\((\d+)\s+objects?\)", line)
+            if m and stix_count == 0:
+                stix_count = int(m.group(1))
+            # "relevance score 0.45" (from skipped-below-threshold line)
+            m2 = re.search(r"relevance score\s+([\d.]+)", line)
+            if m2 and relevance == 0.0:
+                try:
+                    relevance = float(m2.group(1))
+                except ValueError:
+                    pass
 
     return stix_count, relevance
 
 
 def run_crawl_single(url: str, trace_root: str) -> CrawlResult:
-    """Run ``uv run python -m cmd.crawl_single --url <url>`` in the TRACE directory.
+    """Run ``uv run python -m cmd.crawl_single --input <url>`` in the TRACE directory.
 
     Args:
         url: The URL to crawl. Must be http/https.
@@ -118,7 +134,7 @@ def run_crawl_single(url: str, trace_root: str) -> CrawlResult:
             return_code=-1,
         )
 
-    cmd = ["uv", "run", "python", "-m", "cmd.crawl_single", "--url", url]
+    cmd = ["uv", "run", "python", "-m", "cmd.crawl_single", "--input", url]
     logger.info("trace_crawl_single_start", url=url, trace_root=trace_root)
 
     try:
@@ -284,8 +300,16 @@ def load_crawl_state(trace_root: str) -> list[dict]:
     if isinstance(data, list):
         return data
     if isinstance(data, dict):
-        # Some TRACE versions wrap in {"entries": [...]}
+        # TRACE CrawlState.save() writes {"version": 1, "entries": {url: {...}, ...}}
+        # where entries is a dict keyed by URL. Extract values as a list.
         for key in ("entries", "crawls", "results"):
-            if key in data and isinstance(data[key], list):
-                return data[key]
+            if key not in data:
+                continue
+            value = data[key]
+            if isinstance(value, dict):
+                # Authentic TRACE format: dict keyed by URL
+                return list(value.values())
+            if isinstance(value, list):
+                # Future-proofing: already a list
+                return value
     return []

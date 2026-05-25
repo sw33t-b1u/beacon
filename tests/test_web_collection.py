@@ -62,22 +62,28 @@ class TestCollectionPage:
         assert "collection" in resp.text
 
     def test_shows_crawl_history_from_state_file(self, monkeypatch, tmp_path):
-        """When crawl_state.json exists, history is rendered in the table."""
-        state = [
-            {
-                "url": "https://example.com/report",
-                "status": "success",
-                "timestamp": "2026-05-25T12:00:00",
-                "stix_object_count": 42,
-            }
-        ]
+        """When crawl_state.json exists, history is rendered in the table.
+
+        Uses the authentic TRACE CrawlState.save() format: a dict with
+        ``version`` and ``entries`` (dict keyed by URL).
+        """
+        state = {
+            "version": 1,
+            "entries": {
+                "https://example.com/report": {
+                    "url": "https://example.com/report",
+                    "status": "completed",
+                    "crawled_at": "2026-05-25T10:00:00",
+                    "stix_objects": 42,
+                }
+            },
+        }
         (tmp_path / "output").mkdir()
         (tmp_path / "output" / "crawl_state.json").write_text(json.dumps(state), encoding="utf-8")
         monkeypatch.setenv("TRACE_ROOT_PATH", str(tmp_path))
         resp = client.get("/collection")
         assert resp.status_code == 200
         assert "https://example.com/report" in resp.text
-        assert "success" in resp.text
 
     def test_no_crash_when_crawl_state_missing(self, monkeypatch, tmp_path):
         """Missing crawl_state.json should not cause a 500."""
@@ -298,14 +304,18 @@ class TestCollectionApiCrawlState:
         assert "error" in data
 
     def test_returns_entries_from_crawl_state(self, monkeypatch, tmp_path):
-        state = [
-            {
-                "url": "https://example.com/apt-report",
-                "status": "success",
-                "timestamp": "2026-05-24T10:00:00",
-                "stix_object_count": 7,
-            }
-        ]
+        """Uses the authentic TRACE CrawlState.save() dict-keyed-by-URL format."""
+        state = {
+            "version": 1,
+            "entries": {
+                "https://example.com/apt-report": {
+                    "url": "https://example.com/apt-report",
+                    "status": "completed",
+                    "crawled_at": "2026-05-24T10:00:00",
+                    "stix_objects": 7,
+                }
+            },
+        }
         (tmp_path / "output").mkdir()
         (tmp_path / "output" / "crawl_state.json").write_text(json.dumps(state), encoding="utf-8")
         monkeypatch.setenv("TRACE_ROOT_PATH", str(tmp_path))
@@ -446,7 +456,7 @@ class TestRunCrawlSingle:
         call_args = mock_run.call_args
         cmd = call_args[0][0]
         assert "cmd.crawl_single" in cmd
-        assert "--url" in cmd
+        assert "--input" in cmd
         assert "https://example.com/report" in cmd
         assert call_args[1]["cwd"] == str(tmp_path)
 
@@ -537,7 +547,17 @@ class TestLoadCrawlState:
     def test_reads_from_output_subdir(self, tmp_path):
         from beacon.trace.runner import load_crawl_state
 
-        state = [{"url": "https://a.com", "status": "success"}]
+        state = {
+            "version": 1,
+            "entries": {
+                "https://a.com": {
+                    "url": "https://a.com",
+                    "status": "completed",
+                    "crawled_at": "2026-05-25T10:00:00",
+                    "stix_objects": 5,
+                }
+            },
+        }
         (tmp_path / "output").mkdir()
         (tmp_path / "output" / "crawl_state.json").write_text(json.dumps(state), encoding="utf-8")
         result = load_crawl_state(str(tmp_path))
@@ -547,7 +567,17 @@ class TestLoadCrawlState:
     def test_reads_from_root_when_no_output_subdir(self, tmp_path):
         from beacon.trace.runner import load_crawl_state
 
-        state = [{"url": "https://b.com", "status": "fail"}]
+        state = {
+            "version": 1,
+            "entries": {
+                "https://b.com": {
+                    "url": "https://b.com",
+                    "status": "completed",
+                    "crawled_at": "2026-05-25T10:00:00",
+                    "stix_objects": 3,
+                }
+            },
+        }
         (tmp_path / "crawl_state.json").write_text(json.dumps(state), encoding="utf-8")
         result = load_crawl_state(str(tmp_path))
         assert len(result) == 1
@@ -559,7 +589,28 @@ class TestLoadCrawlState:
         result = load_crawl_state(str(tmp_path))
         assert result == []
 
-    def test_dict_with_entries_key(self, tmp_path):
+    def test_dict_with_entries_as_dict(self, tmp_path):
+        """Authentic TRACE format: entries is a dict keyed by URL."""
+        from beacon.trace.runner import load_crawl_state
+
+        state = {
+            "version": 1,
+            "entries": {
+                "https://c.com": {
+                    "url": "https://c.com",
+                    "status": "completed",
+                    "crawled_at": "2026-05-25T10:00:00",
+                    "stix_objects": 1,
+                }
+            },
+        }
+        (tmp_path / "crawl_state.json").write_text(json.dumps(state), encoding="utf-8")
+        result = load_crawl_state(str(tmp_path))
+        assert len(result) == 1
+        assert result[0]["url"] == "https://c.com"
+
+    def test_dict_with_entries_as_list(self, tmp_path):
+        """Future-proofing: entries as a list is also accepted."""
         from beacon.trace.runner import load_crawl_state
 
         state = {"entries": [{"url": "https://c.com"}]}
@@ -651,3 +702,40 @@ class TestParseStdoutMetadata:
         count, relevance = _parse_stdout_metadata("")
         assert count == 0
         assert relevance == 0.0
+
+    def test_plain_text_stix_bundle_written_line(self):
+        """Regex fallback: TRACE prints 'STIX bundle written: ... (42 objects)'."""
+        from beacon.trace.runner import _parse_stdout_metadata
+
+        stdout = (
+            "STIX bundle written: output/stix_bundle_20260525.json (42 objects)\n"
+            "Validate before feeding SAGE:\n"
+            "  uv run python cmd/validate_stix.py --bundle output/stix_bundle_20260525.json"
+        )
+        count, relevance = _parse_stdout_metadata(stdout)
+        assert count == 42
+        assert relevance == 0.0
+
+    def test_plain_text_single_object(self):
+        """Regex fallback: singular 'object' word also matches."""
+        from beacon.trace.runner import _parse_stdout_metadata
+
+        stdout = "STIX bundle written: output/bundle.json (1 object)"
+        count, _ = _parse_stdout_metadata(stdout)
+        assert count == 1
+
+    def test_plain_text_relevance_score_line(self):
+        """Regex fallback: 'relevance score 0.45' extracted from skipped line."""
+        from beacon.trace.runner import _parse_stdout_metadata
+
+        stdout = "Skipped (relevance score 0.45 < threshold 0.50)"
+        _, relevance = _parse_stdout_metadata(stdout)
+        assert relevance == pytest.approx(0.45)
+
+    def test_json_takes_precedence_over_regex(self):
+        """When JSON line is present, JSON value wins over any regex match."""
+        from beacon.trace.runner import _parse_stdout_metadata
+
+        stdout = '{"stix_objects": 7}\nSTIX bundle written: output/bundle.json (99 objects)'
+        count, _ = _parse_stdout_metadata(stdout)
+        assert count == 7
