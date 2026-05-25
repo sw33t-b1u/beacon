@@ -123,9 +123,10 @@ class TestDashboardRoute:
         with patch("beacon.storage.create_storage_backend", side_effect=Exception("no storage")):
             resp = client.get("/dashboard")
         assert resp.status_code == 200
-        # Shows N/A for SAGE stats since SAGE_API_URL is not set in tests
+        # Shows "—" for SAGE stats since SAGE_API_URL is not set in tests and
+        # actor/ttp/cve counts have no SAGE API endpoint
         assert (
-            b"N/A" in resp.content
+            "—".encode() in resp.content
             or b"SAGE offline" in resp.content
             or b"Dashboard" in resp.content
         )

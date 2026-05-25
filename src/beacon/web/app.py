@@ -203,9 +203,12 @@ async def dashboard(request: Request):
 
     # --- SAGE API (best-effort, all fail-soft) ---
     sage_offline = True
-    actor_count: int | str = "N/A"
-    ttp_count: int | str = "N/A"
-    cve_count: int | str = "N/A"
+    # actor/ttp/cve counts are not available via SAGE's current API endpoints;
+    # they are displayed as "—" unless a proxy value can be derived (e.g. actor_count
+    # may be updated from choke-points targeting_actor_count).
+    actor_count: int | str = "—"
+    ttp_count: int | str = "—"
+    cve_count: int | str = "—"
     choke_points: list[str] = []
     recent_incidents: list[dict] = []
 
@@ -215,51 +218,37 @@ async def dashboard(request: Request):
 
             _base = cfg.sage_api_url.rstrip("/")
 
-            # Actor count
-            try:
-                r = _httpx.get(f"{_base}/actors", params={"limit": 1}, timeout=5)
-                r.raise_for_status()
-                d = r.json()
-                actor_count = d.get("total", len(d.get("actors", [])))
-                sage_offline = False
-            except Exception:  # noqa: BLE001
-                pass
+            # Actor count: SAGE has no global actor-count endpoint; shown as "—"
+            # (actor_count stays "N/A"; targeting_actor_count is extracted from choke-points below)
 
-            # TTP count
-            try:
-                r = _httpx.get(f"{_base}/ttps", params={"limit": 1}, timeout=5)
-                r.raise_for_status()
-                d = r.json()
-                ttp_count = d.get("total", len(d.get("ttps", [])))
-                sage_offline = False
-            except Exception:  # noqa: BLE001
-                pass
+            # TTP count: no global /ttps endpoint in SAGE; shown as "—"
+            # (ttp_count stays "N/A")
 
-            # CVE count
-            try:
-                r = _httpx.get(f"{_base}/vulnerabilities", params={"limit": 1}, timeout=5)
-                r.raise_for_status()
-                d = r.json()
-                cve_count = d.get("total", len(d.get("vulnerabilities", [])))
-                sage_offline = False
-            except Exception:  # noqa: BLE001
-                pass
+            # CVE count: no /vulnerabilities endpoint in SAGE; shown as "—"
+            # (cve_count stays "N/A")
 
             # Choke-points top-5
+            # SAGE returns a bare list, not {"choke_points": [...]}
             try:
                 r = _httpx.get(f"{_base}/choke-points", params={"top_n": 5}, timeout=5)
                 r.raise_for_status()
-                d = r.json()
-                raw_cp = d.get("choke_points", d.get("chokePoints", []))
-                choke_points = []
-                for item in raw_cp[:5]:
-                    if isinstance(item, dict):
-                        label = (
-                            item.get("name") or item.get("ttp_id") or item.get("id") or str(item)
-                        )
-                    else:
-                        label = str(item)
-                    choke_points.append(label)
+                raw_cp = r.json()  # already a list
+                if isinstance(raw_cp, list):
+                    choke_points = []
+                    targeting_actor_total = 0
+                    for item in raw_cp[:5]:
+                        if isinstance(item, dict):
+                            label = item.get("asset_name") or item.get("asset_id") or str(item)
+                            score_val = item.get("choke_score")
+                            if score_val is not None:
+                                label = f"{label} (score: {score_val})"
+                            targeting_actor_total += item.get("targeting_actor_count", 0)
+                        else:
+                            label = str(item)
+                        choke_points.append(label)
+                    # Use targeting actor count from choke-points as a proxy for actor_count
+                    if targeting_actor_total > 0:
+                        actor_count = targeting_actor_total
                 sage_offline = False
             except Exception:  # noqa: BLE001
                 pass

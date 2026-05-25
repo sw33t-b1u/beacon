@@ -61,21 +61,24 @@
     </div>
     {% if sage_offline %}
     <div class="alert alert-info" style="margin-bottom:0.5rem; font-size:0.83rem;">
-      SAGE offline — showing N/A
+      SAGE offline — showing —
     </div>
     {% endif %}
     <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.5rem; margin-bottom:0.75rem;">
       <div style="text-align:center;">
         <div style="font-size:1.5rem; font-weight:700; color:#1a1a2e;">{{ actor_count }}</div>
-        <div style="font-size:0.78rem; color:#777;">Actors</div>
+        <div style="font-size:0.78rem; color:#777;">Targeting Actors</div>
+        {% if actor_count == "—" %}<div style="font-size:0.68rem; color:#aaa;">(SAGE に count API なし)</div>{% endif %}
       </div>
       <div style="text-align:center;">
         <div style="font-size:1.5rem; font-weight:700; color:#1a1a2e;">{{ ttp_count }}</div>
         <div style="font-size:0.78rem; color:#777;">TTPs</div>
+        {% if ttp_count == "—" %}<div style="font-size:0.68rem; color:#aaa;">(SAGE に count API なし)</div>{% endif %}
       </div>
       <div style="text-align:center;">
         <div style="font-size:1.5rem; font-weight:700; color:#1a1a2e;">{{ cve_count }}</div>
         <div style="font-size:0.78rem; color:#777;">CVEs</div>
+        {% if cve_count == "—" %}<div style="font-size:0.68rem; color:#aaa;">(SAGE に count API なし)</div>{% endif %}
       </div>
     </div>
     {% if choke_points %}
