@@ -10,6 +10,7 @@
     nav { background: #1a1a2e; color: #fff; padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1.5rem; }
     nav a { color: #aad4f5; text-decoration: none; font-size: 0.9rem; }
     nav a:hover { color: #fff; }
+    nav a.active { color: #fff; border-bottom: 2px solid #aad4f5; padding-bottom: 2px; }
     nav .brand { font-weight: 700; font-size: 1.1rem; color: #fff; }
     main { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
     h1 { font-size: 1.5rem; margin-bottom: 1rem; }
@@ -39,11 +40,18 @@
 <body>
   <nav>
     <span class="brand">BEACON</span>
-    <a href="/">Generate</a>
-    <a href="/review">Review</a>
+    <a href="/dashboard" {% if active_tab == 'dashboard' %}class="active"{% endif %}>Dashboard</a>
+    <a href="/pir" {% if active_tab == 'pir' %}class="active"{% endif %}>PIR</a>
+    <a href="/collection" {% if active_tab == 'collection' %}class="active"{% endif %}>Collection</a>
+    <a href="/threats" {% if active_tab == 'threats' %}class="active"{% endif %}>Threats</a>
+    <a href="/settings" {% if active_tab == 'settings' %}class="active"{% endif %}>Settings</a>
   </nav>
   <main>
+    {% if content_override %}
+    <p style="font-size:1rem; color:#555; margin-top:2rem;">{{ content_override }}</p>
+    {% else %}
     {% block content %}{% endblock %}
+    {% endif %}
   </main>
 </body>
 </html>

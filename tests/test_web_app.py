@@ -89,48 +89,80 @@ client = TestClient(app, raise_server_exceptions=True)
 
 
 def _get_csrf(test_client: TestClient | None = None) -> tuple[str, dict[str, str]]:
-    """GET / to obtain a CSRF cookie and return (csrf_token, cookies_dict).
+    """GET /pir to obtain a CSRF cookie and return (csrf_token, cookies_dict).
 
     The CSRF token is embedded in the cookie; we also extract it from the
-    index page response (the GET / handler sets the cookie value which is
+    pir page response (the GET /pir handler sets the cookie value which is
     the same token passed to the template).
     """
     c = test_client or client
-    resp = c.get("/")
+    resp = c.get("/pir")
     csrf_cookie = resp.cookies.get("beacon_csrf", "")
     return csrf_cookie, {"beacon_csrf": csrf_cookie}
 
 
-class TestIndexRoute:
-    def test_get_returns_200(self):
+class TestRootRedirect:
+    def test_get_redirects_to_dashboard(self):
+        resp = client.get("/", follow_redirects=False)
+        assert resp.status_code == 302
+        assert resp.headers["location"] == "/dashboard"
+
+    def test_get_follows_redirect_to_dashboard(self):
         resp = client.get("/")
+        assert resp.status_code == 200
+        assert b"Dashboard" in resp.content
+
+
+class TestPirRoute:
+    def test_get_returns_200(self):
+        resp = client.get("/pir")
         assert resp.status_code == 200
 
     def test_get_sets_csrf_cookie(self):
-        resp = client.get("/")
+        resp = client.get("/pir")
         assert "beacon_csrf" in resp.cookies
 
-    def test_get_contains_form(self):
-        resp = client.get("/")
+    def test_get_contains_generate_form(self):
+        resp = client.get("/pir")
         assert b"context_file" in resp.content or b"Generate" in resp.content
+
+    def test_get_contains_load_form(self):
+        resp = client.get("/pir")
+        assert b"pir_file" in resp.content or "読み込んで".encode() in resp.content
+
+    def test_get_shows_stored_pirs_section(self):
+        resp = client.get("/pir")
+        assert b"Stored PIR" in resp.content
+
+
+class TestReviewRedirect:
+    def test_review_redirects_to_pir(self):
+        resp = client.get("/review", follow_redirects=False)
+        assert resp.status_code == 302
+        assert resp.headers["location"] == "/pir"
+
+    def test_generate_get_redirects_to_pir(self):
+        resp = client.get("/generate", follow_redirects=False)
+        assert resp.status_code == 302
+        assert resp.headers["location"] == "/pir"
 
 
 class TestGenerateRoute:
-    def test_post_redirects_to_review(self):
+    def test_post_redirects_to_pir(self):
         csrf_token, cookies = _get_csrf()
         context_bytes = SAMPLE_CONTEXT_PATH.read_bytes()
 
         session_client = TestClient(app, cookies=cookies)
         with patch("beacon.web.app._run_pipeline", _make_pipeline_mock()):
             resp = session_client.post(
-                "/generate",
+                "/pir/generate",
                 files={"context_file": ("sample.json", context_bytes, "application/json")},
                 data={"csrf_token": csrf_token},
                 follow_redirects=False,
             )
 
         assert resp.status_code == 303
-        assert resp.headers["location"] == "/review"
+        assert resp.headers["location"] == "/pir"
 
     def test_post_sets_session_cookie(self):
         csrf_token, cookies = _get_csrf()
@@ -139,7 +171,7 @@ class TestGenerateRoute:
         session_client = TestClient(app, cookies=cookies)
         with patch("beacon.web.app._run_pipeline", _make_pipeline_mock()):
             resp = session_client.post(
-                "/generate",
+                "/pir/generate",
                 files={"context_file": ("sample.json", context_bytes, "application/json")},
                 data={"csrf_token": csrf_token},
                 follow_redirects=False,
@@ -152,7 +184,7 @@ class TestGenerateRoute:
         fresh = TestClient(app, cookies={})
         with patch("beacon.web.app._run_pipeline", _make_pipeline_mock()):
             resp = fresh.post(
-                "/generate",
+                "/pir/generate",
                 files={"context_file": ("sample.json", context_bytes, "application/json")},
                 data={},
                 follow_redirects=False,
@@ -166,7 +198,7 @@ class TestGenerateRoute:
         session_client = TestClient(app, cookies=cookies)
         with patch("beacon.web.app._run_pipeline", _make_pipeline_mock()):
             resp = session_client.post(
-                "/generate",
+                "/pir/generate",
                 files={"context_file": ("sample.json", context_bytes, "application/json")},
                 data={"csrf_token": "wrong-token"},
                 follow_redirects=False,
@@ -175,13 +207,13 @@ class TestGenerateRoute:
 
 
 def _create_session_with_csrf() -> tuple[str, dict[str, str]]:
-    """Helper: POST /generate and return (session_id, merged_cookies)."""
+    """Helper: POST /pir/generate and return (session_id, merged_cookies)."""
     csrf_token, cookies = _get_csrf()
     context_bytes = SAMPLE_CONTEXT_PATH.read_bytes()
     session_client = TestClient(app, cookies=cookies)
     with patch("beacon.web.app._run_pipeline", _make_pipeline_mock()):
         resp = session_client.post(
-            "/generate",
+            "/pir/generate",
             files={"context_file": ("sample.json", context_bytes, "application/json")},
             data={"csrf_token": csrf_token},
             follow_redirects=False,
@@ -191,16 +223,34 @@ def _create_session_with_csrf() -> tuple[str, dict[str, str]]:
     return sid, {"beacon_session": sid, "beacon_csrf": new_csrf}
 
 
+class TestPirPageWithSession:
+    def test_pir_without_session_shows_no_review(self):
+        fresh = TestClient(app, cookies={})
+        resp = fresh.get("/pir")
+        assert resp.status_code == 200
+        # Review section only appears when PIRs are loaded — no PIR-2026-001
+        assert b"PIR-2026-001" not in resp.content
+
+    def test_pir_with_session_shows_pir(self):
+        _, cookies = _create_session_with_csrf()
+        session_client = TestClient(app, cookies=cookies)
+        resp = session_client.get("/pir")
+        assert resp.status_code == 200
+        assert b"PIR-2026-001" in resp.content
+
+
 class TestReviewRoute:
     def test_review_without_session_shows_no_pirs(self):
         fresh = TestClient(app, cookies={})
         resp = fresh.get("/review")
+        # /review redirects to /pir
         assert resp.status_code == 200
-        assert b"No PIRs" in resp.content or b"Generate" in resp.content
+        assert b"PIR-2026-001" not in resp.content
 
     def test_review_with_session_shows_pir(self):
         _, cookies = _create_session_with_csrf()
         session_client = TestClient(app, cookies=cookies)
+        # /review redirects to /pir; follow redirect to check content
         resp = session_client.get("/review")
         assert resp.status_code == 200
         assert b"PIR-2026-001" in resp.content
@@ -209,15 +259,15 @@ class TestReviewRoute:
 class TestReviewSaveRoute:
     def test_save_updates_description(self):
         _, cookies = _create_session_with_csrf()
-        # GET /review to get a fresh CSRF token for the save form
+        # GET /pir to get a fresh CSRF token for the save form
         session_client = TestClient(app, cookies=cookies)
-        review_resp = session_client.get("/review")
+        review_resp = session_client.get("/pir")
         csrf_token = review_resp.cookies.get("beacon_csrf", cookies.get("beacon_csrf", ""))
         cookies["beacon_csrf"] = csrf_token
         session_client = TestClient(app, cookies=cookies)
 
         resp = session_client.post(
-            "/review/save",
+            "/pir/save",
             data={
                 "pir_index": "0",
                 "description": "Updated description",
@@ -237,13 +287,13 @@ class TestReviewSaveRoute:
     def test_save_persists_collection_focus_as_list(self):
         _, cookies = _create_session_with_csrf()
         session_client = TestClient(app, cookies=cookies)
-        review_resp = session_client.get("/review")
+        review_resp = session_client.get("/pir")
         csrf_token = review_resp.cookies.get("beacon_csrf", cookies.get("beacon_csrf", ""))
         cookies["beacon_csrf"] = csrf_token
         session_client = TestClient(app, cookies=cookies)
 
         session_client.post(
-            "/review/save",
+            "/pir/save",
             data={
                 "pir_index": "0",
                 "description": "desc",
@@ -277,6 +327,16 @@ class TestExportRoute:
         resp = fresh.get("/review/export")
         assert resp.status_code in (400, 404)
 
+    def test_pir_export_returns_valid_json(self):
+        _, cookies = _create_session_with_csrf()
+        session_client = TestClient(app, cookies=cookies)
+        resp = session_client.get("/pir/export")
+        assert resp.status_code == 200
+        assert resp.headers["content-type"].startswith("application/json")
+        data = resp.json()
+        assert isinstance(data, list)
+        assert data[0]["pir_id"] == "PIR-2026-001"
+
 
 class TestSessionSecurity:
     def test_path_traversal_session_id_rejected(self):
@@ -295,7 +355,7 @@ class TestSessionSecurity:
         cookies["beacon_session"] = "../../../tmp/evil"
         malicious = TestClient(app, cookies=cookies)
         resp = malicious.post(
-            "/review/save",
+            "/pir/save",
             data={
                 "pir_index": "0",
                 "description": "x",
@@ -316,7 +376,7 @@ class TestUploadSizeLimit:
         session_client = TestClient(app, cookies=cookies)
         with patch("beacon.web.app._run_pipeline", _make_pipeline_mock()):
             resp = session_client.post(
-                "/generate",
+                "/pir/generate",
                 files={"context_file": ("huge.json", huge, "application/json")},
                 data={"csrf_token": csrf_token},
                 follow_redirects=False,
@@ -347,12 +407,12 @@ class TestAPIPirRoute:
 def _actor_session_client(n_actors: int = 8) -> tuple[TestClient, dict[str, str], str]:
     """Return (client, cookies, csrf_token) for a session with n_actors.
 
-    Calls GET /review to obtain the fresh CSRF token the save form expects.
+    Calls GET /pir to obtain the fresh CSRF token the save form expects.
     """
     _, cookies = _create_session_with_actors_csrf(n_actors)
     pre_client = TestClient(app, cookies=cookies)
-    review_resp = pre_client.get("/review")
-    csrf = review_resp.cookies.get("beacon_csrf", cookies.get("beacon_csrf", ""))
+    pir_resp = pre_client.get("/pir")
+    csrf = pir_resp.cookies.get("beacon_csrf", cookies.get("beacon_csrf", ""))
     cookies = {**cookies, "beacon_csrf": csrf}
     return TestClient(app, cookies=cookies), cookies, csrf
 
@@ -361,7 +421,7 @@ class TestPrioritizedActorView:
     def test_review_shows_top_5_prioritized_actors(self):
         _, cookies = _create_session_with_actors_csrf(n_actors=8)
         session_client = TestClient(app, cookies=cookies)
-        resp = session_client.get("/review")
+        resp = session_client.get("/pir")
         assert resp.status_code == 200
         # All 8 actors must be rendered in the HTML
         for i in range(8):
@@ -376,7 +436,7 @@ class TestReviewSaveActorRoute:
     def test_review_save_actor_exclude(self):
         sc, cookies, csrf = _actor_session_client(n_actors=3)
         resp = sc.post(
-            "/review/save",
+            "/pir/save",
             data={
                 "pir_index": "0",
                 "actor_index": "0",
@@ -394,7 +454,7 @@ class TestReviewSaveActorRoute:
     def test_review_save_actor_exclude_requires_reason(self):
         sc, cookies, csrf = _actor_session_client(n_actors=1)
         resp = sc.post(
-            "/review/save",
+            "/pir/save",
             data={
                 "pir_index": "0",
                 "actor_index": "0",
@@ -409,7 +469,7 @@ class TestReviewSaveActorRoute:
     def test_review_save_actor_likelihood_override(self):
         sc, cookies, csrf = _actor_session_client(n_actors=1)
         resp = sc.post(
-            "/review/save",
+            "/pir/save",
             data={
                 "pir_index": "0",
                 "actor_index": "0",
@@ -425,7 +485,7 @@ class TestReviewSaveActorRoute:
     def test_review_save_actor_likelihood_override_out_of_range(self):
         sc, cookies, csrf = _actor_session_client(n_actors=1)
         resp = sc.post(
-            "/review/save",
+            "/pir/save",
             data={
                 "pir_index": "0",
                 "actor_index": "0",
@@ -439,7 +499,7 @@ class TestReviewSaveActorRoute:
     def test_review_save_actor_rationale_append(self):
         sc, cookies, csrf = _actor_session_client(n_actors=1)
         resp = sc.post(
-            "/review/save",
+            "/pir/save",
             data={
                 "pir_index": "0",
                 "actor_index": "0",
@@ -455,7 +515,7 @@ class TestReviewSaveActorRoute:
     def test_review_export_reflects_actor_edits(self):
         sc, cookies, csrf = _actor_session_client(n_actors=2)
         sc.post(
-            "/review/save",
+            "/pir/save",
             data={
                 "pir_index": "0",
                 "actor_index": "1",
@@ -478,7 +538,7 @@ class TestReviewSaveActorRoute:
     def test_review_save_existing_pir_fields_still_work(self):
         sc, cookies, csrf = _actor_session_client(n_actors=2)
         resp = sc.post(
-            "/review/save",
+            "/pir/save",
             data={
                 "pir_index": "0",
                 "description": "Updated via regression test",
@@ -500,7 +560,7 @@ class TestReviewSaveActorRoute:
         bad_cookies = {**cookies, "beacon_csrf": "legitimate-looking-cookie-token"}
         sc = TestClient(app, cookies=bad_cookies)
         resp = sc.post(
-            "/review/save",
+            "/pir/save",
             data={
                 "pir_index": "0",
                 "actor_index": "0",

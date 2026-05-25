@@ -142,25 +142,99 @@ async def _read_upload(file: UploadFile, max_bytes: int = _MAX_UPLOAD_BYTES) -> 
 
 
 @app.get("/")
-async def index(request: Request):
+async def root_redirect():
+    """Redirect root to /dashboard (Initiative I Phase 2)."""
+    return RedirectResponse(url="/dashboard", status_code=302)
+
+
+@app.get("/dashboard")
+async def dashboard(request: Request):
+    """Dashboard placeholder — full implementation in Phase 5."""
+    return templates.TemplateResponse(
+        request=request,
+        name="base.html",
+        context={
+            "active_tab": "dashboard",
+            "content_override": "Dashboard — coming in Phase 5",
+        },
+    )
+
+
+@app.get("/collection")
+async def collection(request: Request):
+    """Collection tab placeholder — full implementation in Phase 4."""
+    return templates.TemplateResponse(
+        request=request,
+        name="base.html",
+        context={
+            "active_tab": "collection",
+            "content_override": "Collection — coming in Phase 4",
+        },
+    )
+
+
+@app.get("/threats")
+async def threats(request: Request):
+    """Threats tab placeholder — full implementation in Phase 3."""
+    return templates.TemplateResponse(
+        request=request,
+        name="base.html",
+        context={
+            "active_tab": "threats",
+            "content_override": "Threats — coming in Phase 3",
+        },
+    )
+
+
+@app.get("/settings")
+async def settings(request: Request):
+    """Settings tab placeholder — full implementation in Phase 6."""
+    return templates.TemplateResponse(
+        request=request,
+        name="base.html",
+        context={
+            "active_tab": "settings",
+            "content_override": "Settings — coming in Phase 6",
+        },
+    )
+
+
+@app.get("/pir")
+async def pir_page(request: Request, beacon_session: str = Cookie(default="")):
+    """Unified PIR page: generate + stored PIRs list + review."""
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    # Load stored PIR filenames from StorageBackend
+    try:
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        stored_pir_files = storage.list_files("pir")
+    except Exception:
+        stored_pir_files = []
+
+    session = load_session(beacon_session) if beacon_session else None
+    pirs = session["pirs"] if session else []
+    collection_plan = session.get("collection_plan", "") if session else ""
+
     csrf_token = _generate_csrf_token()
-    output_dir = _resolve_output_dir()
-    artifacts = _scan_artifacts(output_dir)
     response = templates.TemplateResponse(
         request=request,
-        name="index.html",
+        name="pir.html",
         context={
+            "active_tab": "pir",
             "csrf_token": csrf_token,
-            "artifacts": artifacts,
-            "output_dir": str(output_dir),
+            "stored_pir_files": stored_pir_files,
+            "pirs": pirs,
+            "collection_plan": collection_plan,
         },
     )
     _set_csrf_cookie(response, csrf_token)
     return response
 
 
-@app.post("/generate")
-async def generate(
+@app.post("/pir/generate")
+async def pir_generate(
     request: Request,
     context_file: UploadFile = File(...),
     model_simple: str = Form(default=""),
@@ -192,7 +266,7 @@ async def generate(
     session_id = create_session(session_data)
 
     new_csrf = _generate_csrf_token()
-    response = RedirectResponse(url="/review", status_code=303)
+    response = RedirectResponse(url="/pir", status_code=303)
     response.set_cookie(
         "beacon_session", session_id, httponly=True, secure=True, samesite="lax", max_age=86400
     )
@@ -200,8 +274,8 @@ async def generate(
     return response
 
 
-@app.post("/load")
-async def load_pir(
+@app.post("/pir/load")
+async def pir_load(
     request: Request,
     pir_file: UploadFile = File(...),
     csrf_token: str = Form(default=""),
@@ -230,7 +304,7 @@ async def load_pir(
     session_id = create_session(session_data)
 
     new_csrf = _generate_csrf_token()
-    response = RedirectResponse(url="/review", status_code=303)
+    response = RedirectResponse(url="/pir", status_code=303)
     response.set_cookie(
         "beacon_session", session_id, httponly=True, secure=True, samesite="lax", max_age=86400
     )
@@ -238,23 +312,52 @@ async def load_pir(
     return response
 
 
-@app.get("/review")
-async def review(request: Request, beacon_session: str = Cookie(default="")):
-    session = load_session(beacon_session) if beacon_session else None
-    pirs = session["pirs"] if session else []
-    collection_plan = session.get("collection_plan", "") if session else ""
-    csrf_token = _generate_csrf_token()
-    response = templates.TemplateResponse(
-        request=request,
-        name="review.html",
-        context={"pirs": pirs, "collection_plan": collection_plan, "csrf_token": csrf_token},
+@app.post("/pir/load-stored/{filename}")
+async def pir_load_stored(
+    request: Request,
+    filename: str,
+    csrf_token: str = Form(default=""),
+    beacon_csrf: str = Cookie(default=""),
+):
+    """Load a stored PIR from StorageBackend into a session for review."""
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    try:
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        raw = storage.load("pir", filename)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=f"Stored PIR not found: {filename}") from exc
+
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON in stored PIR: {exc}") from exc
+
+    if isinstance(data, dict):
+        pirs = data.get("pirs", [data]) if "pirs" in data else [data]
+    elif isinstance(data, list):
+        pirs = data
+    else:
+        raise HTTPException(status_code=400, detail="Stored PIR must be a JSON array or object")
+
+    session_data = {"pirs": pirs, "collection_plan": ""}
+    session_id = create_session(session_data)
+
+    new_csrf = _generate_csrf_token()
+    response = RedirectResponse(url="/pir", status_code=303)
+    response.set_cookie(
+        "beacon_session", session_id, httponly=True, secure=True, samesite="lax", max_age=86400
     )
-    _set_csrf_cookie(response, csrf_token)
+    _set_csrf_cookie(response, new_csrf)
     return response
 
 
-@app.post("/review/save")
-async def review_save(
+@app.post("/pir/save")
+async def pir_save(
     request: Request,
     beacon_session: str = Cookie(default=""),
     beacon_csrf: str = Cookie(default=""),
@@ -342,11 +445,11 @@ async def review_save(
     session["pirs"] = pirs
     save_session(beacon_session, session)
 
-    return RedirectResponse(url="/review", status_code=303)
+    return RedirectResponse(url="/pir", status_code=303)
 
 
-@app.post("/review/approve")
-async def review_approve(
+@app.post("/pir/approve")
+async def pir_approve(
     request: Request,
     beacon_session: str = Cookie(default=""),
     beacon_csrf: str = Cookie(default=""),
@@ -380,16 +483,31 @@ async def review_approve(
     return JSONResponse({"created": created})
 
 
-@app.get("/review/pir/{pir_id}")
-async def review_pir(request: Request, pir_id: str):
-    """Render the prioritized_actors review view for a single PIR (Phase 6).
+@app.get("/pir/export")
+async def pir_export(beacon_session: str = Cookie(default="")):
+    """Download pir_output.json from the current session."""
+    if not beacon_session:
+        return JSONResponse({"error": "No session"}, status_code=400)
+    session = load_session(beacon_session)
+    if session is None:
+        return JSONResponse({"error": "Session not found or expired"}, status_code=404)
+
+    pirs = session.get("pirs", [])
+    content = json.dumps(pirs, ensure_ascii=False, indent=2).encode("utf-8")
+    return Response(
+        content=content,
+        media_type="application/json",
+        headers={"Content-Disposition": "attachment; filename=pir_output.json"},
+    )
+
+
+@app.get("/pir/{pir_id}")
+async def pir_single(request: Request, pir_id: str):
+    """Render the prioritized_actors review view for a single PIR.
 
     Loads ``<output_dir>/pir_output.json`` from the launcher-scoped
     directory, locates the PIR with the matching ``pir_id``, seeds a
-    review session containing only that PIR, and renders the existing
-    review template. Edits persist in the session only (no file write-
-    back); the existing ``/review/export`` route emits the edited JSON
-    for downstream operator workflow.
+    review session containing only that PIR, and renders the PIR template.
     """
     output_dir = _resolve_output_dir()
     pir_path = output_dir / "pir_output.json"
@@ -415,16 +533,203 @@ async def review_pir(request: Request, pir_id: str):
 
     session_id = create_session({"pirs": matching, "collection_plan": ""})
     csrf_token = _generate_csrf_token()
+
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    try:
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        stored_pir_files = storage.list_files("pir")
+    except Exception:
+        stored_pir_files = []
+
     response = templates.TemplateResponse(
         request=request,
-        name="review.html",
-        context={"pirs": matching, "collection_plan": "", "csrf_token": csrf_token},
+        name="pir.html",
+        context={
+            "active_tab": "pir",
+            "pirs": matching,
+            "collection_plan": "",
+            "csrf_token": csrf_token,
+            "stored_pir_files": stored_pir_files,
+        },
     )
     response.set_cookie(
         "beacon_session", session_id, httponly=True, secure=True, samesite="lax", max_age=86400
     )
     _set_csrf_cookie(response, csrf_token)
     return response
+
+
+# ---------------------------------------------------------------------------
+# Backward-compatibility redirects
+# ---------------------------------------------------------------------------
+
+
+@app.get("/review")
+async def review_redirect():
+    """Redirect /review to /pir (backward compat, Initiative I Phase 2)."""
+    return RedirectResponse(url="/pir", status_code=302)
+
+
+@app.get("/generate")
+async def generate_redirect():
+    """Redirect /generate to /pir (backward compat, Initiative I Phase 2)."""
+    return RedirectResponse(url="/pir", status_code=302)
+
+
+# ---------------------------------------------------------------------------
+# Artifact viewer routes (kept as-is for backward compatibility)
+# ---------------------------------------------------------------------------
+
+
+@app.post("/review/save")
+async def review_save(
+    request: Request,
+    beacon_session: str = Cookie(default=""),
+    beacon_csrf: str = Cookie(default=""),
+    pir_index: int = Form(...),
+    description: str = Form(default=""),
+    rationale: str = Form(default=""),
+    collection_focus: str = Form(default=""),
+    csrf_token: str = Form(default=""),
+    actor_index: str = Form(default=""),
+    actor_excluded: str = Form(default=""),
+    actor_exclusion_reason: str = Form(default=""),
+    actor_manual_likelihood: str = Form(default=""),
+    actor_rationale_append: str = Form(default=""),
+):
+    """Legacy route — delegates to pir_save with /pir redirect."""
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    if not beacon_session:
+        return JSONResponse({"error": "No session"}, status_code=400)
+    session = load_session(beacon_session)
+    if session is None:
+        return JSONResponse({"error": "Session not found or expired"}, status_code=404)
+
+    pirs = session.get("pirs", [])
+    if pir_index < 0 or pir_index >= len(pirs):
+        return JSONResponse({"error": "Invalid PIR index"}, status_code=400)
+
+    if actor_index != "":
+        try:
+            actor_idx = int(actor_index)
+        except ValueError:
+            return JSONResponse({"error": "Invalid actor index"}, status_code=400)
+
+        actors = pirs[pir_index].get("prioritized_actors", [])
+        if actor_idx < 0 or actor_idx >= len(actors):
+            return JSONResponse({"error": "Invalid actor index"}, status_code=400)
+
+        excluded = actor_excluded in ("1", "true", "on")
+        reason = actor_exclusion_reason.strip() or None
+
+        manual_likelihood = None
+        if actor_manual_likelihood.strip():
+            try:
+                val = float(actor_manual_likelihood)
+            except ValueError:
+                return JSONResponse(
+                    {"error": "actor_manual_likelihood must be a number"}, status_code=400
+                )
+            if not (0.0 <= val <= 1.0):
+                return JSONResponse(
+                    {"error": "actor_manual_likelihood must be between 0.0 and 1.0"},
+                    status_code=400,
+                )
+            manual_likelihood = val
+
+        rationale_app = actor_rationale_append.strip() or None
+
+        updated = dict(actors[actor_idx])
+        updated["excluded_by_analyst"] = excluded
+        updated["exclusion_reason"] = reason
+        updated["manual_likelihood_override"] = manual_likelihood
+        updated["analyst_rationale_append"] = rationale_app
+
+        from pydantic import ValidationError  # noqa: PLC0415
+
+        from beacon.analysis.actor_triage import PrioritizedActor  # noqa: PLC0415
+
+        try:
+            PrioritizedActor.model_validate(updated)
+        except ValidationError as exc:
+            return JSONResponse({"error": str(exc)}, status_code=400)
+
+        actors[actor_idx] = updated
+        pirs[pir_index]["prioritized_actors"] = actors
+    else:
+        pirs[pir_index]["description"] = description
+        pirs[pir_index]["rationale"] = rationale
+        pirs[pir_index]["collection_focus"] = [
+            line.strip() for line in collection_focus.splitlines() if line.strip()
+        ]
+
+    session["pirs"] = pirs
+    save_session(beacon_session, session)
+
+    return RedirectResponse(url="/pir", status_code=303)
+
+
+@app.post("/review/approve")
+async def review_approve(
+    request: Request,
+    beacon_session: str = Cookie(default=""),
+    beacon_csrf: str = Cookie(default=""),
+    csrf_token: str = Form(default=""),
+):
+    """Legacy route — delegates to pir_approve logic."""
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    if not beacon_session:
+        return JSONResponse({"error": "No session"}, status_code=400)
+    session = load_session(beacon_session)
+    if session is None:
+        return JSONResponse({"error": "Session not found or expired"}, status_code=404)
+
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.review.github import GHEClient, submit_pirs_for_review  # noqa: PLC0415
+
+    cfg = load_config()
+    try:
+        client = GHEClient(token=cfg.ghe_token, repo=cfg.ghe_repo, api_base=cfg.ghe_api_base)
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+
+    pirs = session.get("pirs", [])
+    collection_plan_text = session.get("collection_plan", "") or None
+    results = submit_pirs_for_review(pirs, client, collection_plan_text)
+
+    created = [
+        {"pir_id": r.pir_id, "issue_number": r.issue_number, "url": r.html_url} for r in results
+    ]
+    return JSONResponse({"created": created})
+
+
+@app.get("/review/pir/{pir_id}")
+async def review_pir(request: Request, pir_id: str):
+    """Legacy route — redirect to /pir/{pir_id}."""
+    return RedirectResponse(url=f"/pir/{pir_id}", status_code=302)
+
+
+@app.get("/review/export")
+async def review_export(beacon_session: str = Cookie(default="")):
+    """Download pir_output.json from the current session (legacy route kept)."""
+    if not beacon_session:
+        return JSONResponse({"error": "No session"}, status_code=400)
+    session = load_session(beacon_session)
+    if session is None:
+        return JSONResponse({"error": "Session not found or expired"}, status_code=404)
+
+    pirs = session.get("pirs", [])
+    content = json.dumps(pirs, ensure_ascii=False, indent=2).encode("utf-8")
+    return Response(
+        content=content,
+        media_type="application/json",
+        headers={"Content-Disposition": "attachment; filename=pir_output.json"},
+    )
 
 
 @app.get("/review/artifacts/{filename}")
@@ -485,24 +790,6 @@ async def review_artifact_raw(filename: str):
     if not path.exists() or not path.is_file():
         raise HTTPException(status_code=404, detail=f"Artifact not found: {filename}")
     return PlainTextResponse(path.read_text(encoding="utf-8"))
-
-
-@app.get("/review/export")
-async def review_export(beacon_session: str = Cookie(default="")):
-    """Download pir_output.json from the current session."""
-    if not beacon_session:
-        return JSONResponse({"error": "No session"}, status_code=400)
-    session = load_session(beacon_session)
-    if session is None:
-        return JSONResponse({"error": "Session not found or expired"}, status_code=404)
-
-    pirs = session.get("pirs", [])
-    content = json.dumps(pirs, ensure_ascii=False, indent=2).encode("utf-8")
-    return Response(
-        content=content,
-        media_type="application/json",
-        headers={"Content-Disposition": "attachment; filename=pir_output.json"},
-    )
 
 
 # ---------------------------------------------------------------------------

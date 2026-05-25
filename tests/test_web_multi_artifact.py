@@ -1,15 +1,13 @@
-"""Tests for the multi-artifact landing page + viewer routes (Phase 6).
+"""Tests for the artifact viewer routes (Phase 6, updated for Initiative I Phase 2).
 
 Covers the routes committed in ``docs/api-stability.md`` §3.8:
 
-* ``GET /`` enumerates every present artifact in ``BEACON_OUTPUT_DIR``
-  and exposes a ``/review/artifacts/{filename}`` link.
+* ``GET /`` redirects to ``/dashboard`` (Initiative I Phase 2).
 * ``GET /review/artifacts/{filename}`` serves a read-only viewer for
   any of the six whitelisted artifact filenames.
 * ``GET /review/artifacts/{unknown}`` returns 404.
-* ``GET /review/pir/{pir_id}`` loads ``pir_output.json`` from the
-  output directory, locates the matching PIR, and renders the existing
-  review template.
+* ``GET /review/pir/{pir_id}`` redirects to ``/pir/{pir_id}`` and
+  renders the PIR review page.
 """
 
 from __future__ import annotations
@@ -77,49 +75,18 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-class TestLandingPageListsArtifacts:
-    EXPECTED = (
-        "pir_output.json",
-        "assets.json",
-        "identity_assets.json",
-        "user_accounts.json",
-        "collection_plan.md",
-        "sources_candidate.yaml",
-    )
+class TestRootRedirectToDashboard:
+    """GET / now redirects to /dashboard (Initiative I Phase 2)."""
 
-    def test_landing_returns_200(self, output_dir, client):
+    def test_root_redirects_to_dashboard(self, client):
+        resp = client.get("/", follow_redirects=False)
+        assert resp.status_code == 302
+        assert resp.headers["location"] == "/dashboard"
+
+    def test_root_follows_redirect_to_dashboard(self, client):
         resp = client.get("/")
         assert resp.status_code == 200
-
-    @pytest.mark.parametrize("name", EXPECTED)
-    def test_each_artifact_listed(self, output_dir, client, name):
-        resp = client.get("/")
-        assert name in resp.text
-
-    @pytest.mark.parametrize("name", EXPECTED)
-    def test_view_link_to_artifact(self, output_dir, client, name):
-        resp = client.get("/")
-        assert f"/review/artifacts/{name}" in resp.text
-
-    def test_output_dir_shown_in_header(self, output_dir, client):
-        resp = client.get("/")
-        assert str(output_dir) in resp.text
-
-
-class TestLandingPageOmitsMissingArtifacts:
-    def test_only_present_files_listed(self, tmp_path, monkeypatch):
-        out = tmp_path / "partial"
-        out.mkdir()
-        (out / "pir_output.json").write_text(
-            json.dumps({"schema_version": "1.0.0", "pirs": []}), encoding="utf-8"
-        )
-        # Only pir_output.json present — other 5 files MUST NOT be linked.
-        monkeypatch.setenv("BEACON_OUTPUT_DIR", str(out))
-        with TestClient(app) as client:
-            resp = client.get("/")
-        assert "/review/artifacts/pir_output.json" in resp.text
-        assert "/review/artifacts/assets.json" not in resp.text
-        assert "/review/artifacts/collection_plan.md" not in resp.text
+        assert "Dashboard" in resp.text
 
 
 class TestArtifactViewer:
@@ -201,7 +168,7 @@ class TestBeaconOutputDirFallback:
         # cd into tmp_path so the default "output" relative dir is a fresh empty path
         monkeypatch.chdir(tmp_path)
         with TestClient(app) as client:
-            resp = client.get("/")
-        assert resp.status_code == 200
-        # No artifacts present; helper text from index.html informs the operator.
-        assert "Run <code>beacon pir-generate</code>" in resp.text or "No artifacts" in resp.text
+            # GET / now redirects to /dashboard (Initiative I Phase 2)
+            resp = client.get("/", follow_redirects=False)
+        assert resp.status_code == 302
+        assert resp.headers["location"] == "/dashboard"

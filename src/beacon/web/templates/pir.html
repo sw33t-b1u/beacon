@@ -1,18 +1,118 @@
 {% extends "base.html" %}
-{% block title %}BEACON — Review PIRs{% endblock %}
+{% block title %}BEACON — PIR{% endblock %}
 {% block content %}
-<h1>PIR Review</h1>
+<h1>Priority Intelligence Requirements</h1>
 
-{% if not pirs %}
-<div class="alert alert-info">No PIRs to review. <a href="/">Generate PIRs first.</a></div>
-{% else %}
+{# ------------------------------------------------------------------ #}
+{# Section 1: Stored PIRs (StorageBackend auto-load)                   #}
+{# ------------------------------------------------------------------ #}
+<div class="card">
+  <h2 style="margin-top:0;">Stored PIRs</h2>
+  {% if stored_pir_files %}
+  <table>
+    <thead>
+      <tr><th>Filename</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      {% for fname in stored_pir_files %}
+      <tr>
+        <td><code>{{ fname }}</code></td>
+        <td>
+          <form action="/pir/load-stored/{{ fname }}" method="post" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="btn btn-secondary" style="padding:0.25rem 0.75rem; font-size:0.82rem;">Load</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="font-size:0.88rem; color:#777;">No stored PIRs found.</p>
+  {% endif %}
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Section 2: Generate New PIR                                          #}
+{# ------------------------------------------------------------------ #}
+<div class="card">
+  <h2 style="margin-top:0;">Business Context から生成</h2>
+  <form action="/pir/generate" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div style="margin-bottom:1rem;">
+      <label for="context_file">Business Context File (.json or .md)</label>
+      <input type="file" id="context_file" name="context_file" accept=".json,.md" required>
+    </div>
+    <div id="model_options" style="background:#f5f8ff; border:1px solid #d0dff5; border-radius:4px; padding:1rem; margin-bottom:1rem;">
+      <p style="font-size:0.83rem; color:#555; margin-bottom:0.75rem;">
+        使用モデルを選択（空白 = <code>.env</code> のデフォルト値）
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem;">
+        <div>
+          <label for="model_simple">Simple タスク<br><small style="font-weight:normal; color:#777;">（Markdown 解析など）</small></label>
+          <select id="model_simple" name="model_simple">
+            <option value="">.env デフォルト</option>
+            <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
+            <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+            <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+          </select>
+        </div>
+        <div>
+          <label for="model_medium">Medium タスク<br><small style="font-weight:normal; color:#777;">（PIR テキスト拡充）</small></label>
+          <select id="model_medium" name="model_medium">
+            <option value="">.env デフォルト</option>
+            <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
+            <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+            <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+          </select>
+        </div>
+        <div>
+          <label for="model_complex">Complex タスク<br><small style="font-weight:normal; color:#777;">（脅威推論補完）</small></label>
+          <select id="model_complex" name="model_complex">
+            <option value="">.env デフォルト</option>
+            <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
+            <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+            <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Generate PIRs</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0;">既存の PIR JSON を読み込む</h2>
+  <p style="font-size:0.88rem; color:#555; margin-bottom:0.75rem;">
+    生成済みの <code>pir_output.json</code> を読み込んで確認・編集・エクスポートできます。
+  </p>
+  <form action="/pir/load" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div style="margin-bottom:1rem;">
+      <label for="pir_file">pir_output.json</label>
+      <input type="file" id="pir_file" name="pir_file" accept=".json" required>
+    </div>
+    <button type="submit" class="btn btn-secondary">読み込んでレビュー</button>
+  </form>
+</div>
+
+<div class="alert alert-info">
+  <strong>Dictionary only</strong>: GCP 不要。辞書ベースの高速 PIR 生成。<br>
+  <strong>LLM mode</strong>: <code>GCP_PROJECT_ID</code> と ADC 設定が必要。文脈を考慮した高精度な説明・収集フォーカスを生成。
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Section 3: Review (only when session has PIRs)                      #}
+{# ------------------------------------------------------------------ #}
+{% if pirs %}
+<h2 style="margin-top:2rem; margin-bottom:1rem;">Review</h2>
 
 <div style="display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap;">
-  <form action="/review/approve" method="post" style="display:inline;">
+  <form action="/pir/approve" method="post" style="display:inline;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <button type="submit" class="btn btn-primary">Approve &amp; Submit to GHE</button>
   </form>
-  <a href="/review/export" class="btn btn-secondary">Export pir_output.json</a>
+  <a href="/pir/export" class="btn btn-secondary">Export pir_output.json</a>
 </div>
 
 {% for pir in pirs %}
@@ -33,7 +133,7 @@
     {% for tag in pir.threat_actor_tags %}<span class="tag">{{ tag }}</span>{% endfor %}
   </div>
 
-  <form action="/review/save" method="post" style="margin-top:1rem;">
+  <form action="/pir/save" method="post" style="margin-top:1rem;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <input type="hidden" name="pir_index" value="{{ pir_idx }}">
 
@@ -108,7 +208,7 @@
         <p style="color:#555; margin-bottom:0.5rem; border-left:3px solid #2980b9; padding-left:0.5rem;"><strong>Analyst note:</strong> {{ actor.analyst_rationale_append }}</p>
         {% endif %}
 
-        <form action="/review/save" method="post" style="border-top:1px solid #ddd; padding-top:0.75rem; margin-top:0.5rem;">
+        <form action="/pir/save" method="post" style="border-top:1px solid #ddd; padding-top:0.75rem; margin-top:0.5rem;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           <input type="hidden" name="pir_index" value="{{ pir_idx }}">
           <input type="hidden" name="actor_index" value="{{ actor_idx }}">
