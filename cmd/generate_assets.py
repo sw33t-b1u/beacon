@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import structlog
@@ -71,8 +72,8 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> No
     parser.add_argument(
         "--output",
         type=Path,
-        default=_DEFAULT_OUTPUT,
-        help=f"Output path for assets.json (default: {_DEFAULT_OUTPUT})",
+        default=None,
+        help="Output path for assets.json (default: StorageBackend assets/<timestamp>.json)",
     )
     args = parser.parse_args(argv)
 
@@ -89,20 +90,34 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> No
         )
 
     assets_data = generate_assets_json(ctx)
-
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(
-        json.dumps(assets_data, indent=2, ensure_ascii=False),
-        encoding="utf-8",
-    )
-
+    json_str = json.dumps(assets_data, indent=2, ensure_ascii=False)
     asset_count = len(assets_data["assets"])
-    logger.info("assets_json_written", path=str(args.output), assets=asset_count)
-    print(
-        f"assets.json written: {args.output} ({asset_count} assets)\n"
-        f"Review and complete the file, then load into SAGE:\n"
-        f"  uv run python cmd/load_assets.py --file {args.output}"
-    )
+
+    if args.output is None:
+        # Use StorageBackend with timestamp filename
+        from beacon.config import load_config  # noqa: PLC0415
+        from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        ts = datetime.now().strftime("%Y%m%d%H%M")
+        filename = f"assets_{ts}.json"
+        storage.save("assets", filename, json_str)
+        logger.info("assets_json_written", path=f"assets/{filename}", assets=asset_count)
+        print(
+            f"assets.json written: assets/{filename} ({asset_count} assets)\n"
+            f"Review and complete the file, then load into SAGE:\n"
+            f"  uv run python cmd/load_assets.py --file <resolved_path>"
+        )
+    else:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json_str, encoding="utf-8")
+        logger.info("assets_json_written", path=str(args.output), assets=asset_count)
+        print(
+            f"assets.json written: {args.output} ({asset_count} assets)\n"
+            f"Review and complete the file, then load into SAGE:\n"
+            f"  uv run python cmd/load_assets.py --file {args.output}"
+        )
 
 
 if __name__ == "__main__":

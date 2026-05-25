@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import structlog
@@ -67,8 +68,10 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> No
     parser.add_argument(
         "--output",
         type=Path,
-        default=_DEFAULT_OUTPUT,
-        help=f"Output path for user_accounts.json (default: {_DEFAULT_OUTPUT})",
+        default=None,
+        help=(
+            "Output path for user_accounts.json (default: StorageBackend assets/<timestamp>.json)"
+        ),
     )
     args = parser.parse_args(argv)
 
@@ -88,29 +91,52 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> No
         )
 
     payload = generate_user_accounts_json(ctx)
-
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False),
-        encoding="utf-8",
-    )
+    json_str = json.dumps(payload, indent=2, ensure_ascii=False)
 
     ua_count = len(payload["user_accounts"])
     edge_count = len(payload["account_on_asset"])
-    logger.info(
-        "user_accounts_json_written",
-        path=str(args.output),
-        user_accounts=ua_count,
-        account_on_asset=edge_count,
-    )
-    print(
-        f"user_accounts.json written: {args.output} "
-        f"({ua_count} accounts, {edge_count} edges)\n"
-        f"Validate before loading into SAGE:\n"
-        f"  cd ../TRACE && uv run python cmd/validate_user_accounts.py \\\n"
-        f"    --user-accounts {args.output} \\\n"
-        f"    --assets ../BEACON/output/assets.json"
-    )
+
+    if args.output is None:
+        # Use StorageBackend with timestamp filename
+        from beacon.config import load_config  # noqa: PLC0415
+        from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        ts = datetime.now().strftime("%Y%m%d%H%M")
+        filename = f"user_accounts_{ts}.json"
+        storage.save("assets", filename, json_str)
+        logger.info(
+            "user_accounts_json_written",
+            path=f"assets/{filename}",
+            user_accounts=ua_count,
+            account_on_asset=edge_count,
+        )
+        print(
+            f"user_accounts.json written: assets/{filename} "
+            f"({ua_count} accounts, {edge_count} edges)\n"
+            f"Validate before loading into SAGE:\n"
+            f"  cd ../TRACE && uv run python cmd/validate_user_accounts.py \\\n"
+            f"    --user-accounts <resolved_path> \\\n"
+            f"    --assets ../BEACON/output/assets.json"
+        )
+    else:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json_str, encoding="utf-8")
+        logger.info(
+            "user_accounts_json_written",
+            path=str(args.output),
+            user_accounts=ua_count,
+            account_on_asset=edge_count,
+        )
+        print(
+            f"user_accounts.json written: {args.output} "
+            f"({ua_count} accounts, {edge_count} edges)\n"
+            f"Validate before loading into SAGE:\n"
+            f"  cd ../TRACE && uv run python cmd/validate_user_accounts.py \\\n"
+            f"    --user-accounts {args.output} \\\n"
+            f"    --assets ../BEACON/output/assets.json"
+        )
 
 
 if __name__ == "__main__":

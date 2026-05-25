@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import structlog
@@ -67,8 +68,10 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> No
     parser.add_argument(
         "--output",
         type=Path,
-        default=_DEFAULT_OUTPUT,
-        help=f"Output path for identity_assets.json (default: {_DEFAULT_OUTPUT})",
+        default=None,
+        help=(
+            "Output path for identity_assets.json (default: StorageBackend assets/<timestamp>.json)"
+        ),
     )
     args = parser.parse_args(argv)
 
@@ -88,29 +91,52 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> No
         )
 
     payload = generate_identity_assets_json(ctx)
-
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False),
-        encoding="utf-8",
-    )
+    json_str = json.dumps(payload, indent=2, ensure_ascii=False)
 
     identity_count = len(payload["identities"])
     edge_count = len(payload["has_access"])
-    logger.info(
-        "identity_assets_json_written",
-        path=str(args.output),
-        identities=identity_count,
-        has_access=edge_count,
-    )
-    print(
-        f"identity_assets.json written: {args.output} "
-        f"({identity_count} identities, {edge_count} edges)\n"
-        f"Validate before loading into SAGE:\n"
-        f"  cd ../TRACE && uv run python cmd/validate_identity_assets.py \\\n"
-        f"    --identity-assets {args.output} \\\n"
-        f"    --assets ../BEACON/output/assets.json"
-    )
+
+    if args.output is None:
+        # Use StorageBackend with timestamp filename
+        from beacon.config import load_config  # noqa: PLC0415
+        from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        ts = datetime.now().strftime("%Y%m%d%H%M")
+        filename = f"identity_assets_{ts}.json"
+        storage.save("assets", filename, json_str)
+        logger.info(
+            "identity_assets_json_written",
+            path=f"assets/{filename}",
+            identities=identity_count,
+            has_access=edge_count,
+        )
+        print(
+            f"identity_assets.json written: assets/{filename} "
+            f"({identity_count} identities, {edge_count} edges)\n"
+            f"Validate before loading into SAGE:\n"
+            f"  cd ../TRACE && uv run python cmd/validate_identity_assets.py \\\n"
+            f"    --identity-assets <resolved_path> \\\n"
+            f"    --assets ../BEACON/output/assets.json"
+        )
+    else:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json_str, encoding="utf-8")
+        logger.info(
+            "identity_assets_json_written",
+            path=str(args.output),
+            identities=identity_count,
+            has_access=edge_count,
+        )
+        print(
+            f"identity_assets.json written: {args.output} "
+            f"({identity_count} identities, {edge_count} edges)\n"
+            f"Validate before loading into SAGE:\n"
+            f"  cd ../TRACE && uv run python cmd/validate_identity_assets.py \\\n"
+            f"    --identity-assets {args.output} \\\n"
+            f"    --assets ../BEACON/output/assets.json"
+        )
 
 
 if __name__ == "__main__":

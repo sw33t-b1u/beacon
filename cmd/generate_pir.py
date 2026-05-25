@@ -217,12 +217,19 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> in
         prioritized_actors=_actors,
     )
 
-    if args.output is None:
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = Path("output") / f"pir_output_{ts}.json"
+    # Determine whether to use StorageBackend or direct file I/O.
+    # --output bypasses StorageBackend for backward compatibility.
+    use_storage_backend = args.output is None
+
+    if use_storage_backend:
+        from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+        storage = create_storage_backend(cfg)
+        ts = datetime.now().strftime("%Y%m%d%H%M")
+        pir_filename = f"pir_output_{ts}.json"
     else:
         output_path = Path(args.output)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
     if not pirs:
         print(
@@ -232,21 +239,35 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> in
         )
     else:
         doc = PIROutputDocument(pirs=pirs)
-        output_path.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
-        print(f"Generated {len(pirs)} PIR(s) → {output_path}")
+        if use_storage_backend:
+            storage.save("pir", pir_filename, doc.model_dump_json(indent=2))
+            print(f"Generated {len(pirs)} PIR(s) → pir/{pir_filename}")
+        else:
+            output_path.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
+            print(f"Generated {len(pirs)} PIR(s) → {output_path}")
 
     if args.collection_plan:
-        collection_plan_path = Path(args.collection_plan)
-        collection_plan_path.parent.mkdir(parents=True, exist_ok=True)
-        plan = build_collection_plan(elements, threat, risk, pirs)
-        write_collection_plan(plan, collection_plan_path)
-        print(f"Collection plan → {args.collection_plan}")
+        plan_md = build_collection_plan(elements, threat, risk, pirs)
+        if use_storage_backend:
+            cp_filename = f"collection_plan_{ts}.md"
+            storage.save("plans", cp_filename, plan_md)
+            print(f"Collection plan → plans/{cp_filename}")
+        else:
+            collection_plan_path = Path(args.collection_plan)
+            collection_plan_path.parent.mkdir(parents=True, exist_ok=True)
+            write_collection_plan(plan_md, collection_plan_path)
+            print(f"Collection plan → {args.collection_plan}")
 
     if args.sources_candidate:
-        sources_path = Path(args.sources_candidate)
         yaml_str = build_sources_candidate_yaml(pirs, elements)
-        write_sources_candidate(yaml_str, sources_path)
-        print(f"Sources candidate → {args.sources_candidate}")
+        if use_storage_backend:
+            sc_filename = f"sources_candidate_{ts}.yaml"
+            storage.save("plans", sc_filename, yaml_str)
+            print(f"Sources candidate → plans/{sc_filename}")
+        else:
+            sources_path = Path(args.sources_candidate)
+            write_sources_candidate(yaml_str, sources_path)
+            print(f"Sources candidate → {args.sources_candidate}")
 
     return 0
 

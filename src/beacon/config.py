@@ -65,6 +65,18 @@ class Config:
         default_factory=lambda: int(os.environ.get("BEACON_IR_LOOKBACK_DAYS", "365"))
     )
 
+    # Storage backend selection (Initiative I Phase 1).
+    # BEACON_STORAGE: "local" (default) or "gcs".
+    storage_backend: str = field(default_factory=lambda: os.environ.get("BEACON_STORAGE", "local"))
+    # BEACON_STORAGE_BASE_DIR: root directory for LocalStorage (default: "output").
+    storage_base_dir: str = field(
+        default_factory=lambda: os.environ.get("BEACON_STORAGE_BASE_DIR", "output")
+    )
+    # BEACON_GCS_BUCKET: GCS bucket name (required when BEACON_STORAGE=gcs).
+    gcs_bucket: str = field(default_factory=lambda: os.environ.get("BEACON_GCS_BUCKET", ""))
+    # BEACON_GCS_PREFIX: optional key prefix for all GCS objects.
+    gcs_prefix: str = field(default_factory=lambda: os.environ.get("BEACON_GCS_PREFIX", ""))
+
 
 def load_config() -> Config:
     return Config()
