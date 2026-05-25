@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}BEACON — Dashboard{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.25rem; margin-bottom:1.5rem;">
+
+  {# ------------------------------------------------------------------ #}
+  {# PIR Summary                                                          #}
+  {# ------------------------------------------------------------------ #}
+  <div class="card" style="margin-bottom:0;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
+      <h2 style="margin:0; font-size:1rem; color:#555; text-transform:uppercase; letter-spacing:0.05em;">PIR</h2>
+      <a href="/pir" style="font-size:0.83rem; color:#0057b7;">View PIR tab &rarr;</a>
+    </div>
+    <div style="font-size:2rem; font-weight:700; color:#1a1a2e; margin-bottom:0.25rem;">
+      {{ pir_count }}
+    </div>
+    <div style="font-size:0.88rem; color:#555; margin-bottom:0.5rem;">PIR files stored</div>
+    {% if approval_total > 0 %}
+    <div style="font-size:0.88rem; color:#555;">
+      Approved: <strong style="color:{% if approval_approved == approval_total %}#27ae60{% else %}#e67e22{% endif %};">{{ approval_approved }}/{{ approval_total }}</strong>
+    </div>
+    {% else %}
+    <div style="font-size:0.88rem; color:#aaa;">Approval status: —</div>
+    {% endif %}
+    {% if latest_pir_filename %}
+    <div style="font-size:0.8rem; color:#777; margin-top:0.4rem; word-break:break-all;">
+      Latest: <code>{{ latest_pir_filename | e }}</code>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ------------------------------------------------------------------ #}
+  {# Collection Status                                                    #}
+  {# ------------------------------------------------------------------ #}
+  <div class="card" style="margin-bottom:0;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
+      <h2 style="margin:0; font-size:1rem; color:#555; text-transform:uppercase; letter-spacing:0.05em;">Collection</h2>
+      <a href="/collection" style="font-size:0.83rem; color:#0057b7;">View Collection tab &rarr;</a>
+    </div>
+    <div style="font-size:2rem; font-weight:700; color:#1a1a2e; margin-bottom:0.25rem;">
+      {{ stix_bundle_count }}
+    </div>
+    <div style="font-size:0.88rem; color:#555; margin-bottom:0.5rem;">STIX bundles stored</div>
+    <div style="font-size:0.88rem; color:#555; margin-bottom:0.25rem;">
+      Total crawls: <strong>{{ crawl_total }}</strong>
+    </div>
+    <div style="font-size:0.88rem; color:#555;">
+      Last 24h: <strong>{{ crawl_last_24h }}</strong>
+    </div>
+  </div>
+
+  {# ------------------------------------------------------------------ #}
+  {# Threat Stats (from SAGE)                                             #}
+  {# ------------------------------------------------------------------ #}
+  <div class="card" style="margin-bottom:0;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
+      <h2 style="margin:0; font-size:1rem; color:#555; text-transform:uppercase; letter-spacing:0.05em;">Threats</h2>
+      <a href="/threats" style="font-size:0.83rem; color:#0057b7;">View Threats tab &rarr;</a>
+    </div>
+    {% if sage_offline %}
+    <div class="alert alert-info" style="margin-bottom:0.5rem; font-size:0.83rem;">
+      SAGE offline — showing N/A
+    </div>
+    {% endif %}
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.5rem; margin-bottom:0.75rem;">
+      <div style="text-align:center;">
+        <div style="font-size:1.5rem; font-weight:700; color:#1a1a2e;">{{ actor_count }}</div>
+        <div style="font-size:0.78rem; color:#777;">Actors</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:1.5rem; font-weight:700; color:#1a1a2e;">{{ ttp_count }}</div>
+        <div style="font-size:0.78rem; color:#777;">TTPs</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:1.5rem; font-weight:700; color:#1a1a2e;">{{ cve_count }}</div>
+        <div style="font-size:0.78rem; color:#777;">CVEs</div>
+      </div>
+    </div>
+    {% if choke_points %}
+    <div style="font-size:0.83rem; color:#555; font-weight:600; margin-bottom:0.3rem;">Choke-points top-5</div>
+    <ol style="margin:0; padding-left:1.2rem; font-size:0.83rem; color:#333;">
+      {% for cp in choke_points %}
+      <li style="margin-bottom:0.15rem;">{{ cp | e }}</li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <div style="font-size:0.83rem; color:#aaa;">Choke-points: —</div>
+    {% endif %}
+  </div>
+
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Recent Incidents                                                     #}
+{# ------------------------------------------------------------------ #}
+<div class="card">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
+    <h2 style="margin:0;">Recent Incidents</h2>
+    <a href="/threats" style="font-size:0.83rem; color:#0057b7;">View Threats tab &rarr;</a>
+  </div>
+  {% if recent_incidents %}
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name / Description</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for inc in recent_incidents %}
+      <tr>
+        <td style="font-size:0.83rem; white-space:nowrap; color:#777;">{{ inc.get("id", "—") | e }}</td>
+        <td style="font-size:0.88rem;">
+          {% set name = inc.get("name") or inc.get("description") or inc.get("incident_id") or "—" %}
+          {{ name | e }}
+        </td>
+        <td style="font-size:0.83rem; white-space:nowrap;">
+          {{ inc.get("created") or inc.get("timestamp") or inc.get("date") or "—" | e }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% elif sage_offline %}
+  <p style="font-size:0.88rem; color:#aaa;">SAGE offline — incident data unavailable.</p>
+  {% else %}
+  <p style="font-size:0.88rem; color:#aaa;">No recent incidents found.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

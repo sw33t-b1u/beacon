@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}BEACON — Settings{% endblock %}
+{% block content %}
+<h1>Settings</h1>
+
+{% if saved %}
+<div class="alert" style="background:#d5f5e3; border-left:4px solid #27ae60; margin-bottom:1rem;">
+  <strong>Settings saved.</strong>
+</div>
+{% endif %}
+
+{% if save_error %}
+<div class="alert" style="background:#fadbd8; border-left:4px solid #c0392b; margin-bottom:1rem;">
+  <strong>Error saving settings:</strong> {{ save_error | e }}
+</div>
+{% endif %}
+
+<form method="post" action="/settings/save">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+  {# ------------------------------------------------------------------ #}
+  {# Storage section                                                      #}
+  {# ------------------------------------------------------------------ #}
+  <div class="card">
+    <h2 style="margin-top:0;">Storage</h2>
+
+    <fieldset style="border:none; padding:0; margin:0 0 1rem;">
+      <legend style="font-weight:500; font-size:0.9rem; margin-bottom:0.5rem;">Backend</legend>
+      <label style="display:inline-flex; align-items:center; gap:0.4rem; margin-right:1.5rem; font-weight:400;">
+        <input type="radio" name="storage_backend" value="local"
+               {% if settings.storage_backend != 'gcs' %}checked{% endif %}
+               onchange="toggleGcsFields(this.value)">
+        Local filesystem
+      </label>
+      <label style="display:inline-flex; align-items:center; gap:0.4rem; font-weight:400;">
+        <input type="radio" name="storage_backend" value="gcs"
+               {% if settings.storage_backend == 'gcs' %}checked{% endif %}
+               onchange="toggleGcsFields(this.value)">
+        Google Cloud Storage (GCS)
+      </label>
+    </fieldset>
+
+    <div style="margin-bottom:0.75rem;">
+      <label for="storage_base_dir">Local base directory</label>
+      <input type="text" id="storage_base_dir" name="storage_base_dir"
+             value="{{ settings.storage_base_dir | e }}"
+             placeholder="output">
+      <small style="color:#777; font-size:0.83rem;">
+        Root directory for LocalStorage (relative to working directory or absolute).
+      </small>
+    </div>
+
+    <div id="gcs-fields"
+         style="{% if settings.storage_backend != 'gcs' %}display:none;{% endif %}">
+      <div style="margin-bottom:0.75rem;">
+        <label for="gcs_bucket">GCS bucket name</label>
+        <input type="text" id="gcs_bucket" name="gcs_bucket"
+               value="{{ settings.gcs_bucket | e }}"
+               placeholder="my-beacon-bucket">
+      </div>
+      <div style="margin-bottom:0.75rem;">
+        <label for="gcs_prefix">GCS key prefix <span style="font-weight:400; color:#777;">(optional)</span></label>
+        <input type="text" id="gcs_prefix" name="gcs_prefix"
+               value="{{ settings.gcs_prefix | e }}"
+               placeholder="beacon/">
+      </div>
+    </div>
+  </div>
+
+  {# ------------------------------------------------------------------ #}
+  {# SAGE API section                                                     #}
+  {# ------------------------------------------------------------------ #}
+  <div class="card">
+    <h2 style="margin-top:0;">SAGE API</h2>
+
+    <div style="margin-bottom:0.75rem;">
+      <label for="sage_api_url">SAGE API URL</label>
+      <div style="display:flex; gap:0.75rem; align-items:flex-end; flex-wrap:wrap;">
+        <div style="flex:1; min-width:200px;">
+          <input type="text" id="sage_api_url" name="sage_api_url"
+                 value="{{ settings.sage_api_url | e }}"
+                 placeholder="http://localhost:8001">
+        </div>
+        <button type="button" class="btn btn-secondary"
+                onclick="testSageConnection()"
+                style="white-space:nowrap;">Test Connection</button>
+      </div>
+      <div id="sage-test-status" style="margin-top:0.5rem; font-size:0.88rem;"></div>
+    </div>
+  </div>
+
+  {# ------------------------------------------------------------------ #}
+  {# TRACE section                                                        #}
+  {# ------------------------------------------------------------------ #}
+  <div class="card">
+    <h2 style="margin-top:0;">TRACE</h2>
+
+    <div style="margin-bottom:0.75rem;">
+      <label for="trace_root_path">TRACE root path</label>
+      <input type="text" id="trace_root_path" name="trace_root_path"
+             value="{{ settings.trace_root_path | e }}"
+             placeholder="/path/to/TRACE">
+      <small style="color:#777; font-size:0.83rem;">
+        Absolute path to the TRACE repository root.
+        When empty the Collection tab is unavailable.
+      </small>
+    </div>
+  </div>
+
+  {# ------------------------------------------------------------------ #}
+  {# System info (read-only)                                              #}
+  {# ------------------------------------------------------------------ #}
+  <div class="card">
+    <h2 style="margin-top:0;">System Info</h2>
+    <table style="width:auto; font-size:0.9rem;">
+      <tbody>
+        <tr>
+          <th style="text-align:left; padding:0.35rem 1rem 0.35rem 0; font-weight:500;">BEACON version</th>
+          <td>{{ beacon_version | e }}</td>
+        </tr>
+        <tr>
+          <th style="text-align:left; padding:0.35rem 1rem 0.35rem 0; font-weight:500;">Python version</th>
+          <td>{{ python_version | e }}</td>
+        </tr>
+        <tr>
+          <th style="text-align:left; padding:0.35rem 1rem 0.35rem 0; font-weight:500;">Settings file</th>
+          <td><code>{{ settings_file | e }}</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:0.5rem;">
+    <button type="submit" class="btn btn-primary">Save Settings</button>
+  </div>
+</form>
+
+<style>
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid #ccc; border-top-color: #0057b7;
+    border-radius: 50%; animation: spin .6s linear infinite;
+    vertical-align: middle; margin-right: 4px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+  function toggleGcsFields(value) {
+    document.getElementById('gcs-fields').style.display =
+      value === 'gcs' ? '' : 'none';
+  }
+
+  async function testSageConnection() {
+    const url = document.getElementById('sage_api_url').value.trim();
+    const statusEl = document.getElementById('sage-test-status');
+
+    if (!url) {
+      statusEl.innerHTML =
+        '<span style="color:#c0392b;">Please enter a SAGE API URL first.</span>';
+      return;
+    }
+
+    statusEl.innerHTML =
+      '<span class="spinner"></span> Testing connection…';
+
+    try {
+      const params = new URLSearchParams({ sage_url: url });
+      const resp = await fetch('/settings/test-sage?' + params.toString());
+      const data = await resp.json();
+
+      if (data.status === 'ok') {
+        statusEl.innerHTML =
+          '<span style="color:#27ae60; font-weight:600;">Connected</span>';
+      } else {
+        const detail = data.detail ? ' — ' + escapeHtml(data.detail) : '';
+        statusEl.innerHTML =
+          '<span style="color:#c0392b; font-weight:600;">Failed</span>' + detail;
+      }
+    } catch (err) {
+      statusEl.innerHTML =
+        '<span style="color:#c0392b;">Request error: ' + escapeHtml(err.message) + '</span>';
+    }
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+</script>
+{% endblock %}

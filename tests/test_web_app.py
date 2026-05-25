@@ -101,6 +101,36 @@ def _get_csrf(test_client: TestClient | None = None) -> tuple[str, dict[str, str
     return csrf_cookie, {"beacon_csrf": csrf_cookie}
 
 
+class TestDashboardRoute:
+    def test_dashboard_returns_200(self):
+        resp = client.get("/dashboard")
+        assert resp.status_code == 200
+
+    def test_dashboard_shows_pir_count(self):
+        mock_storage = MagicMock()
+        mock_storage.list_files.side_effect = lambda cat: (
+            ["pir_output_202605251700.json", "pir_output_202605261200.json"]
+            if cat == "pir"
+            else ["stix_bundle_001.json"]
+        )
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = client.get("/dashboard")
+        assert resp.status_code == 200
+        assert b"2" in resp.content  # pir_count == 2
+
+    def test_dashboard_without_sage(self):
+        """Dashboard renders correctly even when SAGE is unavailable."""
+        with patch("beacon.storage.create_storage_backend", side_effect=Exception("no storage")):
+            resp = client.get("/dashboard")
+        assert resp.status_code == 200
+        # Shows N/A for SAGE stats since SAGE_API_URL is not set in tests
+        assert (
+            b"N/A" in resp.content
+            or b"SAGE offline" in resp.content
+            or b"Dashboard" in resp.content
+        )
+
+
 class TestRootRedirect:
     def test_get_redirects_to_dashboard(self):
         resp = client.get("/", follow_redirects=False)

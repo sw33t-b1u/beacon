@@ -6,6 +6,7 @@ import datetime as _dt
 import json
 import os
 import secrets
+import sys
 import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -149,13 +150,154 @@ async def root_redirect():
 
 @app.get("/dashboard")
 async def dashboard(request: Request):
-    """Dashboard placeholder — full implementation in Phase 5."""
+    """Pipeline-wide summary dashboard (Initiative I Phase 5)."""
+    import datetime as _datetime  # noqa: PLC0415
+
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+    from beacon.trace.runner import load_crawl_state  # noqa: PLC0415
+
+    cfg = load_config()
+
+    # --- StorageBackend: PIR + STIX counts ---
+    pir_files: list[str] = []
+    stix_files: list[str] = []
+    try:
+        storage = create_storage_backend(cfg)
+        pir_files = storage.list_files("pir")
+        stix_files = storage.list_files("stix")
+    except Exception:  # noqa: BLE001
+        pass
+
+    pir_count = len(pir_files)
+    latest_pir_filename = pir_files[-1] if pir_files else ""
+    stix_bundle_count = len(stix_files)
+
+    # --- Approval status (best-effort from metadata, not yet implemented) ---
+    approval_approved = 0
+    approval_total = 0
+
+    # --- Crawl state ---
+    crawl_history: list[dict] = []
+    if cfg.trace_root_path:
+        try:
+            crawl_history = load_crawl_state(cfg.trace_root_path)
+        except Exception:  # noqa: BLE001
+            crawl_history = []
+
+    crawl_total = len(crawl_history)
+
+    # Count entries with a timestamp within the last 24 hours
+    now = _datetime.datetime.now(_datetime.UTC)
+    crawl_last_24h = 0
+    for entry in crawl_history:
+        ts_raw = entry.get("timestamp") or entry.get("crawled_at") or ""
+        if not ts_raw:
+            continue
+        try:
+            ts = _datetime.datetime.fromisoformat(str(ts_raw).replace("Z", "+00:00"))
+            if (now - ts).total_seconds() < 86400:
+                crawl_last_24h += 1
+        except (ValueError, TypeError):
+            pass
+
+    # --- SAGE API (best-effort, all fail-soft) ---
+    sage_offline = True
+    actor_count: int | str = "N/A"
+    ttp_count: int | str = "N/A"
+    cve_count: int | str = "N/A"
+    choke_points: list[str] = []
+    recent_incidents: list[dict] = []
+
+    if cfg.sage_api_url:
+        try:
+            import httpx as _httpx  # noqa: PLC0415
+
+            _base = cfg.sage_api_url.rstrip("/")
+
+            # Actor count
+            try:
+                r = _httpx.get(f"{_base}/actors", params={"limit": 1}, timeout=5)
+                r.raise_for_status()
+                d = r.json()
+                actor_count = d.get("total", len(d.get("actors", [])))
+                sage_offline = False
+            except Exception:  # noqa: BLE001
+                pass
+
+            # TTP count
+            try:
+                r = _httpx.get(f"{_base}/ttps", params={"limit": 1}, timeout=5)
+                r.raise_for_status()
+                d = r.json()
+                ttp_count = d.get("total", len(d.get("ttps", [])))
+                sage_offline = False
+            except Exception:  # noqa: BLE001
+                pass
+
+            # CVE count
+            try:
+                r = _httpx.get(f"{_base}/vulnerabilities", params={"limit": 1}, timeout=5)
+                r.raise_for_status()
+                d = r.json()
+                cve_count = d.get("total", len(d.get("vulnerabilities", [])))
+                sage_offline = False
+            except Exception:  # noqa: BLE001
+                pass
+
+            # Choke-points top-5
+            try:
+                r = _httpx.get(f"{_base}/choke-points", params={"top_n": 5}, timeout=5)
+                r.raise_for_status()
+                d = r.json()
+                raw_cp = d.get("choke_points", d.get("chokePoints", []))
+                choke_points = []
+                for item in raw_cp[:5]:
+                    if isinstance(item, dict):
+                        label = (
+                            item.get("name") or item.get("ttp_id") or item.get("id") or str(item)
+                        )
+                    else:
+                        label = str(item)
+                    choke_points.append(label)
+                sage_offline = False
+            except Exception:  # noqa: BLE001
+                pass
+
+            # Recent incidents (limit 5)
+            try:
+                r = _httpx.get(f"{_base}/api/incidents", params={"limit": 5}, timeout=5)
+                r.raise_for_status()
+                d = r.json()
+                if isinstance(d, dict):
+                    recent_incidents = d.get("incidents", [])
+                elif isinstance(d, list):
+                    recent_incidents = d
+                sage_offline = False
+            except Exception:  # noqa: BLE001
+                pass
+
+        except Exception:  # noqa: BLE001
+            pass
+
     return templates.TemplateResponse(
         request=request,
-        name="base.html",
+        name="dashboard.html",
         context={
             "active_tab": "dashboard",
-            "content_override": "Dashboard — coming in Phase 5",
+            "pir_count": pir_count,
+            "latest_pir_filename": latest_pir_filename,
+            "stix_bundle_count": stix_bundle_count,
+            "approval_approved": approval_approved,
+            "approval_total": approval_total,
+            "crawl_total": crawl_total,
+            "crawl_last_24h": crawl_last_24h,
+            "sage_offline": sage_offline,
+            "actor_count": actor_count,
+            "ttp_count": ttp_count,
+            "cve_count": cve_count,
+            "choke_points": choke_points,
+            "recent_incidents": recent_incidents,
         },
     )
 
@@ -402,16 +544,123 @@ async def threats_api_threat_summary(
 
 
 @app.get("/settings")
-async def settings(request: Request):
-    """Settings tab placeholder — full implementation in Phase 6."""
-    return templates.TemplateResponse(
+async def settings(request: Request, saved: str = ""):
+    """Settings tab — display current configuration values."""
+    from beacon.settings import SettingsManager  # noqa: PLC0415
+
+    mgr = SettingsManager()
+    current_settings = mgr.load()
+
+    # Retrieve BEACON version from package metadata.
+    try:
+        from importlib.metadata import version as _pkg_version  # noqa: PLC0415
+
+        beacon_version = _pkg_version("beacon")
+    except Exception:  # noqa: BLE001
+        beacon_version = "unknown"
+
+    python_version = sys.version.split()[0]
+
+    csrf_token = _generate_csrf_token()
+    response = templates.TemplateResponse(
         request=request,
-        name="base.html",
+        name="settings.html",
         context={
             "active_tab": "settings",
-            "content_override": "Settings — coming in Phase 6",
+            "settings": current_settings,
+            "beacon_version": beacon_version,
+            "python_version": python_version,
+            "settings_file": str(mgr.path),
+            "csrf_token": csrf_token,
+            "saved": saved == "1",
+            "save_error": None,
         },
     )
+    _set_csrf_cookie(response, csrf_token)
+    return response
+
+
+@app.post("/settings/save")
+async def settings_save(
+    request: Request,
+    storage_backend: str = Form(default="local"),
+    storage_base_dir: str = Form(default="output"),
+    gcs_bucket: str = Form(default=""),
+    gcs_prefix: str = Form(default=""),
+    sage_api_url: str = Form(default=""),
+    trace_root_path: str = Form(default=""),
+    csrf_token: str = Form(default=""),
+    beacon_csrf: str = Cookie(default=""),
+):
+    """Persist settings to .beacon_settings.json."""
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    from beacon.settings import SettingsManager  # noqa: PLC0415
+
+    mgr = SettingsManager()
+    new_settings = {
+        "storage_backend": storage_backend.strip() or "local",
+        "storage_base_dir": storage_base_dir.strip() or "output",
+        "gcs_bucket": gcs_bucket.strip(),
+        "gcs_prefix": gcs_prefix.strip(),
+        "sage_api_url": sage_api_url.strip(),
+        "trace_root_path": trace_root_path.strip(),
+    }
+    try:
+        mgr.save(new_settings)
+    except OSError as exc:
+        # Re-render the settings page with an error message.
+        from importlib.metadata import version as _pkg_version  # noqa: PLC0415
+
+        try:
+            beacon_version = _pkg_version("beacon")
+        except Exception:  # noqa: BLE001
+            beacon_version = "unknown"
+
+        python_version = sys.version.split()[0]
+        new_csrf = _generate_csrf_token()
+        response = templates.TemplateResponse(
+            request=request,
+            name="settings.html",
+            context={
+                "active_tab": "settings",
+                "settings": new_settings,
+                "beacon_version": beacon_version,
+                "python_version": python_version,
+                "settings_file": str(mgr.path),
+                "csrf_token": new_csrf,
+                "saved": False,
+                "save_error": str(exc),
+            },
+        )
+        _set_csrf_cookie(response, new_csrf)
+        return response
+
+    return RedirectResponse(url="/settings?saved=1", status_code=303)
+
+
+@app.get("/settings/test-sage")
+async def settings_test_sage(sage_url: str = ""):
+    """Test connectivity to the SAGE API.
+
+    Sends a lightweight request (GET /choke-points?top_n=1) to the
+    provided URL and returns ``{"status": "ok"}`` or
+    ``{"status": "error", "detail": "..."}``.
+    """
+    if not sage_url:
+        return JSONResponse({"status": "error", "detail": "No URL provided"})
+
+    try:
+        import httpx  # noqa: PLC0415
+
+        async with httpx.AsyncClient(timeout=5.0) as client_h:
+            url = sage_url.rstrip("/") + "/choke-points?top_n=1"
+            resp = await client_h.get(url)
+        if resp.status_code < 500:
+            return JSONResponse({"status": "ok"})
+        return JSONResponse({"status": "error", "detail": f"HTTP {resp.status_code}"})
+    except Exception as exc:  # noqa: BLE001
+        return JSONResponse({"status": "error", "detail": str(exc)})
 
 
 @app.get("/pir")
