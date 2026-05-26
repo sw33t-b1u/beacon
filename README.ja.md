@@ -89,7 +89,7 @@ BEACON 1.1.0 は成果物の永続化を抽象化する **StorageBackend** を�
 | `BEACON_STORAGE` | `local` | ストレージバックエンド: `local` または `gcs` |
 | `BEACON_STORAGE_BASE_DIR` | `output/` | `local` バックエンドのベースディレクトリ |
 | `BEACON_GCS_BUCKET` | — | GCS バケット名（`gcs` バックエンドで必須） |
-| `BEACON_GCS_PREFIX` | `beacon/` | GCS バケット内のキープレフィックス |
+| `BEACON_GCS_PREFIX` | (空文字) | GCS バケット内のキープレフィックス |
 
 GCS サポートにはオプションインストールが必要です:
 

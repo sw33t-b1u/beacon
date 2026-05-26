@@ -17,7 +17,7 @@ Japanese translation: [`docs/setup.ja.md`](setup.ja.md)
 
 ```bash
 git clone https://github.com/sw33t-b1u/beacon.git
-cd beacon/BEACON
+cd beacon
 uv sync --extra dev
 ```
 
@@ -58,7 +58,7 @@ Edit `.env` and fill in the required values:
 | `BEACON_STORAGE` | No | `local` | Storage backend: `local` or `gcs` |
 | `BEACON_STORAGE_BASE_DIR` | No | `output/` | Base directory for `local` backend |
 | `BEACON_GCS_BUCKET` | GCS mode | — | GCS bucket name (required when `BEACON_STORAGE=gcs`) |
-| `BEACON_GCS_PREFIX` | No | `beacon/` | Key prefix within the GCS bucket |
+| `BEACON_GCS_PREFIX` | No | (empty) | Key prefix within the GCS bucket |
 | `TRACE_ROOT_PATH` | No | — | Absolute path to TRACE repo root (enables Collection tab in dashboard) |
 
 `GCP_PROJECT_ID` is **not required** when using `--no-llm` mode.
@@ -77,7 +77,7 @@ uv sync --extra gcs
 # Set env vars (or configure via the Settings tab in the web dashboard)
 export BEACON_STORAGE=gcs
 export BEACON_GCS_BUCKET=my-beacon-artifacts
-export BEACON_GCS_PREFIX=prod/   # optional; defaults to "beacon/"
+export BEACON_GCS_PREFIX=prod/   # optional; defaults to empty string
 ```
 
 Artifacts are stored with the filename pattern `<category>_<YYYYMMDDHHmm>.json`.

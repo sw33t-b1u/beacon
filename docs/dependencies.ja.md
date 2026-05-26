@@ -14,7 +14,7 @@
 | `httpx` | `>=0.27.0` | MITRE CTI STIX バンドル取得（`cmd/update_taxonomy.py`）および SAGE Analysis API ポーリング（`src/beacon/sage/client.py`）用 HTTP クライアント | BSD-3-Clause |
 | `fastapi` | `>=0.111.0` | Web UI フレームワーク — 宣言的ルーティング・OpenAPI 自動生成・Jinja2 テンプレート連携 | MIT |
 | `uvicorn[standard]` | `>=0.30.0` | FastAPI 用 ASGI サーバー（`cmd/web_app.py`）。`[standard]` extras に WebSocket・HTTP/2 サポートを含む | BSD-3-Clause |
-| `python-multipart` | `>=0.0.9` | FastAPI でのファイルアップロード（`POST /generate`）における multipart/form-data 解析 | Apache-2.0 |
+| `python-multipart` | `>=0.0.27` | FastAPI でのファイルアップロード（`POST /generate`）における multipart/form-data 解析。CVE-2026-42561 修正のため `>=0.0.27` に引き上げ。 | Apache-2.0 |
 | `jinja2` | `>=3.1.0` | Web UI 向け HTML テンプレートレンダリング（`src/beacon/web/templates/`） | BSD-3-Clause |
 
 ---
@@ -33,7 +33,7 @@
 | パッケージ | バージョン制約 | 目的 | ライセンス |
 |-----------|-------------|------|---------|
 | `ruff` | `>=0.6.0` | lint + フォーマット（SAGE と統一） | MIT |
-| `pytest` | `>=8.3.0` | テストフレームワーク | MIT |
+| `pytest` | `>=9.0.3` | テストフレームワーク | MIT |
 | `pytest-cov` | `>=5.0.0` | カバレッジ計測 | MIT |
 | `pip-audit` | `>=2.7.0` | 既知脆弱性スキャン（`make audit`、`make check` に含む） | Apache-2.0 |
 

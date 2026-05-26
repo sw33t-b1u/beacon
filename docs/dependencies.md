@@ -10,7 +10,7 @@
 | `httpx` | `>=0.27.0` | HTTP client for MITRE CTI STIX bundle fetch (`cmd/update_taxonomy.py`) and SAGE Analysis API polling (`src/beacon/sage/client.py`) | BSD-3-Clause |
 | `fastapi` | `>=0.111.0` | Web UI framework — declarative routing, automatic OpenAPI docs, Jinja2 template integration | MIT |
 | `uvicorn[standard]` | `>=0.30.0` | ASGI server for FastAPI (`cmd/web_app.py`); `[standard]` extras include WebSocket and HTTP/2 support | BSD-3-Clause |
-| `python-multipart` | `>=0.0.9` | Multipart form-data parsing for file uploads in FastAPI (`POST /generate`) | Apache-2.0 |
+| `python-multipart` | `>=0.0.27` | Multipart form-data parsing for file uploads in FastAPI (`POST /generate`). Pinned to `>=0.0.27` for CVE-2026-42561 fix. | Apache-2.0 |
 | `jinja2` | `>=3.1.0` | HTML template rendering for the Web UI (`src/beacon/web/templates/`) | BSD-3-Clause |
 | `cryptography` | `>=46.0.7` | Transitive dependency of `google-genai` / `uvicorn`. Pinned to `>=46.0.7` to resolve CVE-2026-39892 in 46.0.6. No direct usage in BEACON code. | Apache-2.0 / BSD |
 | `python-dotenv` | `>=1.0` | Loads `.env` file into `os.environ` at startup, keeping secrets out of source code | BSD-3-Clause |
@@ -28,7 +28,7 @@
 | Package | Version | Purpose | License |
 |---------|---------|---------|---------|
 | `ruff` | `>=0.6.0` | Lint + format (aligned with SAGE) | MIT |
-| `pytest` | `>=8.3.0` | Test framework | MIT |
+| `pytest` | `>=9.0.3` | Test framework | MIT |
 | `pytest-cov` | `>=5.0.0` | Coverage measurement | MIT |
 | `pip-audit` | `>=2.7.0` | Known-vulnerability scanning (`make audit`, included in `make check`) | Apache-2.0 |
 

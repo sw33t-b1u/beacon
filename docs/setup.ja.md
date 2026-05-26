@@ -17,7 +17,7 @@
 
 ```bash
 git clone https://github.com/sw33t-b1u/beacon.git
-cd beacon/BEACON
+cd beacon
 uv sync --extra dev
 ```
 
@@ -58,7 +58,7 @@ cp .env.example .env
 | `BEACON_STORAGE` | 任意 | `local` | ストレージバックエンド: `local` または `gcs` |
 | `BEACON_STORAGE_BASE_DIR` | 任意 | `output/` | `local` バックエンドのベースディレクトリ |
 | `BEACON_GCS_BUCKET` | GCS モード | — | GCS バケット名（`BEACON_STORAGE=gcs` 時必須） |
-| `BEACON_GCS_PREFIX` | 任意 | `beacon/` | GCS バケット内のキープレフィックス |
+| `BEACON_GCS_PREFIX` | 任意 | (空文字) | GCS バケット内のキープレフィックス |
 | `TRACE_ROOT_PATH` | 任意 | — | TRACE リポジトリルートの絶対パス（ダッシュボードの Collection タブ有効化） |
 
 `--no-llm` モード使用時は `GCP_PROJECT_ID` は**不要**。
@@ -77,7 +77,7 @@ uv sync --extra gcs
 # 環境変数を設定（または Web ダッシュボードの Settings タブから設定可）
 export BEACON_STORAGE=gcs
 export BEACON_GCS_BUCKET=my-beacon-artifacts
-export BEACON_GCS_PREFIX=prod/   # 任意; デフォルトは "beacon/"
+export BEACON_GCS_PREFIX=prod/   # 任意; デフォルトは空文字
 ```
 
 成果物のファイル名は `<category>_<YYYYMMDDHHmm>.json` 形式です。

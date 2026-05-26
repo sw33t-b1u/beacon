@@ -90,7 +90,7 @@ through a pluggable backend instead of writing directly to `output/`.
 | `BEACON_STORAGE` | `local` | Storage backend: `local` or `gcs` |
 | `BEACON_STORAGE_BASE_DIR` | `output/` | Base directory for `local` backend |
 | `BEACON_GCS_BUCKET` | — | GCS bucket name (required for `gcs` backend) |
-| `BEACON_GCS_PREFIX` | `beacon/` | Key prefix within the GCS bucket |
+| `BEACON_GCS_PREFIX` | (empty) | Key prefix within the GCS bucket |
 
 GCS support requires `google-cloud-storage` (optional install):
 
