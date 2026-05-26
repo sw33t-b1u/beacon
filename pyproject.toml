@@ -30,6 +30,9 @@ dev = [
     "pip>=26.1",  # CVE-2026-6357 fix; transitive via pip-audit -> pip-api
     "jsonschema>=4.23.0",
 ]
+gcs = [
+    "google-cloud-storage>=2.18.0",
+]
 misp = [
     "pymisp>=2.4",
 ]

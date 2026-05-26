@@ -19,6 +19,15 @@
 
 ---
 
+## オプション依存
+
+| パッケージ | バージョン制約 | 目的 | ライセンス |
+|-----------|-------------|------|---------|
+| `google-cloud-storage` | `>=2.18.0` | StorageBackend の GCS 実装（`src/beacon/storage/gcs.py`）。`uv sync --extra gcs` でインストール。`BEACON_STORAGE=gcs` の場合のみ必要。 | Apache-2.0 |
+| `pymisp` | `>=2.4` | `src/beacon/ingest/misp_client.py` における MISP Galaxy のライブ取得（オプション）。`pip install 'beacon[misp]'` でインストール。オフライン／キャッシュベース運用では不要。 | BSD-2-Clause |
+
+---
+
 ## 開発専用依存
 
 | パッケージ | バージョン制約 | 目的 | ライセンス |

@@ -20,6 +20,7 @@
 
 | Package | Version | Purpose | License |
 |---------|---------|---------|---------|
+| `google-cloud-storage` | `>=2.18.0` | GCS backend for StorageBackend (`src/beacon/storage/gcs.py`). Install with `uv sync --extra gcs`. Required only when `BEACON_STORAGE=gcs`. | Apache-2.0 |
 | `pymisp` | `>=2.4` | Optional live MISP Galaxy fetch in `src/beacon/ingest/misp_client.py`. Install with `pip install 'beacon[misp]'`. Not required for offline / cache-based operation. | BSD-2-Clause |
 
 ## Development Dependencies
