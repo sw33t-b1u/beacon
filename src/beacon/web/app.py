@@ -829,25 +829,25 @@ async def pir_save(
     _verify_csrf(beacon_csrf, csrf_token)
 
     if not beacon_session:
-        return JSONResponse({"error": "No session"}, status_code=400)
+        raise HTTPException(status_code=400, detail="No session")
     session = load_session(beacon_session)
     if session is None:
-        return JSONResponse({"error": "Session not found or expired"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Session not found or expired")
 
     pirs = session.get("pirs", [])
     if pir_index < 0 or pir_index >= len(pirs):
-        return JSONResponse({"error": "Invalid PIR index"}, status_code=400)
+        raise HTTPException(status_code=400, detail="Invalid PIR index")
 
     if actor_index != "":
         # Actor-level edit
         try:
             actor_idx = int(actor_index)
         except ValueError:
-            return JSONResponse({"error": "Invalid actor index"}, status_code=400)
+            raise HTTPException(status_code=400, detail="Invalid actor index")
 
         actors = pirs[pir_index].get("prioritized_actors", [])
         if actor_idx < 0 or actor_idx >= len(actors):
-            return JSONResponse({"error": "Invalid actor index"}, status_code=400)
+            raise HTTPException(status_code=400, detail="Invalid actor index")
 
         excluded = actor_excluded in ("1", "true", "on")
         reason = actor_exclusion_reason.strip() or None
@@ -857,13 +857,13 @@ async def pir_save(
             try:
                 val = float(actor_manual_likelihood)
             except ValueError:
-                return JSONResponse(
-                    {"error": "actor_manual_likelihood must be a number"}, status_code=400
+                raise HTTPException(
+                    status_code=400, detail="actor_manual_likelihood must be a number"
                 )
             if not (0.0 <= val <= 1.0):
-                return JSONResponse(
-                    {"error": "actor_manual_likelihood must be between 0.0 and 1.0"},
+                raise HTTPException(
                     status_code=400,
+                    detail="actor_manual_likelihood must be between 0.0 and 1.0",
                 )
             manual_likelihood = val
 
@@ -882,7 +882,7 @@ async def pir_save(
         try:
             PrioritizedActor.model_validate(updated)
         except ValidationError as exc:
-            return JSONResponse({"error": str(exc)}, status_code=400)
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
         actors[actor_idx] = updated
         pirs[pir_index]["prioritized_actors"] = actors
@@ -912,10 +912,10 @@ async def pir_approve(
     _verify_csrf(beacon_csrf, csrf_token)
 
     if not beacon_session:
-        return JSONResponse({"error": "No session"}, status_code=400)
+        raise HTTPException(status_code=400, detail="No session")
     session = load_session(beacon_session)
     if session is None:
-        return JSONResponse({"error": "Session not found or expired"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Session not found or expired")
 
     from beacon.config import load_config  # noqa: PLC0415
     from beacon.review.github import GHEClient, submit_pirs_for_review  # noqa: PLC0415
@@ -924,7 +924,7 @@ async def pir_approve(
     try:
         client = GHEClient(token=cfg.ghe_token, repo=cfg.ghe_repo, api_base=cfg.ghe_api_base)
     except ValueError as exc:
-        return JSONResponse({"error": str(exc)}, status_code=400)
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     pirs = session.get("pirs", [])
     collection_plan_text = session.get("collection_plan", "") or None
@@ -940,10 +940,10 @@ async def pir_approve(
 async def pir_export(beacon_session: str = Cookie(default="")):
     """Download pir_output.json from the current session."""
     if not beacon_session:
-        return JSONResponse({"error": "No session"}, status_code=400)
+        raise HTTPException(status_code=400, detail="No session")
     session = load_session(beacon_session)
     if session is None:
-        return JSONResponse({"error": "Session not found or expired"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Session not found or expired")
 
     pirs = session.get("pirs", [])
     content = json.dumps(pirs, ensure_ascii=False, indent=2).encode("utf-8")
@@ -1057,24 +1057,24 @@ async def review_save(
     _verify_csrf(beacon_csrf, csrf_token)
 
     if not beacon_session:
-        return JSONResponse({"error": "No session"}, status_code=400)
+        raise HTTPException(status_code=400, detail="No session")
     session = load_session(beacon_session)
     if session is None:
-        return JSONResponse({"error": "Session not found or expired"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Session not found or expired")
 
     pirs = session.get("pirs", [])
     if pir_index < 0 or pir_index >= len(pirs):
-        return JSONResponse({"error": "Invalid PIR index"}, status_code=400)
+        raise HTTPException(status_code=400, detail="Invalid PIR index")
 
     if actor_index != "":
         try:
             actor_idx = int(actor_index)
         except ValueError:
-            return JSONResponse({"error": "Invalid actor index"}, status_code=400)
+            raise HTTPException(status_code=400, detail="Invalid actor index")
 
         actors = pirs[pir_index].get("prioritized_actors", [])
         if actor_idx < 0 or actor_idx >= len(actors):
-            return JSONResponse({"error": "Invalid actor index"}, status_code=400)
+            raise HTTPException(status_code=400, detail="Invalid actor index")
 
         excluded = actor_excluded in ("1", "true", "on")
         reason = actor_exclusion_reason.strip() or None
@@ -1084,13 +1084,13 @@ async def review_save(
             try:
                 val = float(actor_manual_likelihood)
             except ValueError:
-                return JSONResponse(
-                    {"error": "actor_manual_likelihood must be a number"}, status_code=400
+                raise HTTPException(
+                    status_code=400, detail="actor_manual_likelihood must be a number"
                 )
             if not (0.0 <= val <= 1.0):
-                return JSONResponse(
-                    {"error": "actor_manual_likelihood must be between 0.0 and 1.0"},
+                raise HTTPException(
                     status_code=400,
+                    detail="actor_manual_likelihood must be between 0.0 and 1.0",
                 )
             manual_likelihood = val
 
@@ -1109,7 +1109,7 @@ async def review_save(
         try:
             PrioritizedActor.model_validate(updated)
         except ValidationError as exc:
-            return JSONResponse({"error": str(exc)}, status_code=400)
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
         actors[actor_idx] = updated
         pirs[pir_index]["prioritized_actors"] = actors
@@ -1137,10 +1137,10 @@ async def review_approve(
     _verify_csrf(beacon_csrf, csrf_token)
 
     if not beacon_session:
-        return JSONResponse({"error": "No session"}, status_code=400)
+        raise HTTPException(status_code=400, detail="No session")
     session = load_session(beacon_session)
     if session is None:
-        return JSONResponse({"error": "Session not found or expired"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Session not found or expired")
 
     from beacon.config import load_config  # noqa: PLC0415
     from beacon.review.github import GHEClient, submit_pirs_for_review  # noqa: PLC0415
@@ -1149,7 +1149,7 @@ async def review_approve(
     try:
         client = GHEClient(token=cfg.ghe_token, repo=cfg.ghe_repo, api_base=cfg.ghe_api_base)
     except ValueError as exc:
-        return JSONResponse({"error": str(exc)}, status_code=400)
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     pirs = session.get("pirs", [])
     collection_plan_text = session.get("collection_plan", "") or None
@@ -1171,10 +1171,10 @@ async def review_pir(request: Request, pir_id: str):
 async def review_export(beacon_session: str = Cookie(default="")):
     """Download pir_output.json from the current session (legacy route kept)."""
     if not beacon_session:
-        return JSONResponse({"error": "No session"}, status_code=400)
+        raise HTTPException(status_code=400, detail="No session")
     session = load_session(beacon_session)
     if session is None:
-        return JSONResponse({"error": "Session not found or expired"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Session not found or expired")
 
     pirs = session.get("pirs", [])
     content = json.dumps(pirs, ensure_ascii=False, indent=2).encode("utf-8")
