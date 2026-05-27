@@ -66,9 +66,9 @@ BEACON は同一のコンテキストドキュメントから 4 つの出力パ�
 | ドキュメント | 内容 |
 |-------------|------|
 | [docs/setup.ja.md](docs/setup.ja.md) | 前提条件・インストール・環境変数・GCP 認証 |
-| [docs/context_template.ja.md](docs/context_template.ja.md) | `input/context.md` テンプレート — パイプライン入力となる Markdown 戦略ドキュメントの記述ガイド |
+| [schema/context_template.ja.md](schema/context_template.ja.md) | `input/context.md` テンプレート — パイプライン入力となる Markdown 戦略ドキュメントの記述ガイド |
 | [docs/data-model.ja.md](docs/data-model.ja.md) | BusinessContext スキーマ・PIR 出力フォーマット・`identity_assets.json` / `user_accounts.json` スキーマ・インテリジェンスレベル・脅威タクソノミー |
-| [docs/sage_integration.ja.md](docs/sage_integration.ja.md) | SAGE への PIR デプロイと ETL 検証手順 |
+| [docs/operations.ja.md](docs/operations.ja.md) | 日常運用、MISP キャッシュ更新、SAGE 連携と ETL 検証手順 |
 | [docs/dependencies.ja.md](docs/dependencies.ja.md) | 依存パッケージの選定理由とライセンス情報 |
 
 ## ストレージバックエンド（Initiative I）

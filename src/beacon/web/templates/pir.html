@@ -182,25 +182,73 @@
       <div style="margin-top:0.75rem; font-size:0.88rem;">
         {% set sb = actor.score_breakdown %}
         <table style="margin-bottom:0.75rem; width:100%;">
-          <tr><th>Component</th><th>Score</th><th>Sub-factors</th></tr>
+          <tr><th style="width:6rem;">評価軸</th><th style="width:3.5rem;">スコア</th><th>内訳</th></tr>
           <tr>
-            <td>Intent</td>
+            <td>Intent<br><small style="color:#888;">意図</small></td>
             <td>{{ "%.3f"|format(sb.intent.score | default(0.0)) }}</td>
-            <td>motivation={{ "%.3f"|format(sb.intent.motivation_alignment | default(0.0)) }}, industry={{ "%.3f"|format(sb.intent.industry_match | default(0.0)) }}</td>
+            <td style="font-size:0.82rem;">
+              動機適合: {{ "%.3f"|format(sb.intent.motivation_alignment | default(0.0)) }},
+              業種適合: {{ "%.3f"|format(sb.intent.industry_match | default(0.0)) }}
+              {% if sb.intent.ir_observed is defined and sb.intent.ir_observed != 1.0 %}
+              , IR観測: {{ "%.1f"|format(sb.intent.ir_observed) }}
+              {% endif %}
+            </td>
           </tr>
           <tr>
-            <td>Capability</td>
+            <td>Capability<br><small style="color:#888;">能力</small></td>
             <td>{{ "%.3f"|format(sb.capability.score | default(0.0)) }}</td>
-            <td>depth={{ "%.3f"|format(sb.capability.depth | default(0.0)) }}, breadth={{ "%.3f"|format(sb.capability.breadth | default(0.0)) }} | soph={{ "%.3f"|format(sb.capability.sophistication_score | default(0.0)) }}, ttp={{ "%.3f"|format(sb.capability.ttp_count_norm | default(0.0)) }}, rec={{ "%.3f"|format(sb.capability.recency_active_campaigns | default(0.0)) }}, tool={{ "%.3f"|format(sb.capability.tool_sophistication | default(0.0)) }}, pers={{ "%.3f"|format(sb.capability.targeting_persistence | default(0.0)) }}, evas={{ "%.3f"|format(sb.capability.evasion_capability | default(0.0)) }}</td>
+            <td style="font-size:0.82rem;">
+              技術深度: {{ "%.3f"|format(sb.capability.depth | default(0.0)) }},
+              技術幅: {{ "%.3f"|format(sb.capability.breadth | default(0.0)) }}<br>
+              洗練度: {{ "%.3f"|format(sb.capability.sophistication_score | default(0.0)) }},
+              TTP数: {{ "%.3f"|format(sb.capability.ttp_count_norm | default(0.0)) }},
+              活発度: {{ "%.3f"|format(sb.capability.recency_active_campaigns | default(0.0)) }},
+              ツール使用数: {{ "%.3f"|format(sb.capability.tool_usage | default(0.0)) }},
+              執拗度: {{ "%.3f"|format(sb.capability.targeting_persistence | default(0.0)) }},
+              検知回避力: {{ "%.3f"|format(sb.capability.evasion_capability | default(0.0)) }}
+            </td>
           </tr>
           <tr>
-            <td>Opportunity</td>
+            <td>Opportunity<br><small style="color:#888;">機会</small></td>
             <td>{{ "%.3f"|format(sb.opportunity.score | default(0.0)) }}</td>
-            <td>victimology={{ "%.3f"|format(sb.opportunity.victimology_match | default(0.0)) }}, geo={{ "%.3f"|format(sb.opportunity.geographic_match | default(0.0)) }}, ttp_cov={{ "%.3f"|format(sb.opportunity.surface_ttp_coverage | default(0.0)) }}</td>
+            <td style="font-size:0.82rem;">
+              標的適合: {{ "%.3f"|format(sb.opportunity.victimology_match | default(0.0)) }},
+              地理適合: {{ "%.3f"|format(sb.opportunity.geographic_match | default(0.0)) }},
+              攻撃面TTP: {{ "%.3f"|format(sb.opportunity.surface_ttp_coverage | default(0.0)) }}
+            </td>
           </tr>
         </table>
+        <details style="margin-bottom:0.75rem;">
+          <summary style="cursor:pointer; font-size:0.8rem; color:#666;">スコア凡例</summary>
+          <div style="font-size:0.78rem; color:#555; margin-top:0.5rem; line-height:1.6;">
+            <strong>Likelihood</strong> = Intent &times; Capability &times; Opportunity<br>
+            <strong>Intent</strong> = 動機適合 &times; 業種適合 &times; IR観測<br>
+            <strong>Capability</strong> = 技術深度 &times; 技術幅<br>
+            <strong>Opportunity</strong> = (標的適合 &times; 地理適合 &times; 攻撃面TTP)<sup>1/3</sup>
+            <table style="margin-top:0.5rem; width:100%; font-size:0.78rem;">
+              <tr><th style="width:7rem;">指標</th><th>値の意味</th></tr>
+              <tr><td>動機適合</td><td>1.0=動機一致 / 0.5=データなし / 0.0=不一致</td></tr>
+              <tr><td>業種適合</td><td>0~1 Jaccard類似度（0.5=データなし）</td></tr>
+              <tr><td>IR観測</td><td>1.0=自組織への攻撃実績あり / 0.5=なし</td></tr>
+              <tr><td>洗練度</td><td>STIX sophistication 7段階: none(0)→strategic(1.0)</td></tr>
+              <tr><td>TTP数</td><td>min(既知TTP数 / 100, 1.0)</td></tr>
+              <tr><td>活発度</td><td>1.0=90日以内 / 0.5=1年以内 / 0.25=3年以内 / 0.0=それ以前</td></tr>
+              <tr><td>ツール使用数</td><td>min(使用ツール数 / 50, 1.0)</td></tr>
+              <tr><td>執拗度</td><td>(キャンペーン数/5 + 活動年数/10) / 2</td></tr>
+              <tr><td>検知回避力</td><td>min(Defense Evasion TTP数 / 20, 1.0)</td></tr>
+              <tr><td>技術深度</td><td>(洗練度 &times; ツール使用数 &times; 検知回避力)<sup>1/3</sup></td></tr>
+              <tr><td>技術幅</td><td>(TTP数 &times; 執拗度 &times; 活発度)<sup>1/3</sup></td></tr>
+              <tr><td>標的適合</td><td>1.0=被害業種に重複あり / 0.5=データなし / 0.0=重複なし</td></tr>
+              <tr><td>地理適合</td><td>0~1 Jaccard類似度（0.5=データなし）</td></tr>
+              <tr><td>攻撃面TTP</td><td>|アクターTTP &cap; 攻撃面TTP| / |攻撃面TTP|</td></tr>
+            </table>
+          </div>
+        </details>
         {% if sb.data_quality and sb.data_quality.degraded %}
-        <p style="color:#e67e22; font-size:0.82rem; margin-bottom:0.5rem;">&#9888; Degraded data: {{ sb.data_quality.missing_sources | join(', ') }}</p>
+        <p style="color:#e67e22; font-size:0.82rem; margin-bottom:0.5rem;">&#9888; データ品質低下: {{ sb.data_quality.missing_sources | join(', ') }}</p>
+        {% endif %}
+        {% if sb.data_quality and sb.data_quality.ir_boost_skipped %}
+        <p style="color:#999; font-size:0.82rem; margin-bottom:0.5rem;">&#9432; IR観測データ未取得（SAGE未接続）</p>
         {% endif %}
 
         <p style="margin-bottom:0.5rem;"><strong>Rationale:</strong> {{ actor.rationale.text }}</p>

@@ -26,7 +26,7 @@ context.md ──→ BEACON ──→ TRACE ──→ SAGE
 
 ### 1.1 ビジネスコンテキストドキュメントの準備
 
-`input/context.md` を `docs/context_template.ja.md` のフォーマットに従って作成する。
+`input/context.md` を `schema/context_template.ja.md` のフォーマットに従って作成する。
 `input/context.md` は `.gitignore` 対象であり、リポジトリにはコミットされない。
 
 | セクション | PIR 生成への影響 |
@@ -371,8 +371,7 @@ pir-generate ──→ crawl-batch ──→  run-etl ──→         pir-gene
 ```
 
 次回の `beacon pir-generate --use-sage` 実行時に、SAGE に蓄積された観測データが
-actor triage の Likelihood スコア（`ir_observed_capability` +
-`ir_observed_opportunity`）に反映され、PIR の精度がサイクルごとに向上する。
+actor triage の Intent スコア（`ir_observed`）に反映され、PIR の精度がサイクルごとに向上する。
 
 ---
 

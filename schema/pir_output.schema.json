@@ -24,13 +24,6 @@
           "title": "Evasion Capability",
           "type": "number"
         },
-        "ir_observed_capability": {
-          "default": 1.0,
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Ir Observed Capability",
-          "type": "number"
-        },
         "recency_active_campaigns": {
           "maximum": 1.0,
           "minimum": 0.0,
@@ -56,11 +49,11 @@
           "title": "Targeting Persistence",
           "type": "number"
         },
-        "tool_sophistication": {
+        "tool_usage": {
           "default": 0.0,
           "maximum": 1.0,
           "minimum": 0.0,
-          "title": "Tool Sophistication",
+          "title": "Tool Usage",
           "type": "number"
         },
         "ttp_count_norm": {
@@ -111,6 +104,13 @@
           "title": "Industry Match",
           "type": "number"
         },
+        "ir_observed": {
+          "default": 1.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Ir Observed",
+          "type": "number"
+        },
         "motivation_alignment": {
           "maximum": 1.0,
           "minimum": 0.0,
@@ -139,13 +139,6 @@
           "maximum": 1.0,
           "minimum": 0.0,
           "title": "Geographic Match",
-          "type": "number"
-        },
-        "ir_observed_opportunity": {
-          "default": 1.0,
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Ir Observed Opportunity",
           "type": "number"
         },
         "score": {

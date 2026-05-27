@@ -113,10 +113,10 @@ CU-GIR のテキストを複製していない。
 |---|---|---|
 | SP 800-30r1 | `src/beacon/analysis/actor_triage.py`（docstring）| アドバーサリーの能力・意図評価テーブル D-3 / D-4 |
 | SP 800-37r2 | `src/beacon/analysis/risk_scorer.py`（コメント）; `docs/data-model.ja.md` | 戦術→運用レベルへのプロモーションのためのイベント駆動トリガーフレームワーク |
-| SP 800-53 | `docs/context_template.ja.md` | AC-2 / AC-3 / IA-2 / IA-4 アクセス制御フレームワーク |
+| SP 800-53 | `schema/context_template.ja.md` | AC-2 / AC-3 / IA-2 / IA-4 アクセス制御フレームワーク |
 | SP 800-82r3 | `src/beacon/analysis/element_extractor.py`（コメント）| IT/OT 収束トリガーのための ICS/OT セキュリティガイダンス参照 |
 | SP 800-161r1 | `src/beacon/analysis/element_extractor.py`（コメント）| サプライチェーンリスク管理の参考文献 |
-| SP 800-207 | `docs/context_template.ja.md` | ゼロトラストアーキテクチャの参考文献 |
+| SP 800-207 | `schema/context_template.ja.md` | ゼロトラストアーキテクチャの参考文献 |
 
 **必要な帰属表記:** 標準的な NIST 引用形式（例: 「NIST SP 800-61r3 §2.1、2025 年 4 月」）。著作権表示は不要。
 
@@ -135,9 +135,8 @@ CU-GIR のテキストを複製していない。
 `src/beacon/analysis/actor_triage.py` の `Likelihood = Intent × Capability × Opportunity`
 計算式の方法論的基盤。Cyber Prep は脅威を *capability（能力）、intent（意図）、targeting（標的化）* の観点から定義しており、BEACON の `Opportunity` 要因は Cyber Prep の `Targeting` にマッピングされる。3 要素の定義の短い原文引用が actor_triage.py の docstring に学術引用として含まれている（フェアユース; 論文テキストの大量複製は行わない）。
 
-この引用は Initiative G の `ir_observed_capability` 要因の根拠でもある:
-Cyber Prep は Capability を「knowledge（知識）」を含むと定義しており、
-過去の攻撃の IR 観測がこの知識シグナルを直接提供する。
+この引用は Initiative G の `ir_observed` 要因の根拠でもある:
+自組織への攻撃実績は意図の最も強い証拠であり、IR 観測は Intent コンポーネントに乗算される。
 
 **必要な帰属表記:** 「Bodeau, Fabius-Greene, Graubart. 'How Do You Assess Your Organization's Cyber Threat Level?' The MITRE Corporation.」インライン学術引用で可; 論文テキストを大量に複製してはならない。
 

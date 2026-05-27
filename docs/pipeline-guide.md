@@ -26,8 +26,8 @@ context.md ──→ BEACON ──→ TRACE ──→ SAGE
 
 ### 1.1 Prepare the business context document
 
-Create `input/context.md` following the template at `docs/context_template.md`
-(Japanese: `docs/context_template.ja.md`). The document should cover:
+Create `input/context.md` following the template at `schema/context_template.md`
+(Japanese: `schema/context_template.ja.md`). The document should cover:
 
 | Section | Impact on PIR Generation |
 |---|---|
@@ -370,9 +370,8 @@ pir-generate ──→ crawl-batch ──→  run-etl ──→         pir-gene
 ```
 
 On subsequent runs, `beacon pir-generate --use-sage` pulls observation
-data from SAGE into the actor-triage Likelihood score
-(`ir_observed_capability` + `ir_observed_opportunity`), improving PIR
-accuracy as the system accumulates operational history.
+data from SAGE into the actor-triage Intent score (`ir_observed`),
+improving PIR accuracy as the system accumulates operational history.
 
 ---
 

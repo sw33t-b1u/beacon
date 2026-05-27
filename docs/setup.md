@@ -109,7 +109,7 @@ make check
 
 ## PIR Generation Workflow
 
-Place your strategy document in `input/` (see [`docs/context_template.md`](context_template.md) for the template). The `input/` and `output/` directories are gitignored — they contain sensitive data and must not be committed.
+Place your strategy document in `input/` (see [`schema/context_template.md`](../schema/context_template.md) for the template). The `input/` and `output/` directories are gitignored — they contain sensitive data and must not be committed.
 
 `--context` is required. You specify the path explicitly, so any filename is accepted (e.g. `input/acme.md`, `input/context_2026Q2.md`).
 
@@ -288,7 +288,7 @@ cd ../SAGE  && uv run python cmd/load_user_accounts.py \
 
    ```bash
    cp pir_output.json /path/to/sage/config/pir.json
-   # Then run SAGE ETL (see docs/sage_integration.md)
+   # Then run SAGE ETL (see docs/operations.md — SAGE Integration section)
    ```
 
 ---

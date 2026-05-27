@@ -42,25 +42,27 @@ BEACON/
 │   ├── submit_for_review.py         # アナリスト承認用 GHE Issue 作成
 │   └── web_app.py                   # Web UI 起動 (uvicorn)
 │
-├── schema/                      # 辞書・スキーマファイル
+├── schema/                      # 辞書・スキーマファイル・入力テンプレート
 │   ├── threat_taxonomy.json     # 業種 × 地域 × トリガー → 脅威アクタータグ
 │   ├── asset_tags.json          # 資産タイプ → SAGE タグマッピング（乗数付き）
 │   ├── content_ja.json          # 日本語コンテンツ辞書
 │   ├── trigger_keywords.json    # ビジネストリガーキーワードパターン
 │   ├── business_context.schema.json  # BusinessContext 検証用 JSONSchema
-│   └── pir_output.schema.json        # PIR 出力検証用 JSONSchema
+│   ├── pir_output.schema.json        # PIR 出力検証用 JSONSchema
+│   ├── context_template.md      # input/context.md 用テンプレート（英語）
+│   └── context_template.ja.md   # input/context.md 用テンプレート（日本語）
 │
 ├── tests/
 │   ├── fixtures/                # ユニットテスト用サンプル JSON / Markdown
 │   └── test_*.py                # pytest テストファイル
 │
 ├── docs/                        # 英語ドキュメント（正本）
+│   ├── README.md                # リーダーペルソナ別ドキュメントインデックス
 │   ├── high-level-design.md     # システム設計書（正本; local-only / gitignored）
 │   ├── setup.md                 # 前提条件、インストール、環境変数
-│   ├── context_template.md      # input/context.md 用テンプレート
 │   ├── data-model.md            # BusinessContext スキーマ、PIR フォーマット、LLM 統合
 │   ├── dependencies.md          # サードパーティ依存関係の根拠とライセンス
-│   ├── sage_integration.md      # SAGE への PIR デプロイと ETL 検証
+│   ├── operations.md            # 日常運用、MISP キャッシュ更新、SAGE 連携
 │   ├── structure.md             # 本ファイル — ディレクトリ構成リファレンス
 │   └── *.ja.md                  # 日本語翻訳（英語版と同じディレクトリに配置）
 │

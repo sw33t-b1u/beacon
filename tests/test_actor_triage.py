@@ -20,7 +20,7 @@ from beacon.analysis.actor_triage import (
     recency_active_campaigns,
     sophistication_score,
     targeting_persistence_score,
-    tool_sophistication_score,
+    tool_usage_score,
     ttp_count_norm,
     victimology_match,
 )
@@ -531,19 +531,19 @@ def test_apt29_in_finance_banking_result():
 
 class TestToolSophisticationScore:
     def test_zero_software(self):
-        assert tool_sophistication_score(0) == 0.0
+        assert tool_usage_score(0) == 0.0
 
     def test_fifty_software_is_max(self):
-        assert tool_sophistication_score(50) == 1.0
+        assert tool_usage_score(50) == 1.0
 
     def test_above_fifty_capped(self):
-        assert tool_sophistication_score(100) == 1.0
+        assert tool_usage_score(100) == 1.0
 
     def test_twenty_five_software(self):
-        assert tool_sophistication_score(25) == pytest.approx(0.5)
+        assert tool_usage_score(25) == pytest.approx(0.5)
 
     def test_ten_software(self):
-        assert tool_sophistication_score(10) == pytest.approx(0.2)
+        assert tool_usage_score(10) == pytest.approx(0.2)
 
 
 class TestTargetingPersistenceScore:
@@ -629,9 +629,9 @@ class TestCapabilityGoldenAPT28:
             self.p["campaign_last_seen"], reference=_REF_DATE
         ) == pytest.approx(0.25)
 
-    def test_tool_sophistication(self):
+    def test_tool_usage(self):
         # sw=29 → 29/50=0.58
-        assert tool_sophistication_score(self.p["software_count"]) == pytest.approx(0.58)
+        assert tool_usage_score(self.p["software_count"]) == pytest.approx(0.58)
 
     def test_targeting_persistence(self):
         # count=1, span≈2.746y → (0.2+0.2746)/2≈0.2373
@@ -646,13 +646,12 @@ class TestCapabilityGoldenAPT28:
         assert evasion_capability_score(self.p["defense_evasion_ttp_count"]) == pytest.approx(0.9)
 
     def test_depth(self):
-        # Initiative G Phase 6 — 4-factor geometric mean (ir_observed_capability=1.0
-        # default when SAGE is not consulted).
+        # 3-factor geometric mean (soph × tool × evasion).
         _soph = sophistication_score("expert")
-        _tool = tool_sophistication_score(self.p["software_count"])
+        _tool = tool_usage_score(self.p["software_count"])
         _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
-        depth = (_soph * _tool * _evas * 1.0) ** (1 / 4)
-        assert depth == pytest.approx(0.7681, abs=1e-3)
+        depth = (_soph * _tool * _evas) ** (1 / 3)
+        assert depth == pytest.approx(0.7034, abs=1e-3)
 
     def test_breadth(self):
         _ttp_n = ttp_count_norm(self.p["technique_count"])
@@ -667,7 +666,7 @@ class TestCapabilityGoldenAPT28:
 
     def test_capability_score(self):
         _soph = sophistication_score("expert")
-        _tool = tool_sophistication_score(self.p["software_count"])
+        _tool = tool_usage_score(self.p["software_count"])
         _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
         _ttp_n = ttp_count_norm(self.p["technique_count"])
         _pers = targeting_persistence_score(
@@ -676,9 +675,9 @@ class TestCapabilityGoldenAPT28:
             self.p["campaign_last_seen"],
         )
         _rec = recency_active_campaigns(self.p["campaign_last_seen"], reference=_REF_DATE)
-        depth = (_soph * _tool * _evas * 1.0) ** (1 / 4)
+        depth = (_soph * _tool * _evas) ** (1 / 3)
         breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
-        assert depth * breadth == pytest.approx(0.2924, abs=1e-3)
+        assert depth * breadth == pytest.approx(0.2678, abs=1e-3)
 
 
 class TestCapabilityGoldenAPT41:
@@ -693,9 +692,9 @@ class TestCapabilityGoldenAPT41:
     def test_ttp_count_norm(self):
         assert ttp_count_norm(self.p["technique_count"]) == pytest.approx(0.82)
 
-    def test_tool_sophistication(self):
+    def test_tool_usage(self):
         # sw=32 → 32/50=0.64
-        assert tool_sophistication_score(self.p["software_count"]) == pytest.approx(0.64)
+        assert tool_usage_score(self.p["software_count"]) == pytest.approx(0.64)
 
     def test_evasion_capability(self):
         # de=23 → min(23/20,1.0)=1.0
@@ -716,16 +715,16 @@ class TestCapabilityGoldenAPT41:
         ) == pytest.approx(0.25)
 
     def test_depth(self):
-        # Initiative G Phase 6 — 4-factor geometric mean (ir_observed_capability=1.0).
+        # 3-factor geometric mean (soph × tool × evasion).
         _soph = sophistication_score("expert")
-        _tool = tool_sophistication_score(self.p["software_count"])
+        _tool = tool_usage_score(self.p["software_count"])
         _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
-        depth = (_soph * _tool * _evas * 1.0) ** (1 / 4)
-        assert depth == pytest.approx(0.8082, abs=1e-3)
+        depth = (_soph * _tool * _evas) ** (1 / 3)
+        assert depth == pytest.approx(0.7528, abs=1e-3)
 
     def test_capability_score(self):
         _soph = sophistication_score("expert")
-        _tool = tool_sophistication_score(self.p["software_count"])
+        _tool = tool_usage_score(self.p["software_count"])
         _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
         _ttp_n = ttp_count_norm(self.p["technique_count"])
         _pers = targeting_persistence_score(
@@ -734,9 +733,9 @@ class TestCapabilityGoldenAPT41:
             self.p["campaign_last_seen"],
         )
         _rec = recency_active_campaigns(self.p["campaign_last_seen"], reference=_REF_DATE)
-        depth = (_soph * _tool * _evas * 1.0) ** (1 / 4)
+        depth = (_soph * _tool * _evas) ** (1 / 3)
         breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
-        assert depth * breadth == pytest.approx(0.3384, abs=1e-3)
+        assert depth * breadth == pytest.approx(0.3153, abs=1e-3)
 
 
 class TestCapabilityGoldenMustangPanda:
@@ -751,9 +750,9 @@ class TestCapabilityGoldenMustangPanda:
     def test_ttp_count_norm(self):
         assert ttp_count_norm(self.p["technique_count"]) == pytest.approx(0.85)
 
-    def test_tool_sophistication(self):
+    def test_tool_usage(self):
         # sw=23 → 23/50=0.46
-        assert tool_sophistication_score(self.p["software_count"]) == pytest.approx(0.46)
+        assert tool_usage_score(self.p["software_count"]) == pytest.approx(0.46)
 
     def test_evasion_capability(self):
         # de=20 → 20/20=1.0
@@ -774,16 +773,16 @@ class TestCapabilityGoldenMustangPanda:
         ) == pytest.approx(0.25)
 
     def test_depth(self):
-        # Initiative G Phase 6 — 4-factor geometric mean (ir_observed_capability=1.0).
+        # 3-factor geometric mean (soph × tool × evasion).
         _soph = sophistication_score("expert")
-        _tool = tool_sophistication_score(self.p["software_count"])
+        _tool = tool_usage_score(self.p["software_count"])
         _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
-        depth = (_soph * _tool * _evas * 1.0) ** (1 / 4)
-        assert depth == pytest.approx(0.7442, abs=1e-3)
+        depth = (_soph * _tool * _evas) ** (1 / 3)
+        assert depth == pytest.approx(0.6744, abs=1e-3)
 
     def test_capability_score(self):
         _soph = sophistication_score("expert")
-        _tool = tool_sophistication_score(self.p["software_count"])
+        _tool = tool_usage_score(self.p["software_count"])
         _evas = evasion_capability_score(self.p["defense_evasion_ttp_count"])
         _ttp_n = ttp_count_norm(self.p["technique_count"])
         _pers = targeting_persistence_score(
@@ -792,9 +791,9 @@ class TestCapabilityGoldenMustangPanda:
             self.p["campaign_last_seen"],
         )
         _rec = recency_active_campaigns(self.p["campaign_last_seen"], reference=_REF_DATE)
-        depth = (_soph * _tool * _evas * 1.0) ** (1 / 4)
+        depth = (_soph * _tool * _evas) ** (1 / 3)
         breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
-        assert depth * breadth == pytest.approx(0.2465, abs=1e-3)
+        assert depth * breadth == pytest.approx(0.2234, abs=1e-3)
 
 
 # ---------------------------------------------------------------------------
@@ -1022,14 +1021,14 @@ _APT29_STIX_ID = "intrusion-set--test-apt29-triage"
 
 
 class TestIRBoostFactorsPresentByDefault:
-    """Without a SAGE client, IR factors default to 1.0 and ir_boost_skipped=False."""
+    """Without a SAGE client, ir_observed defaults to 1.0 and ir_boost_skipped=False."""
 
     def setup_method(self):
         self.misp = MispClient(cache_path=_TRIAGE_MISP_FIXTURE)
         self.taxonomy = _apt29_window_taxonomy()
         self.bctx = _finance_context()
 
-    def test_no_sage_client_yields_neutral_ir_factors(self):
+    def test_no_sage_client_yields_neutral_ir_observed(self):
         actors = prioritize_actors(
             self.bctx,
             self.taxonomy,
@@ -1038,10 +1037,7 @@ class TestIRBoostFactorsPresentByDefault:
             sage_client=None,
         )
         assert len(actors) == 1
-        cap = actors[0].score_breakdown.capability
-        opp = actors[0].score_breakdown.opportunity
-        assert cap.ir_observed_capability == 1.0
-        assert opp.ir_observed_opportunity == 1.0
+        assert actors[0].score_breakdown.intent.ir_observed == 1.0
 
     def test_no_sage_client_does_not_set_ir_boost_skipped(self):
         actors = prioritize_actors(
@@ -1051,21 +1047,18 @@ class TestIRBoostFactorsPresentByDefault:
             self.misp,
             sage_client=None,
         )
-        # ir_boost_skipped is only set when the caller explicitly passes
-        # ir_boost_skipped=True (e.g. --no-sage CLI flag).
         assert actors[0].score_breakdown.data_quality.ir_boost_skipped is False
 
 
 class TestIRBoostFactorsWithMockedSage:
-    """Mocked SAGE responses lock the N≥1 / N=0 boost numerics."""
+    """Mocked SAGE responses: binary ir_observed (1.0 if incidents, 0.5 if none)."""
 
     def setup_method(self):
         self.misp = MispClient(cache_path=_TRIAGE_MISP_FIXTURE)
         self.taxonomy = _apt29_window_taxonomy()
         self.bctx = _finance_context()
 
-    def test_no_incidents_yields_neutral_residual(self):
-        # N=0 → ir_observed_capability=0.5, ir_observed_opportunity=0.7.
+    def test_no_incidents_yields_half(self):
         sage = _StubSageClient(incidents_by_actor={})
         actors = prioritize_actors(
             self.bctx,
@@ -1074,13 +1067,9 @@ class TestIRBoostFactorsWithMockedSage:
             self.misp,
             sage_client=sage,
         )
-        cap = actors[0].score_breakdown.capability
-        opp = actors[0].score_breakdown.opportunity
-        assert cap.ir_observed_capability == 0.5
-        assert opp.ir_observed_opportunity == 0.7
+        assert actors[0].score_breakdown.intent.ir_observed == 0.5
 
-    def test_incident_matching_ttp_yields_full_capability_boost(self):
-        # N=1, incident TTP (T1190) intersects actor priority_ttps → cap=1.0, opp=1.0
+    def test_incident_present_yields_full(self):
         sage = _StubSageClient(
             incidents_by_actor={
                 _APT29_STIX_ID: [
@@ -1098,14 +1087,9 @@ class TestIRBoostFactorsWithMockedSage:
             self.misp,
             sage_client=sage,
         )
-        cap = actors[0].score_breakdown.capability
-        opp = actors[0].score_breakdown.opportunity
-        assert cap.ir_observed_capability == 1.0
-        assert opp.ir_observed_opportunity == 1.0
+        assert actors[0].score_breakdown.intent.ir_observed == 1.0
 
-    def test_incident_no_ttp_overlap_yields_half_capability_full_opportunity(self):
-        # Incident exists (so opp=1.0) but its TTP (T9999) doesn't intersect
-        # actor priority_ttps → cap=0.5 (no overlap), opp=1.0 (still targeted).
+    def test_incident_no_ttp_overlap_still_yields_full(self):
         sage = _StubSageClient(
             incidents_by_actor={
                 _APT29_STIX_ID: [
@@ -1123,10 +1107,7 @@ class TestIRBoostFactorsWithMockedSage:
             self.misp,
             sage_client=sage,
         )
-        cap = actors[0].score_breakdown.capability
-        opp = actors[0].score_breakdown.opportunity
-        assert cap.ir_observed_capability == 0.5
-        assert opp.ir_observed_opportunity == 1.0
+        assert actors[0].score_breakdown.intent.ir_observed == 1.0
 
     def test_sage_call_uses_lookback_window(self):
         sage = _StubSageClient(incidents_by_actor={})
@@ -1157,12 +1138,8 @@ class TestIRBoostFactorsWithMockedSage:
             sage_client=sage,
             ir_boost_skipped=True,
         )
-        # SAGE call MUST NOT happen when the flag is set, regardless of client presence.
         assert sage.calls == []
-        cap = actors[0].score_breakdown.capability
-        opp = actors[0].score_breakdown.opportunity
-        assert cap.ir_observed_capability == 1.0
-        assert opp.ir_observed_opportunity == 1.0
+        assert actors[0].score_breakdown.intent.ir_observed == 1.0
         assert actors[0].score_breakdown.data_quality.ir_boost_skipped is True
 
 
@@ -1185,11 +1162,8 @@ class TestIRBoostFailSoft:
             self.misp,
             sage_client=sage,
         )
-        cap = actors[0].score_breakdown.capability
-        opp = actors[0].score_breakdown.opportunity
         dq = actors[0].score_breakdown.data_quality
-        assert cap.ir_observed_capability == 1.0
-        assert opp.ir_observed_opportunity == 1.0
+        assert actors[0].score_breakdown.intent.ir_observed == 1.0
         assert dq.degraded is True
         assert "sage_incidents" in dq.missing_sources
 

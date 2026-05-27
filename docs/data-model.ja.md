@@ -4,7 +4,7 @@
 
 ## 入力: BusinessContext JSON
 
-戦略ドキュメントを `input/context.md` として配置してください（[`docs/context_template.ja.md`](context_template.ja.md) 参照）。
+戦略ドキュメントを `input/context.md` として配置してください（[`schema/context_template.ja.md`](../schema/context_template.ja.md) 参照）。
 LLM が Markdown を構造化 `BusinessContext` JSON に変換します。`--save-context` で中間 JSON を確認できます。
 
 ```json

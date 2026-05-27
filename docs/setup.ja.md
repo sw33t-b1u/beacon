@@ -109,7 +109,7 @@ make check
 
 ## PIR 生成ワークフロー
 
-戦略ドキュメントを `input/` ディレクトリに配置してください（テンプレートは [`docs/context_template.ja.md`](context_template.ja.md) を参照）。`input/` と `output/` ディレクトリは gitignore 対象です — 機密データを含むためコミットしないでください。
+戦略ドキュメントを `input/` ディレクトリに配置してください（テンプレートは [`schema/context_template.ja.md`](../schema/context_template.ja.md) を参照）。`input/` と `output/` ディレクトリは gitignore 対象です — 機密データを含むためコミットしないでください。
 
 `--context` は必須引数です。パスを明示的に指定するため、ファイル名は自由に決められます（例: `input/acme.md`、`input/context_2026Q2.md`）。
 
@@ -287,7 +287,7 @@ cd ../SAGE  && uv run python cmd/load_user_accounts.py \
 
    ```bash
    cp pir_output.json /path/to/sage/config/pir.json
-   # その後 SAGE ETL を実行（docs/sage_integration.ja.md 参照）
+   # その後 SAGE ETL を実行（docs/operations.ja.md — SAGE 連携セクション参照）
    ```
 
 ---

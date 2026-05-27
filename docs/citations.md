@@ -118,10 +118,10 @@ Statistical citation in `schema/content_ja.json` `trigger_actions`
 |---|---|---|
 | SP 800-30r1 | `src/beacon/analysis/actor_triage.py` (docstring) | Adversary capability + intent assessment tables D-3 / D-4 |
 | SP 800-37r2 | `src/beacon/analysis/risk_scorer.py` (comment); `docs/data-model.ja.md` | Event-driven trigger framework for tactical → operational level promotion |
-| SP 800-53 | `docs/context_template.ja.md` | AC-2 / AC-3 / IA-2 / IA-4 access control framework |
+| SP 800-53 | `schema/context_template.ja.md` | AC-2 / AC-3 / IA-2 / IA-4 access control framework |
 | SP 800-82r3 | `src/beacon/analysis/element_extractor.py` (comment) | ICS/OT security guidance referenced for IT/OT convergence trigger |
 | SP 800-161r1 | `src/beacon/analysis/element_extractor.py` (comment) | Supply chain risk management reference |
-| SP 800-207 | `docs/context_template.ja.md` | Zero Trust architecture reference |
+| SP 800-207 | `schema/context_template.ja.md` | Zero Trust architecture reference |
 
 **Required attribution:** Standard NIST citation form (e.g., "NIST SP 800-61r3
 §2.1, April 2025"). No copyright notice required.
@@ -145,9 +145,9 @@ to Cyber Prep's `Targeting`. Short verbatim quotes of the three-factor
 definitions are included in the actor_triage.py docstring as academic
 citations under fair use; no bulk reproduction of paper text.
 
-This same citation also anchors Initiative G's `ir_observed_capability` factor:
-Cyber Prep defines Capability as including "knowledge", which IR observation
-of past attacks directly provides.
+This same citation also anchors Initiative G's `ir_observed` factor:
+a confirmed past attack against the organisation is the strongest evidence
+of intent, so IR observation is multiplied into the Intent component.
 
 **Required attribution:** "Bodeau, Fabius-Greene, Graubart. 'How Do You Assess
 Your Organization's Cyber Threat Level?' The MITRE Corporation." Inline academic

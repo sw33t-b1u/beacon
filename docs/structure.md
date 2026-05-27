@@ -42,25 +42,27 @@ BEACON/
 │   ├── submit_for_review.py         # Create GHE Issues for analyst sign-off
 │   └── web_app.py                   # Launch Web UI (uvicorn)
 │
-├── schema/                      # Dictionary and schema files
+├── schema/                      # Dictionary, schema files, and input templates
 │   ├── threat_taxonomy.json     # Industry × geography × trigger → threat actor tags
 │   ├── asset_tags.json          # Asset type → SAGE tag mapping (with multipliers)
 │   ├── content_ja.json          # Japanese content dictionary
 │   ├── trigger_keywords.json    # Business trigger keyword patterns
 │   ├── business_context.schema.json  # JSONSchema for BusinessContext validation
-│   └── pir_output.schema.json        # JSONSchema for PIR output validation
+│   ├── pir_output.schema.json        # JSONSchema for PIR output validation
+│   ├── context_template.md      # Template for input/context.md
+│   └── context_template.ja.md   # Japanese version of the context template
 │
 ├── tests/
 │   ├── fixtures/                # Sample JSON / Markdown inputs for unit tests
 │   └── test_*.py                # pytest test files
 │
 ├── docs/                        # English documentation (authoritative)
+│   ├── README.md                # Documentation index by reader persona
 │   ├── high-level-design.md     # Authoritative system design (local-only; gitignored)
 │   ├── setup.md                 # Prerequisites, installation, environment variables
-│   ├── context_template.md      # Template for input/context.md
 │   ├── data-model.md            # BusinessContext schema, PIR format, LLM integration
 │   ├── dependencies.md          # Third-party dependency rationale and licenses
-│   ├── sage_integration.md      # PIR deployment to SAGE and ETL verification
+│   ├── operations.md            # Day-to-day operations, MISP cache, SAGE integration
 │   ├── structure.md             # This file — directory layout reference
 │   └── *.ja.md                  # Japanese translations alongside each English doc
 │

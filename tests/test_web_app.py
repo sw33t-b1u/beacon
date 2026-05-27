@@ -40,7 +40,7 @@ def _make_actor(i: int) -> dict:
                 "sophistication_score": 0.5,
                 "ttp_count_norm": 0.4,
                 "recency_active_campaigns": 0.5,
-                "tool_sophistication": 0.3,
+                "tool_usage": 0.3,
                 "targeting_persistence": 0.2,
                 "evasion_capability": 0.4,
                 "depth": 0.39,

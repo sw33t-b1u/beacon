@@ -20,20 +20,14 @@ MITRE Cyber Prep methodology (Bodeau, Fabius-Greene, Graubart,
   three-factor decomposition `Likelihood = Intent × Capability ×
   Opportunity` is methodologically aligned with this framework.
 
-IR-observed boost (Initiative G Phase 6):
-  Cyber Prep names "knowledge" as a constituent of Capability; observation
-  of the actor's past attacks against the organisation directly supplies
-  that knowledge signal. `ir_observed_capability` is therefore added as a
-  4th Depth factor and toggles 1.0 when ≥1 own-org incident in the
-  lookback window uses TTPs the actor is known for, otherwise 0.5
-  (neutral — absence of own incidents should not zero out external
-  attribution). Cyber Prep's "how persistently the adversary targets a
-  specific organization" maps to `ir_observed_opportunity`, which
-  toggles 1.0 when the actor has ever attacked the org in the window
-  and 0.7 otherwise (residual neutral — prior targeting is a strong
-  Opportunity signal, but no prior incident is not punitive). Both
-  factors fail-soft to 1.0 when SAGE is unreachable (data_quality.degraded)
-  or skipped (data_quality.ir_boost_skipped).
+IR-observed boost (Initiative G Phase 6, redesigned):
+  Binary signal: has this actor ever attacked our organisation within the
+  IR lookback window?  1.0 = yes, 0.5 = no (neutral — absence of own
+  incidents should not zero out external attribution).  Multiplied into
+  Intent as ``ir_observed``: a confirmed past attack is the strongest
+  evidence of intent toward this specific organisation.  Fails-soft to
+  1.0 when SAGE is unreachable (data_quality.degraded) or skipped
+  (data_quality.ir_boost_skipped).
 
 Formula (product form, sign-off 1):
   Likelihood = Intent × Capability × Opportunity
@@ -126,26 +120,20 @@ class IntentComponent(BaseModel):
     score: float = Field(ge=0.0, le=1.0)
     motivation_alignment: float = Field(ge=0.0, le=1.0)
     industry_match: float = Field(ge=0.0, le=1.0)
+    ir_observed: float = Field(default=1.0, ge=0.0, le=1.0)
 
 
 class CapabilityComponent(BaseModel):
     model_config = ConfigDict(extra="allow")
     score: float = Field(ge=0.0, le=1.0)
-    # Phase 0 (Initiative D) factors
     sophistication_score: float = Field(ge=0.0, le=1.0)
     ttp_count_norm: float = Field(ge=0.0, le=1.0)
     recency_active_campaigns: float = Field(ge=0.0, le=1.0)
-    # Phase 1 (Initiative E) extension — Depth × Breadth aggregation
-    tool_sophistication: float = Field(default=0.0, ge=0.0, le=1.0)
+    tool_usage: float = Field(default=0.0, ge=0.0, le=1.0)
     targeting_persistence: float = Field(default=0.0, ge=0.0, le=1.0)
     evasion_capability: float = Field(default=0.0, ge=0.0, le=1.0)
     depth: float = Field(default=0.0, ge=0.0, le=1.0)
     breadth: float = Field(default=0.0, ge=0.0, le=1.0)
-    # Initiative G Phase 6 — IR-observed Capability boost (4th Depth factor).
-    # 1.0 = ≥1 own-org incident in lookback uses this actor's TTPs;
-    # 0.5 = no own-org incidents matched (neutral, not 0); 1.0 = SAGE skipped /
-    # unreachable (identity in geometric mean; data_quality flag set).
-    ir_observed_capability: float = Field(default=1.0, ge=0.0, le=1.0)
 
 
 class OpportunityComponent(BaseModel):
@@ -154,12 +142,6 @@ class OpportunityComponent(BaseModel):
     victimology_match: float = Field(ge=0.0, le=1.0)
     geographic_match: float = Field(ge=0.0, le=1.0)
     surface_ttp_coverage: float = Field(ge=0.0, le=1.0)
-    # Initiative G Phase 6 — IR-observed Opportunity boost (4th factor).
-    # 1.0 = actor ever attacked own org in lookback window;
-    # 0.7 = never observed (residual neutral, prior targeting is a strong
-    # Opportunity signal but no prior incident is not punitive); 1.0 = SAGE
-    # skipped / unreachable (identity in geometric mean; data_quality flag set).
-    ir_observed_opportunity: float = Field(default=1.0, ge=0.0, le=1.0)
 
 
 class DataQualityComponent(BaseModel):
@@ -332,7 +314,7 @@ def geographic_match(
     return len(a & b) / len(union)
 
 
-def tool_sophistication_score(software_count: int) -> float:
+def tool_usage_score(software_count: int) -> float:
     """Normalize software/tool count (from ATT&CK relationships) to [0, 1].
 
     Upper bound: 50 distinct tools — covers APT29-class actors (~49 observed).
@@ -464,30 +446,13 @@ def _incident_ttp_ids(incident: dict) -> set[str]:
     return ids
 
 
-def _compute_ir_boost(
-    incidents: list[dict],
-    actor_ttps: list[str],
-) -> tuple[float, float]:
-    """Translate own-org incidents into (ir_observed_capability, ir_observed_opportunity).
+def _compute_ir_boost(incidents: list[dict]) -> float:
+    """Binary IR-observed signal: has this actor attacked our org?
 
-    Returns the pair (capability_boost, opportunity_boost):
-      * ir_observed_capability = 1.0 when ≥1 incident's TTPs intersect this
-        actor's known TTPs; otherwise 0.5 (neutral).
-      * ir_observed_opportunity = 1.0 when ≥1 incident was attributed to
-        this actor in the lookback window; otherwise 0.7 (residual neutral).
-
-    The opportunity signal assumes the caller already filtered `incidents`
-    to this actor via SAGE's `actor_stix_id` query parameter.
+    Returns 1.0 when ≥1 incident exists for this actor in the lookback
+    window (caller pre-filters by actor_stix_id), 0.5 otherwise (neutral).
     """
-    if not incidents:
-        return 0.5, 0.7
-    actor_ttp_set = {t for t in actor_ttps if t}
-    if not actor_ttp_set:
-        # No known TTPs for this actor → cannot match; treat as no overlap.
-        return 0.5, 1.0
-    matched = any(_incident_ttp_ids(inc) & actor_ttp_set for inc in incidents)
-    cap = 1.0 if matched else 0.5
-    return cap, 1.0
+    return 1.0 if incidents else 0.5
 
 
 def _build_actor_cat_map(taxonomy: dict) -> dict[str, dict]:
@@ -627,14 +592,10 @@ def prioritize_actors(
             )
             continue
 
-        # ------ IR-boost (Initiative G Phase 6) ------
-        # Per-actor SAGE /api/incidents lookup; fail-soft on network error
-        # (sets data_quality.degraded=True for that actor and downgrades the
-        # remaining loop iterations to skip the SAGE call). When skipped or
-        # unreachable, the IR factors default to 1.0 (identity in the
-        # geometric mean), so external attribution dominates.
-        _ir_cap: float = 1.0
-        _ir_opp: float = 1.0
+        # ------ IR-boost (Initiative G Phase 6, redesigned) ------
+        # Binary signal multiplied into Intent: has this actor attacked us?
+        # Fail-soft to 1.0 when SAGE is unreachable or skipped.
+        _ir_obs: float = 1.0
         ir_degraded_this_actor = False
         if sage_client is not None and not ir_boost_skipped and not sage_degraded:
             _actor_stix_id = _resolve_actor_stix_id(misp_attr)
@@ -645,8 +606,7 @@ def prioritize_actors(
                         until=_today,
                         actor_stix_id=_actor_stix_id,
                     )
-                    # Actor's known TTPs = taxonomy priority_ttps ∪ MISP-derived (none here).
-                    _ir_cap, _ir_opp = _compute_ir_boost(_incidents, cat_ttps)
+                    _ir_obs = _compute_ir_boost(_incidents)
                 except (httpx.HTTPError, httpx.TimeoutException) as exc:
                     _log.warning(
                         "actor_triage_sage_unreachable",
@@ -666,36 +626,34 @@ def prioritize_actors(
                     sage_degraded = True
                     ir_degraded_this_actor = True
 
-        # ------ Capability — Depth × Breadth aggregation (Initiative E Phase 1) ------
-        # Depth: 4-factor geometric mean of quality factors (HOW capable the
-        # actor is) — Initiative G Phase 6 extends with ir_observed_capability.
-        # Breadth: geometric mean of quantity factors (HOW MUCH the actor
-        # operates) — unchanged from Initiative E.
-        # Both collapse to 0 if any constituent factor is 0 (geometric mean property).
+        # ------ Intent (with IR-observed) ------
+        intent_score = min(max(_mot * _ind * _ir_obs, 0.0), 1.0)
+
+        # ------ Capability — Depth × Breadth aggregation ------
+        # Depth: 3-factor geometric mean of quality factors.
+        # Breadth: 3-factor geometric mean of quantity factors.
         _soph = sophistication_score(stix_soph)
         _ttp_n = ttp_count_norm(profile.get("technique_count", 0))
-        # Phase 2 residual note #2 — derive recency from taxonomy campaign_last_seen,
-        # NOT ActorAttributes.active (which is always None at the MISP client layer).
         _rec = recency_active_campaigns(
             profile.get("campaign_last_seen"), reference=_now, window_days=window_days
         )
-        _tool = tool_sophistication_score(profile.get("software_count", 0))
+        _tool = tool_usage_score(profile.get("software_count", 0))
         _pers = targeting_persistence_score(
             profile.get("campaign_count", 0),
             profile.get("campaign_first_seen"),
             profile.get("campaign_last_seen"),
         )
         _evas = evasion_capability_score(profile.get("defense_evasion_ttp_count", 0))
-        _depth = (_soph * _tool * _evas * _ir_cap) ** (1 / 4)
+        _depth = (_soph * _tool * _evas) ** (1 / 3)
         _breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
         capability_score = min(max(_depth * _breadth, 0.0), 1.0)
 
-        # ------ Opportunity — 4-factor geometric mean (Initiative G Phase 6) ------
+        # ------ Opportunity — 3-factor geometric mean ------
         _vic = victimology_match(actor_industries, business_sectors)
         _geo = geographic_match(actor_geos, business_geos)
         _surf = _surface_ttp_coverage(cat_ttps, all_surface_ttps)
         opportunity_score = min(
-            max((_vic * _geo * _surf * _ir_opp) ** (1 / 4), 0.0),
+            max((_vic * _geo * _surf) ** (1 / 3), 0.0),
             1.0,
         )
 
@@ -719,25 +677,24 @@ def prioritize_actors(
                         score=intent_score,
                         motivation_alignment=_mot,
                         industry_match=_ind,
+                        ir_observed=_ir_obs,
                     ),
                     capability=CapabilityComponent(
                         score=capability_score,
                         sophistication_score=_soph,
                         ttp_count_norm=_ttp_n,
                         recency_active_campaigns=_rec,
-                        tool_sophistication=_tool,
+                        tool_usage=_tool,
                         targeting_persistence=_pers,
                         evasion_capability=_evas,
                         depth=_depth,
                         breadth=_breadth,
-                        ir_observed_capability=_ir_cap,
                     ),
                     opportunity=OpportunityComponent(
                         score=opportunity_score,
                         victimology_match=_vic,
                         geographic_match=_geo,
                         surface_ttp_coverage=_surf,
-                        ir_observed_opportunity=_ir_opp,
                     ),
                     data_quality=DataQualityComponent(
                         degraded=degraded or ir_degraded_this_actor or sage_degraded,
@@ -755,23 +712,22 @@ def prioritize_actors(
                     intent_factors={
                         "motivation_alignment": _mot,
                         "industry_match": _ind,
+                        "ir_observed": _ir_obs,
                     },
                     capability_factors={
                         "sophistication_score": _soph,
                         "ttp_count_norm": _ttp_n,
                         "recency_active_campaigns": _rec,
-                        "tool_sophistication": _tool,
+                        "tool_usage": _tool,
                         "targeting_persistence": _pers,
                         "evasion_capability": _evas,
                         "depth": _depth,
                         "breadth": _breadth,
-                        "ir_observed_capability": _ir_cap,
                     },
                     opportunity_factors={
                         "victimology_match": _vic,
                         "geographic_match": _geo,
                         "surface_ttp_coverage": _surf,
-                        "ir_observed_opportunity": _ir_opp,
                     },
                 ),
             )

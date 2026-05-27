@@ -72,9 +72,9 @@ Pydantic モデルは `src/beacon/generator/pir_builder.PIROutputDocument` お�
 - `prioritized_actors[]`（Initiative D + E より）
 - `mitre_attack_groups: list[str]`（Initiative F フェーズ 2）
 - `score_breakdown: ScoreBreakdown` （以下を含む）:
-  - `intent: IntentComponent`（score、motivation_alignment、industry_match）
-  - `capability: CapabilityComponent`（score、sophistication_score、ttp_count_norm、recency_active_campaigns、tool_sophistication、targeting_persistence、evasion_capability、depth、breadth、`ir_observed_capability` — G フェーズ 6）
-  - `opportunity: OpportunityComponent`（score、victimology_match、geographic_match、surface_ttp_coverage、`ir_observed_opportunity` — G フェーズ 6）
+  - `intent: IntentComponent`（score、motivation_alignment、industry_match、`ir_observed`）
+  - `capability: CapabilityComponent`（score、sophistication_score、ttp_count_norm、recency_active_campaigns、tool_usage、targeting_persistence、evasion_capability、depth、breadth）
+  - `opportunity: OpportunityComponent`（score、victimology_match、geographic_match、surface_ttp_coverage）
   - `data_quality: DataQualityComponent`（degraded、missing_sources、`ir_boost_skipped` — G フェーズ 6）
 - `rationale: Rationale`（text、intent_factors、capability_factors、opportunity_factors）
 

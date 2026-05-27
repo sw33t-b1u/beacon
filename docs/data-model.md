@@ -4,7 +4,7 @@ Japanese translation: [`docs/data-model.ja.md`](data-model.ja.md)
 
 ## Input: BusinessContext JSON
 
-Place your strategy document as `input/context.md` (see [`docs/context_template.md`](context_template.md)).
+Place your strategy document as `input/context.md` (see [`schema/context_template.md`](../schema/context_template.md)).
 The LLM converts it to a structured `BusinessContext`; use `--save-context` to inspect the intermediate JSON.
 
 ```json

@@ -61,15 +61,12 @@ class TestNoSageFlag:
             for actor in pir["prioritized_actors"]:
                 assert actor["score_breakdown"]["data_quality"]["ir_boost_skipped"] is True
 
-    def test_flag_yields_neutral_ir_factors(self, _run_pir, monkeypatch):
+    def test_flag_yields_neutral_ir_observed(self, _run_pir, monkeypatch):
         monkeypatch.delenv("SAGE_API_URL", raising=False)
         doc = _run_pir(["--no-sage"])
         for pir in doc["pirs"]:
             for actor in pir["prioritized_actors"]:
-                cap = actor["score_breakdown"]["capability"]
-                opp = actor["score_breakdown"]["opportunity"]
-                assert cap["ir_observed_capability"] == 1.0
-                assert opp["ir_observed_opportunity"] == 1.0
+                assert actor["score_breakdown"]["intent"]["ir_observed"] == 1.0
 
     def test_flag_does_not_attempt_sage_call(self, _run_pir, monkeypatch):
         monkeypatch.delenv("SAGE_API_URL", raising=False)
