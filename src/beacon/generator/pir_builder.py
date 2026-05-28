@@ -93,7 +93,7 @@ class PIROutputDocument(BaseModel):
 
     model_config = ConfigDict(json_schema_extra=_pir_output_document_schema_extra)
     schema_version: str = Field(
-        default="1.0.0",
+        default="2.0.0",
         description="Semantic version of the pir_output schema (set by BEACON at emit time).",
     )
     pirs: list[PIROutput]

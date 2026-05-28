@@ -42,7 +42,7 @@ def output_dir(tmp_path, monkeypatch) -> Path:
     out.mkdir()
 
     (out / "pir_output.json").write_text(
-        json.dumps({"schema_version": "1.0.0", "pirs": [SAMPLE_PIR]}, indent=2),
+        json.dumps({"schema_version": "2.0.0", "pirs": [SAMPLE_PIR]}, indent=2),
         encoding="utf-8",
     )
     (out / "assets.json").write_text(

@@ -76,10 +76,10 @@ class TestNoSageFlag:
         mock_ctor.assert_not_called()
         assert len(doc["pirs"]) >= 1
 
-    def test_schema_version_is_1_0_0(self, _run_pir, monkeypatch):
+    def test_schema_version_is_2_0_0(self, _run_pir, monkeypatch):
         monkeypatch.delenv("SAGE_API_URL", raising=False)
         doc = _run_pir(["--no-sage"])
-        assert doc["schema_version"] == "1.0.0"
+        assert doc["schema_version"] == "2.0.0"
 
 
 class TestSageUrlUnsetEquivalentToNoSage:

@@ -202,7 +202,7 @@ class TestPIRDocumentSchemaVersionRoundtrip:
     def test_schema_version_value_after_roundtrip(self):
         doc = self._make_doc()
         reparsed = PIROutputDocument.model_validate_json(doc.model_dump_json())
-        assert reparsed.schema_version == "1.0.0"
+        assert reparsed.schema_version == "2.0.0"
 
     def test_pirs_count_preserved_after_roundtrip(self):
         doc = self._make_doc()

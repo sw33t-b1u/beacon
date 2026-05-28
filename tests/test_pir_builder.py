@@ -312,9 +312,9 @@ class TestSchemaVersion:
 
     def test_schema_version_default_value(self):
         doc = self._make_doc()
-        assert doc.schema_version == "1.0.0"
+        assert doc.schema_version == "2.0.0"
         dumped = doc.model_dump()
-        assert dumped["schema_version"] == "1.0.0"
+        assert dumped["schema_version"] == "2.0.0"
 
     def test_schema_version_is_first_key_in_json(self):
         doc = self._make_doc()
@@ -334,5 +334,5 @@ class TestSchemaVersion:
         assert "pirs" in schema.get("required", [])
 
     def test_schema_version_not_overrideable_accident(self):
-        doc = PIROutputDocument(schema_version="1.0.0", pirs=[])
-        assert doc.schema_version == "1.0.0"
+        doc = PIROutputDocument(schema_version="2.0.0", pirs=[])
+        assert doc.schema_version == "2.0.0"

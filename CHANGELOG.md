@@ -6,6 +6,35 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [2.0.0] — 2026-05-28
+
+**Breaking: CIO scoring field rename.** The actor-triage score_breakdown
+contract in `pir_output.json` changed in a backward-incompatible way.
+`schema_version` bumps to `"2.0.0"`; consumers must update.
+
+### Changed (BREAKING)
+
+- `score_breakdown.capability.tool_sophistication` renamed to
+  `tool_usage`.
+- `score_breakdown.capability.ir_observed_capability` and
+  `score_breakdown.opportunity.ir_observed_opportunity` removed; replaced
+  by a single binary `score_breakdown.intent.ir_observed` (1.0 = actor
+  has attacked the org in the IR lookback window, 0.5 otherwise).
+- Likelihood aggregation: Depth and Opportunity are now 3-factor
+  geometric means (was 4-factor); `ir_observed` multiplies into Intent.
+- `pir_output.json` `schema_version` field: `"1.0.0"` → `"2.0.0"`.
+
+### Removed
+
+- 90-day BC guarantee from `docs/api-stability.md` (policy simplified).
+
+### Notes
+
+- Paired with TRACE 2.0.0 (ScoreComponent validation updated to match).
+- SAGE is unaffected (consumes score_breakdown opaquely via rationale_json).
+
+---
+
 ## [1.1.0] — 2026-05-25
 
 **Initiative I — Unified Dashboard + Storage Abstraction.** Paired

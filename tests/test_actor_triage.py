@@ -1214,8 +1214,8 @@ class TestIRLookbackDaysConfig:
 
 
 class TestSchemaVersionBumped:
-    def test_pir_output_document_default_is_1_0_0(self):
+    def test_pir_output_document_default_is_2_0_0(self):
         from beacon.generator.pir_builder import PIROutputDocument  # noqa: PLC0415
 
         doc = PIROutputDocument(pirs=[])
-        assert doc.schema_version == "1.0.0"
+        assert doc.schema_version == "2.0.0"

@@ -18,18 +18,13 @@ BEACON は 1.0.0 以降、[Semantic Versioning 2.0.0](https://semver.org/spec/v2
 - **マイナー** (`1.X.0`) — 追加的変更（新規任意フィールド、新規エンドポイント、新規 CLI サブコマンド、新規環境変数）。Committed サーフェス項目を破壊してはならない。
 - **パッチ** (`1.0.X`) — バグ修正のみ。サーフェス変更なし。
 
-### 90 日間 BC 保証
-
-Committed サーフェス項目は、導入されたリリースから **少なくとも 90 日間** BC が保証される。90 日後、破壊的変更は新しいメジャー（例: `2.0.0`）としてリリースされる場合がある。90 日間のウィンドウ内に発見された破壊的変更は、たとえ発見済みであっても次のメジャーまで延期される。
-
 ### 廃止パス
 
 Committed サーフェス項目を削除するには:
 
 1. **1.X.Y の CHANGELOG に告知**: 項目を `### Deprecated` としてマークし、削除予定バージョンを明記する。
 2. **実行時に `DeprecationWarning` を出力**: 非推奨項目が使用された際に警告を発する。
-3. **少なくとも 90 日間**、かつ廃止告知後の少なくとも 1 つのマイナーリリースを待つ。
-4. **`2.0.0`**（またはそれ以降のメジャー）で削除する。
+3. **`2.0.0`**（またはそれ以降のメジャー）で削除する。
 
 古いものを置き換える追加的な代替品（新しいフィールド/エンドポイント）は、ステップ 1 においてマイナーとしてリリースする。
 
@@ -39,7 +34,7 @@ Committed サーフェス項目を削除するには:
 
 | サーフェス | Committed? | 初版 | 備考 |
 |---|---|---|---|
-| `pir_output.json` スキーマ | ✓ | 1.0.0 | `schema_version` フィールドに `"1.0.0"` が入る |
+| `pir_output.json` スキーマ | ✓ | 1.0.0 | `schema_version` フィールドに `"2.0.0"` が入る |
 | `sources_candidate.yaml` | ✓ | 1.0.0 | TRACE `schema/sources.schema.json` に対してスキーマ検証される |
 | `collection_plan.md` 構造 | ✓ | 1.0.0 | PIR ごとのセクション + 監視項目 + ソースリスト |
 | `content_ja.json` スキーマ | ✓ | 1.0.0 | トップレベルセクションは固定; エントリのサブフィールドは追加的 |
@@ -64,7 +59,7 @@ Committed サーフェス項目を削除するには:
 Pydantic モデルは `src/beacon/generator/pir_builder.PIROutputDocument` およびその依存モデル。JSON Schema は `cmd/generate_schemas.py`（現在は §4 の `beacon schema-regenerate`）によって `schema/pir_output.schema.json` に再生成される。
 
 **Committed トップレベル**:
-- `schema_version: "1.0.0"` — 必須文字列フィールド; コンシューマーがこの値でゲートを設ける。TRACE 1.12.0 は `{"1.0.0"}` のみを受け付ける。
+- `schema_version: "2.0.0"` — 必須文字列フィールド; コンシューマーがこの値でゲートを設ける。TRACE 2.0.0 は `{"2.0.0"}` のみを受け付ける。
 - `pirs: list[PIROutput]` — 必須、順序付き。
 
 **Committed `PIROutput` フィールド**（一部 — 完全なリストはスキーマを参照）:
@@ -84,7 +79,7 @@ Pydantic モデルは `src/beacon/generator/pir_builder.PIROutputDocument` お�
 
 **破壊的（2.0.0 が必要）**:
 - 必須フィールドの削除または改名。
-- `schema_version` を `"1.X.Y"` 以外の値に変更。
+- `schema_version` を `"2.X.Y"` 以外の値に変更。
 
 ### 3.2 `sources_candidate.yaml`
 
