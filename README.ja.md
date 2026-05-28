@@ -15,7 +15,7 @@ BEACON は同一のコンテキストドキュメントから 4 つの出力パ�
 ```
   input/context.md  (または .json)
          │
-         ├─── cmd/generate_pir.py ──────────────────────────────────────────┐
+         ├─── beacon pir-generate ──────────────────────────────────────────┐
          │                                                                   │
          │    ┌──────────────────────┐                                       │
          │    │ Step 1: 要素抽出     │  目標・クラウンジュエル・アセット     │
@@ -29,11 +29,11 @@ BEACON は同一のコンテキストドキュメントから 4 つの出力パ�
          │                                  ▼                        ▼
          │                           SAGE ETL             pir_adjusted_criticality
          │
-         ├─── cmd/generate_assets.py ─── output/assets.json ─── SAGE load_assets
+         ├─── beacon assets-generate ─── output/assets.json ─── SAGE load_assets
          │        CriticalAsset → ネットワークセグメント、
          │        アセットタグ、接続、重要度
          │
-         ├─── cmd/generate_identity_assets.py ── output/identity_assets.json
+         ├─── beacon identity-generate ── output/identity_assets.json
          │        Identity + has_access エッジ            │
          │        (+ Initiative C Phase 2 フラグ:          ▼
          │         is_high_value_impersonation_target,    TRACE validate_identity_assets
@@ -41,7 +41,7 @@ BEACON は同一のコンテキストドキュメントから 4 つの出力パ�
          │                                                 ▼
          │                                        SAGE load_identity_assets
          │
-         └─── cmd/generate_user_accounts.py ──── output/user_accounts.json
+         └─── beacon accounts-generate ──── output/user_accounts.json
                   UserAccount + account_on_asset エッジ  │
                                                           ▼
                                                TRACE validate_user_accounts

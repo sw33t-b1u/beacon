@@ -3,26 +3,13 @@
 Reads a BusinessContext (Markdown or JSON) and converts the Critical Assets
 section into the JSON format expected by SAGE's cmd/load_assets.py.
 
-Usage:
-    uv run python cmd/generate_assets.py --context input/context.md
-    uv run python cmd/generate_assets.py --context input/context.json
-
-    # Specify output path
-    uv run python cmd/generate_assets.py --context input/context.md --output output/assets.json
+Invoke via the unified CLI: ``beacon assets-generate``.
 
 After generating, review the output and fill in:
   - owner (team or email address per asset)
   - security_controls and security_control_ids
   - asset_vulnerabilities (after running STIX ETL)
   - actor_targets (after running STIX ETL)
-
-Then load into SAGE Spanner:
-    uv run python cmd/load_assets.py --file output/assets.json
-
-.. deprecated:: 1.0.0
-    Invoke as ``beacon assets-generate`` instead. The
-    ``python -m cmd.generate_assets`` form is preserved for 1.x backward
-    compatibility and will be removed in BEACON 2.0.0.
 """
 
 from __future__ import annotations
@@ -53,13 +40,7 @@ logger = structlog.get_logger(__name__)
 _DEFAULT_OUTPUT = Path(__file__).parent.parent / "output" / "assets.json"
 
 
-def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> None:
-    if not _from_beacon_cli:
-        print(
-            "DeprecationWarning: `python -m cmd.generate_assets` is deprecated; "
-            "use `beacon assets-generate` instead (removal scheduled for 2.0.0).",
-            file=sys.stderr,
-        )
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         description="Generate SAGE assets.json from a BEACON context document"
     )
@@ -118,7 +99,3 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> No
             f"Review and complete the file, then load into SAGE:\n"
             f"  uv run python cmd/load_assets.py --file {args.output}"
         )
-
-
-if __name__ == "__main__":
-    main()

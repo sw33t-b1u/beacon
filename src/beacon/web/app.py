@@ -1264,6 +1264,408 @@ async def assets_save(
 
 
 # ---------------------------------------------------------------------------
+# Identity tab routes
+# ---------------------------------------------------------------------------
+
+
+@app.get("/identity")
+async def identity_page(request: Request, beacon_session: str = Cookie(default="")):
+    """Identity tab: list stored drafts + edit org-known fields when a doc is loaded."""
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    try:
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        all_files = storage.list_files("assets")
+        stored_identity_files = [f for f in all_files if f.startswith("identity_assets_")]
+    except Exception:  # noqa: BLE001
+        stored_identity_files = []
+
+    session = load_session(beacon_session) if beacon_session else None
+    identity_doc = session.get("identity_doc") if session else None
+
+    csrf_token = _generate_csrf_token()
+    response = templates.TemplateResponse(
+        request=request,
+        name="identity.html",
+        context={
+            "active_tab": "identity",
+            "csrf_token": csrf_token,
+            "stored_identity_files": stored_identity_files,
+            "identity_doc": identity_doc,
+            "saved_filename": None,
+        },
+    )
+    _set_csrf_cookie(response, csrf_token)
+    return response
+
+
+@app.post("/identity/load-stored/{filename}")
+async def identity_load_stored(
+    request: Request,
+    filename: str,
+    csrf_token: str = Form(default=""),
+    beacon_csrf: str = Cookie(default=""),
+    beacon_session: str = Cookie(default=""),
+):
+    """Load a stored identity_assets_*.json draft from StorageBackend into session."""
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    try:
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        raw = storage.load("assets", filename)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=404, detail=f"Stored identity draft not found: {filename}"
+        ) from exc
+
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(
+            status_code=400, detail=f"Invalid JSON in stored identity: {exc}"
+        ) from exc
+
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=400, detail="identity_assets.json must be a JSON object")
+
+    session: dict = {}
+    if beacon_session:
+        existing = load_session(beacon_session)
+        if existing:
+            session = existing
+    session["identity_doc"] = data
+
+    if beacon_session and load_session(beacon_session) is not None:
+        save_session(beacon_session, session)
+        session_id = beacon_session
+    else:
+        session_id = create_session(session)
+
+    new_csrf = _generate_csrf_token()
+    response = RedirectResponse(url="/identity", status_code=303)
+    response.set_cookie(
+        "beacon_session", session_id, httponly=True, secure=True, samesite="lax", max_age=86400
+    )
+    _set_csrf_cookie(response, new_csrf)
+    return response
+
+
+@app.post("/identity/save")
+async def identity_save(
+    request: Request,
+    beacon_session: str = Cookie(default=""),
+    beacon_csrf: str = Cookie(default=""),
+    csrf_token: str = Form(default=""),
+    identity_count: int = Form(default=0),
+    has_access_json: str = Form(default=""),
+):
+    """Persist edited identity fields back into the session doc and write a new
+    timestamped identity_assets_<ts>.json to StorageBackend.
+    """
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    if not beacon_session:
+        raise HTTPException(status_code=400, detail="No session")
+    session = load_session(beacon_session)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session not found or expired")
+
+    identity_doc = session.get("identity_doc")
+    if identity_doc is None:
+        raise HTTPException(status_code=400, detail="No identity doc loaded in session")
+
+    form_data = await request.form()
+
+    identities_list: list[dict] = identity_doc.get("identities", [])
+    for idx in range(identity_count):
+        identity_id_key = f"identity_id_{idx}"
+        identity_id = form_data.get(identity_id_key, "")
+        if not identity_id:
+            continue
+
+        for identity in identities_list:
+            if identity.get("id") == identity_id:
+                identity["description"] = str(
+                    form_data.get(f"identity_description_{idx}", "") or ""
+                ).strip()
+                raw_roles = str(form_data.get(f"identity_roles_{idx}", "") or "").strip()
+                identity["roles"] = (
+                    [r.strip() for r in raw_roles.split(",") if r.strip()] if raw_roles else []
+                )
+                hvit_val = form_data.get(f"identity_hvit_{idx}", "")
+                identity["is_high_value_impersonation_target"] = hvit_val in ("1", "true", "on")
+                raw_rf = str(form_data.get(f"identity_risk_factors_{idx}", "") or "").strip()
+                identity["impersonation_risk_factors"] = (
+                    [r.strip() for r in raw_rf.split(",") if r.strip()] if raw_rf else []
+                )
+                break
+
+    identity_doc["identities"] = identities_list
+
+    # --- Parse has_access JSON (optional) ---
+    ha_raw = has_access_json.strip()
+    if ha_raw:
+        try:
+            ha_parsed = json.loads(ha_raw)
+        except json.JSONDecodeError as exc:
+            raise HTTPException(
+                status_code=400, detail=f"Invalid JSON in has_access: {exc}"
+            ) from exc
+        if not isinstance(ha_parsed, list):
+            raise HTTPException(status_code=400, detail="has_access must be a JSON array")
+        identity_doc["has_access"] = ha_parsed
+
+    session["identity_doc"] = identity_doc
+    save_session(beacon_session, session)
+
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    ts = _dt.datetime.now().strftime("%Y%m%d%H%M")
+    saved_filename = f"identity_assets_{ts}.json"
+    try:
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        storage.save(
+            "assets",
+            saved_filename,
+            json.dumps(identity_doc, ensure_ascii=False, indent=2),
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("identity_save_storage_failed", error=str(exc))
+        saved_filename = None
+
+    new_csrf = _generate_csrf_token()
+    try:
+        cfg = load_config()  # type: ignore[assignment]
+        storage = create_storage_backend(cfg)
+        all_files = storage.list_files("assets")
+        stored_identity_files = [f for f in all_files if f.startswith("identity_assets_")]
+    except Exception:  # noqa: BLE001
+        stored_identity_files = []
+
+    response = templates.TemplateResponse(
+        request=request,
+        name="identity.html",
+        context={
+            "active_tab": "identity",
+            "csrf_token": new_csrf,
+            "stored_identity_files": stored_identity_files,
+            "identity_doc": identity_doc,
+            "saved_filename": saved_filename,
+        },
+    )
+    _set_csrf_cookie(response, new_csrf)
+    return response
+
+
+# ---------------------------------------------------------------------------
+# Accounts tab routes
+# ---------------------------------------------------------------------------
+
+
+@app.get("/accounts")
+async def accounts_page(request: Request, beacon_session: str = Cookie(default="")):
+    """Accounts tab: list stored drafts + edit org-known fields when a doc is loaded."""
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    try:
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        all_files = storage.list_files("assets")
+        stored_accounts_files = [f for f in all_files if f.startswith("user_accounts_")]
+    except Exception:  # noqa: BLE001
+        stored_accounts_files = []
+
+    session = load_session(beacon_session) if beacon_session else None
+    accounts_doc = session.get("accounts_doc") if session else None
+
+    csrf_token = _generate_csrf_token()
+    response = templates.TemplateResponse(
+        request=request,
+        name="accounts.html",
+        context={
+            "active_tab": "accounts",
+            "csrf_token": csrf_token,
+            "stored_accounts_files": stored_accounts_files,
+            "accounts_doc": accounts_doc,
+            "saved_filename": None,
+        },
+    )
+    _set_csrf_cookie(response, csrf_token)
+    return response
+
+
+@app.post("/accounts/load-stored/{filename}")
+async def accounts_load_stored(
+    request: Request,
+    filename: str,
+    csrf_token: str = Form(default=""),
+    beacon_csrf: str = Cookie(default=""),
+    beacon_session: str = Cookie(default=""),
+):
+    """Load a stored user_accounts_*.json draft from StorageBackend into session."""
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    try:
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        raw = storage.load("assets", filename)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=404, detail=f"Stored accounts draft not found: {filename}"
+        ) from exc
+
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(
+            status_code=400, detail=f"Invalid JSON in stored accounts: {exc}"
+        ) from exc
+
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=400, detail="user_accounts.json must be a JSON object")
+
+    session: dict = {}
+    if beacon_session:
+        existing = load_session(beacon_session)
+        if existing:
+            session = existing
+    session["accounts_doc"] = data
+
+    if beacon_session and load_session(beacon_session) is not None:
+        save_session(beacon_session, session)
+        session_id = beacon_session
+    else:
+        session_id = create_session(session)
+
+    new_csrf = _generate_csrf_token()
+    response = RedirectResponse(url="/accounts", status_code=303)
+    response.set_cookie(
+        "beacon_session", session_id, httponly=True, secure=True, samesite="lax", max_age=86400
+    )
+    _set_csrf_cookie(response, new_csrf)
+    return response
+
+
+@app.post("/accounts/save")
+async def accounts_save(
+    request: Request,
+    beacon_session: str = Cookie(default=""),
+    beacon_csrf: str = Cookie(default=""),
+    csrf_token: str = Form(default=""),
+    account_count: int = Form(default=0),
+    account_on_asset_json: str = Form(default=""),
+):
+    """Persist edited accounts fields back into the session doc and write a new
+    timestamped user_accounts_<ts>.json to StorageBackend.
+    """
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    if not beacon_session:
+        raise HTTPException(status_code=400, detail="No session")
+    session = load_session(beacon_session)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session not found or expired")
+
+    accounts_doc = session.get("accounts_doc")
+    if accounts_doc is None:
+        raise HTTPException(status_code=400, detail="No accounts doc loaded in session")
+
+    form_data = await request.form()
+
+    accounts_list: list[dict] = accounts_doc.get("user_accounts", [])
+    for idx in range(account_count):
+        acct_id_key = f"acct_id_{idx}"
+        acct_id = form_data.get(acct_id_key, "")
+        if not acct_id:
+            continue
+
+        for acct in accounts_list:
+            if acct.get("id") == acct_id:
+                acct["display_name"] = str(
+                    form_data.get(f"acct_display_name_{idx}", "") or ""
+                ).strip()
+                acct["account_type"] = str(form_data.get(f"acct_type_{idx}", "") or "").strip()
+                priv_val = form_data.get(f"acct_privileged_{idx}", "")
+                acct["is_privileged"] = priv_val in ("1", "true", "on")
+                svc_val = form_data.get(f"acct_service_{idx}", "")
+                acct["is_service_account"] = svc_val in ("1", "true", "on")
+                acct["description"] = str(
+                    form_data.get(f"acct_description_{idx}", "") or ""
+                ).strip()
+                break
+
+    accounts_doc["user_accounts"] = accounts_list
+
+    # --- Parse account_on_asset JSON (optional) ---
+    aoa_raw = account_on_asset_json.strip()
+    if aoa_raw:
+        try:
+            aoa_parsed = json.loads(aoa_raw)
+        except json.JSONDecodeError as exc:
+            raise HTTPException(
+                status_code=400, detail=f"Invalid JSON in account_on_asset: {exc}"
+            ) from exc
+        if not isinstance(aoa_parsed, list):
+            raise HTTPException(status_code=400, detail="account_on_asset must be a JSON array")
+        accounts_doc["account_on_asset"] = aoa_parsed
+
+    session["accounts_doc"] = accounts_doc
+    save_session(beacon_session, session)
+
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    ts = _dt.datetime.now().strftime("%Y%m%d%H%M")
+    saved_filename = f"user_accounts_{ts}.json"
+    try:
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        storage.save(
+            "assets",
+            saved_filename,
+            json.dumps(accounts_doc, ensure_ascii=False, indent=2),
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("accounts_save_storage_failed", error=str(exc))
+        saved_filename = None
+
+    new_csrf = _generate_csrf_token()
+    try:
+        cfg = load_config()  # type: ignore[assignment]
+        storage = create_storage_backend(cfg)
+        all_files = storage.list_files("assets")
+        stored_accounts_files = [f for f in all_files if f.startswith("user_accounts_")]
+    except Exception:  # noqa: BLE001
+        stored_accounts_files = []
+
+    response = templates.TemplateResponse(
+        request=request,
+        name="accounts.html",
+        context={
+            "active_tab": "accounts",
+            "csrf_token": new_csrf,
+            "stored_accounts_files": stored_accounts_files,
+            "accounts_doc": accounts_doc,
+            "saved_filename": saved_filename,
+        },
+    )
+    _set_csrf_cookie(response, new_csrf)
+    return response
+
+
+# ---------------------------------------------------------------------------
 # Backward-compatibility redirects
 # ---------------------------------------------------------------------------
 

@@ -1,9 +1,6 @@
 """CLI: Submit PIR output for review by creating GHE Issues.
 
-.. deprecated:: 1.0.0
-    Invoke as ``beacon submit-review`` instead. The
-    ``python -m cmd.submit_for_review`` form is preserved for 1.x backward
-    compatibility and will be removed in BEACON 2.0.0.
+Invoke via the unified CLI: ``beacon submit-review``.
 """
 
 from __future__ import annotations
@@ -20,13 +17,7 @@ load_dotenv()
 logger = structlog.get_logger(__name__)
 
 
-def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> int:
-    if not _from_beacon_cli:
-        print(
-            "DeprecationWarning: `python -m cmd.submit_for_review` is deprecated; "
-            "use `beacon submit-review` instead (removal scheduled for 2.0.0).",
-            file=sys.stderr,
-        )
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Submit PIR output for review by creating GitHub/GHE Issues."
     )
@@ -83,7 +74,3 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> in
         print(f"Created Issue #{r.issue_number} for {r.pir_id}: {r.html_url}")
 
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

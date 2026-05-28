@@ -3,22 +3,13 @@
 Initiative A (Identity-Asset HasAccess edge) — produces the BEACON-side
 authoritative artifact (``source = beacon`` precedence in SAGE).
 
-Usage:
-    # From Markdown (requires LLM / Vertex AI; the Identities section
-    # of context.md is read alongside the rest of the doc).
-    uv run python cmd/generate_identity_assets.py --context input/context.md
-    uv run python cmd/generate_identity_assets.py --context input/context.json
+Invoke via the unified CLI: ``beacon identity-generate``.
 
 After generating, validate the output with TRACE before loading into SAGE:
 
-    cd ../TRACE && uv run python cmd/validate_identity_assets.py \\
+    cd ../TRACE && uv run trace validate-identity \\
         --identity-assets ../BEACON/output/identity_assets.json \\
         --assets ../BEACON/output/assets.json
-
-.. deprecated:: 1.0.0
-    Invoke as ``beacon identity-generate`` instead. The
-    ``python -m cmd.generate_identity_assets`` form is preserved for 1.x
-    backward compatibility and will be removed in BEACON 2.0.0.
 """
 
 from __future__ import annotations
@@ -49,13 +40,7 @@ logger = structlog.get_logger(__name__)
 _DEFAULT_OUTPUT = Path(__file__).parent.parent / "output" / "identity_assets.json"
 
 
-def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> None:
-    if not _from_beacon_cli:
-        print(
-            "DeprecationWarning: `python -m cmd.generate_identity_assets` is deprecated; "
-            "use `beacon identity-generate` instead (removal scheduled for 2.0.0).",
-            file=sys.stderr,
-        )
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         description="Generate identity_assets.json from a BEACON context document"
     )
@@ -116,7 +101,7 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> No
             f"identity_assets.json written: assets/{filename} "
             f"({identity_count} identities, {edge_count} edges)\n"
             f"Validate before loading into SAGE:\n"
-            f"  cd ../TRACE && uv run python cmd/validate_identity_assets.py \\\n"
+            f"  cd ../TRACE && uv run trace validate-identity \\\n"
             f"    --identity-assets <resolved_path> \\\n"
             f"    --assets ../BEACON/output/assets.json"
         )
@@ -133,11 +118,7 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> No
             f"identity_assets.json written: {args.output} "
             f"({identity_count} identities, {edge_count} edges)\n"
             f"Validate before loading into SAGE:\n"
-            f"  cd ../TRACE && uv run python cmd/validate_identity_assets.py \\\n"
+            f"  cd ../TRACE && uv run trace validate-identity \\\n"
             f"    --identity-assets {args.output} \\\n"
             f"    --assets ../BEACON/output/assets.json"
         )
-
-
-if __name__ == "__main__":
-    main()

@@ -15,7 +15,7 @@ BEACON provides four output pipelines, all driven from the same context document
 ```
   input/context.md  (or .json)
          │
-         ├─── cmd/generate_pir.py ──────────────────────────────────────────┐
+         ├─── beacon pir-generate ──────────────────────────────────────────┐
          │                                                                   │
          │    ┌──────────────────────┐                                       │
          │    │ Step 1: Element Ext. │  objectives, crown jewels, assets     │
@@ -29,11 +29,11 @@ BEACON provides four output pipelines, all driven from the same context document
          │                                  ▼                        ▼
          │                           SAGE ETL             pir_adjusted_criticality
          │
-         ├─── cmd/generate_assets.py ─── output/assets.json ─── SAGE load_assets
+         ├─── beacon assets-generate ─── output/assets.json ─── SAGE load_assets
          │        CriticalAsset → network segments,
          │        asset tags, connections, criticality
          │
-         ├─── cmd/generate_identity_assets.py ── output/identity_assets.json
+         ├─── beacon identity-generate ── output/identity_assets.json
          │        Identity + has_access edges            │
          │        (+ Initiative C Phase 2 flags:         ▼
          │         is_high_value_impersonation_target,   TRACE validate_identity_assets
@@ -41,7 +41,7 @@ BEACON provides four output pipelines, all driven from the same context document
          │                                                ▼
          │                                       SAGE load_identity_assets
          │
-         └─── cmd/generate_user_accounts.py ──── output/user_accounts.json
+         └─── beacon accounts-generate ──── output/user_accounts.json
                   UserAccount + account_on_asset edges  │
                                                          ▼
                                               TRACE validate_user_accounts

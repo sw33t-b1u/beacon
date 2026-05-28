@@ -3,22 +3,13 @@
 Initiative B (User-Account SCO) — produces the BEACON-side
 authoritative artifact (``source = beacon`` precedence in SAGE).
 
-Usage:
-    # From Markdown (requires LLM / Vertex AI; the User Accounts section
-    # of context.md is read alongside the rest of the doc).
-    uv run python cmd/generate_user_accounts.py --context input/context.md
-    uv run python cmd/generate_user_accounts.py --context input/context.json
+Invoke via the unified CLI: ``beacon accounts-generate``.
 
 After generating, validate with TRACE before loading into SAGE:
 
-    cd ../TRACE && uv run python cmd/validate_user_accounts.py \\
+    cd ../TRACE && uv run trace validate-accounts \\
         --user-accounts ../BEACON/output/user_accounts.json \\
         --assets ../BEACON/output/assets.json
-
-.. deprecated:: 1.0.0
-    Invoke as ``beacon accounts-generate`` instead. The
-    ``python -m cmd.generate_user_accounts`` form is preserved for 1.x
-    backward compatibility and will be removed in BEACON 2.0.0.
 """
 
 from __future__ import annotations
@@ -49,13 +40,7 @@ logger = structlog.get_logger(__name__)
 _DEFAULT_OUTPUT = Path(__file__).parent.parent / "output" / "user_accounts.json"
 
 
-def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> None:
-    if not _from_beacon_cli:
-        print(
-            "DeprecationWarning: `python -m cmd.generate_user_accounts` is deprecated; "
-            "use `beacon accounts-generate` instead (removal scheduled for 2.0.0).",
-            file=sys.stderr,
-        )
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         description="Generate user_accounts.json from a BEACON context document"
     )
@@ -116,7 +101,7 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> No
             f"user_accounts.json written: assets/{filename} "
             f"({ua_count} accounts, {edge_count} edges)\n"
             f"Validate before loading into SAGE:\n"
-            f"  cd ../TRACE && uv run python cmd/validate_user_accounts.py \\\n"
+            f"  cd ../TRACE && uv run trace validate-accounts \\\n"
             f"    --user-accounts <resolved_path> \\\n"
             f"    --assets ../BEACON/output/assets.json"
         )
@@ -133,11 +118,7 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> No
             f"user_accounts.json written: {args.output} "
             f"({ua_count} accounts, {edge_count} edges)\n"
             f"Validate before loading into SAGE:\n"
-            f"  cd ../TRACE && uv run python cmd/validate_user_accounts.py \\\n"
+            f"  cd ../TRACE && uv run trace validate-accounts \\\n"
             f"    --user-accounts {args.output} \\\n"
             f"    --assets ../BEACON/output/assets.json"
         )
-
-
-if __name__ == "__main__":
-    main()

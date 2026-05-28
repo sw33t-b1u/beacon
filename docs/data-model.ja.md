@@ -67,7 +67,7 @@ LLM が Markdown を構造化 `BusinessContext` JSON に変換します。`--sav
 | `dependencies` | list[string] | 依存するアセットの ID リスト |
 | `exposure_risk` | enum | `low`, `medium`, `high`, `critical` |
 
-完全なスキーマ: `schema/business_context.schema.json`（`uv run python cmd/generate_schemas.py` で生成）
+完全なスキーマ: `schema/business_context.schema.json`（`uv run beacon schema-regenerate` で生成）
 
 ---
 
@@ -96,7 +96,7 @@ LLM が Markdown を構造化 `BusinessContext` JSON に変換します。`--sav
 ]
 ```
 
-完全なスキーマ: `schema/pir_output.schema.json`（`uv run python cmd/generate_schemas.py` で生成）
+完全なスキーマ: `schema/pir_output.schema.json`（`uv run beacon schema-regenerate` で生成）
 
 > **注意:** `--no-llm` モードでは英語で出力されます。LLM 拡充が有効（デフォルト）の場合、`description`・`rationale`・`collection_focus` は Vertex AI Gemini によって書き換えられ、組織の言語コンテキストに合わせた表現になります。
 
@@ -241,7 +241,7 @@ identity 層より細かい account レベルの粒度 (個別ログイン識別
 **生成コマンド:**
 
 ```bash
-uv run python cmd/generate_pir.py --context ... --output pir_output.json \
+uv run beacon pir-generate --context ... --output pir_output.json \
   --collection-plan collection_plan.md
 ```
 
@@ -318,7 +318,7 @@ uv run python cmd/generate_pir.py --context ... --output pir_output.json \
 正規の feed から再生成:
 
 ```bash
-uv run python cmd/update_taxonomy.py [--dry-run]
+uv run beacon taxonomy-refresh [--dry-run]
 ```
 
 JSON 内の `_metadata.sources` にカノニカルな fetch URL が記録されます。手動 curated レイヤーは存在せず、全内容が上流 feed 由来のため、`update_taxonomy.py` は決定論的に再構築できます。

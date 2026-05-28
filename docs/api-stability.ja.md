@@ -43,7 +43,7 @@ Committed サーフェス項目を削除するには:
 | `business_context.schema.json` | ✓ | 1.0.0 | オペレーター向けビジネスコンテキスト入力スキーマ |
 | `source_attack_groups.derived.json` | ✗ | n/a | 自動導出; `scripts/derive_source_groups.py` で再生成 |
 | `beacon` CLI エントリ + サブコマンド | ✓ | 1.0.0 | サブコマンド名 + 主要フラグは固定 |
-| レガシー `python -m cmd.<name>` | （非推奨）| n/a | 1.0.0 で非推奨 → 2.0.0 で削除 |
+| レガシー `python -m cmd.<name>` | （削除済み）| n/a | 2.1.0 で削除（1.0.0 で非推奨化）|
 | BEACON Web UI ルートパス + マルチアーティファクトビュー | ✓ | 1.0.0 | HTML/CSS の内部実装は Evolving のまま |
 | 環境変数（§5）| ✓ | 1.0.0 | 名前 + 意味 + デフォルト値を固定 |
 | その他の環境変数（LLM モデル選択、GHE_* など）| （内部）| n/a | デプロイメント固有; 変更される可能性あり |
@@ -150,7 +150,7 @@ Initiative H フェーズ 6 は `beacon` を click `Group` エントリポイン
 
 **Evolving**: オプションフラグのデフォルト値（例: `--tlp-max` のデフォルト）、ヘルプテキストの文言、出力フォーマット。
 
-**非推奨（2.0.0 で削除）**: `python -m cmd.<name>` の呼び出し構文。cmd モジュールは後方互換のため 1.x には残るが、統一された `beacon` エントリへの移行を促す `DeprecationWarning` を出力する。
+**2.1.0 で削除**: `python -m cmd.<name>` の呼び出し構文。スタンドアロンの `__main__` ブロックおよび `DeprecationWarning` の仕組みは削除された。`beacon <subcommand>` のみを使用すること。
 
 ### 3.8 BEACON Web UI（`beacon web` + `beacon pir-generate` による自動起動）
 

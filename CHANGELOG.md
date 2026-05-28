@@ -16,6 +16,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
   category with filenames `assets_<YYYYMMDDHHmm>.json`,
   `identity_assets_<YYYYMMDDHHmm>.json`, and `user_accounts_<YYYYMMDDHHmm>.json`.
   `asset_vulnerabilities` and `actor_targets` remain empty drafts (filled after STIX ETL).
+- Web Identity and Accounts tabs for completing identity_assets / user_accounts draft fields.
+- `beacon schema-regenerate` subcommand — regenerates JSON Schema files from Pydantic
+  models into `schema/` (replaces `python -m cmd.generate_schemas`).
+
+### Removed
+
+- Standalone `python -m cmd.<name>` / `python cmd/<name>.py` invocation form for all
+  `cmd/` modules. The `__main__` entry blocks and `_from_beacon_cli` / `DeprecationWarning`
+  machinery have been deleted. Use `beacon <subcommand>` exclusively (see §3.7 of
+  `docs/api-stability.md`).
 
 ---
 

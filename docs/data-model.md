@@ -67,7 +67,7 @@ The LLM converts it to a structured `BusinessContext`; use `--save-context` to i
 | `dependencies` | list[string] | Asset IDs this asset depends on |
 | `exposure_risk` | enum | `low`, `medium`, `high`, `critical` |
 
-Full schema: `schema/business_context.schema.json` (generate with `uv run python cmd/generate_schemas.py`)
+Full schema: `schema/business_context.schema.json` (generate with `uv run beacon schema-regenerate`)
 
 ---
 
@@ -96,7 +96,7 @@ Full schema: `schema/business_context.schema.json` (generate with `uv run python
 ]
 ```
 
-Full schema: `schema/pir_output.schema.json` (generate with `uv run python cmd/generate_schemas.py`)
+Full schema: `schema/pir_output.schema.json` (generate with `uv run beacon schema-regenerate`)
 
 > **Note:** `--no-llm` mode produces English output as shown above. When LLM augmentation is enabled (default), `description`, `rationale`, and `collection_focus` are rewritten by Vertex AI Gemini and may be in the organization's language context.
 
@@ -242,7 +242,7 @@ Only P1 and P2 are included in `pir_output.json`. P3 items are tracked in `colle
 **Generated with:**
 
 ```bash
-uv run python cmd/generate_pir.py --context ... --output pir_output.json \
+uv run beacon pir-generate --context ... --output pir_output.json \
   --collection-plan collection_plan.md
 ```
 
@@ -319,7 +319,7 @@ Each bucket carries:
 Regenerate the taxonomy from the authoritative feeds:
 
 ```bash
-uv run python cmd/update_taxonomy.py [--dry-run]
+uv run beacon taxonomy-refresh [--dry-run]
 ```
 
 `_metadata.sources` in the JSON records the canonical fetch URLs. No manual curation layer exists — all content comes from the two upstream feeds, which lets `update_taxonomy.py` rebuild the file deterministically.

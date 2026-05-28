@@ -53,7 +53,6 @@ class TestCompanionArtifactsStorageBackend:
                     "--sources-candidate",
                     "",
                 ],
-                _from_beacon_cli=True,
             )
         assert rc == 0
         saved_categories = [args[0] for args, _ in mock_storage.save.call_args_list]
@@ -75,7 +74,6 @@ class TestCompanionArtifactsStorageBackend:
                     "--sources-candidate",
                     "",
                 ],
-                _from_beacon_cli=True,
             )
         # Collect filenames saved under "assets"
         asset_filenames = [
@@ -99,7 +97,6 @@ class TestCompanionArtifactsStorageBackend:
                     "--sources-candidate",
                     "",
                 ],
-                _from_beacon_cli=True,
             )
         asset_filenames = [
             args[1] for args, _ in mock_storage.save.call_args_list if args[0] == "assets"
@@ -124,7 +121,6 @@ class TestCompanionArtifactsStorageBackend:
                     "--sources-candidate",
                     "",
                 ],
-                _from_beacon_cli=True,
             )
         asset_filenames = [
             args[1] for args, _ in mock_storage.save.call_args_list if args[0] == "assets"
@@ -148,7 +144,6 @@ class TestCompanionArtifactsStorageBackend:
                     "--sources-candidate",
                     "",
                 ],
-                _from_beacon_cli=True,
             )
         asset_filenames = [
             args[1] for args, _ in mock_storage.save.call_args_list if args[0] == "assets"
@@ -175,7 +170,6 @@ class TestCompanionArtifactsStorageBackend:
                     "--sources-candidate",
                     "",
                 ],
-                _from_beacon_cli=True,
             )
         for args, _ in mock_storage.save.call_args_list:
             category, filename, content = args
@@ -207,7 +201,6 @@ class TestCompanionArtifactsExplicitOutput:
                     "--sources-candidate",
                     "/dev/null",
                 ],
-                _from_beacon_cli=True,
             )
         assert rc == 0
         assert (tmp_path / "assets.json").exists()
@@ -227,7 +220,6 @@ class TestCompanionArtifactsExplicitOutput:
                     "--sources-candidate",
                     "/dev/null",
                 ],
-                _from_beacon_cli=True,
             )
         assert (tmp_path / "identity_assets.json").exists()
 
@@ -246,7 +238,6 @@ class TestCompanionArtifactsExplicitOutput:
                     "--sources-candidate",
                     "/dev/null",
                 ],
-                _from_beacon_cli=True,
             )
         assert (tmp_path / "user_accounts.json").exists()
 
@@ -265,7 +256,6 @@ class TestCompanionArtifactsExplicitOutput:
                     "--sources-candidate",
                     "/dev/null",
                 ],
-                _from_beacon_cli=True,
             )
         assets_data = json.loads((tmp_path / "assets.json").read_text(encoding="utf-8"))
         assert "assets" in assets_data
@@ -285,7 +275,6 @@ class TestCompanionArtifactsExplicitOutput:
                     "--sources-candidate",
                     "/dev/null",
                 ],
-                _from_beacon_cli=True,
             )
         data = json.loads((tmp_path / "identity_assets.json").read_text(encoding="utf-8"))
         assert "identities" in data
@@ -305,7 +294,6 @@ class TestCompanionArtifactsExplicitOutput:
                     "--sources-candidate",
                     "/dev/null",
                 ],
-                _from_beacon_cli=True,
             )
         data = json.loads((tmp_path / "user_accounts.json").read_text(encoding="utf-8"))
         assert "user_accounts" in data

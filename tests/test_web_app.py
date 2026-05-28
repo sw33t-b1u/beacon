@@ -1115,3 +1115,692 @@ class TestAssetsRoute:
                 follow_redirects=False,
             )
         assert resp.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# Identity tab tests
+# ---------------------------------------------------------------------------
+
+SAMPLE_IDENTITY_DOC = {
+    "identities": [
+        {
+            "id": "identity-001",
+            "name": "Alice Smith",
+            "identity_class": "individual",
+            "sectors": ["technology"],
+            "roles": [],
+            "description": "",
+            "is_high_value_impersonation_target": False,
+            "impersonation_risk_factors": [],
+        },
+        {
+            "id": "identity-002",
+            "name": "Bob Jones",
+            "identity_class": "individual",
+            "sectors": [],
+            "roles": ["admin"],
+            "description": "IT administrator",
+            "is_high_value_impersonation_target": False,
+            "impersonation_risk_factors": [],
+        },
+    ],
+    "has_access": [
+        {
+            "identity_id": "identity-001",
+            "asset_id": "asset-web-01",
+            "access_level": "read",
+            "role": "analyst",
+            "granted_at": "2026-01-01",
+            "revoked_at": None,
+        }
+    ],
+}
+
+
+def _create_identity_session(
+    identity_doc: dict | None = None,
+) -> tuple[str, dict[str, str]]:
+    """Create a session containing an identity_doc; return (session_id, cookies_with_csrf)."""
+    from beacon.web.session import create_session  # noqa: PLC0415
+
+    doc = identity_doc if identity_doc is not None else SAMPLE_IDENTITY_DOC
+    session_id = create_session({"pirs": [], "collection_plan": "", "identity_doc": doc})
+    csrf_token, _ = _get_csrf()
+    return session_id, {"beacon_session": session_id, "beacon_csrf": csrf_token}
+
+
+class TestIdentityRoute:
+    """Tests for the Identity tab routes."""
+
+    # ------------------------------------------------------------------
+    # GET /identity
+    # ------------------------------------------------------------------
+
+    def test_get_returns_200(self):
+        resp = client.get("/identity")
+        assert resp.status_code == 200
+
+    def test_get_shows_identity_section(self):
+        resp = client.get("/identity")
+        assert b"Identity" in resp.content
+
+    def test_get_shows_nav_link(self):
+        resp = client.get("/identity")
+        assert b'href="/identity"' in resp.content
+
+    def test_get_sets_csrf_cookie(self):
+        resp = client.get("/identity")
+        assert "beacon_csrf" in resp.cookies
+
+    def test_get_shows_stored_drafts_section(self):
+        mock_storage = MagicMock()
+        mock_storage.list_files.return_value = [
+            "identity_assets_202606010900.json",
+            "identity_assets_202606011000.json",
+        ]
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = client.get("/identity")
+        assert resp.status_code == 200
+        assert b"identity_assets_202606010900.json" in resp.content
+
+    def test_get_no_doc_loaded_shows_hint(self):
+        fresh = TestClient(app, cookies={})
+        resp = fresh.get("/identity")
+        assert resp.status_code == 200
+        assert b"No identity draft loaded" in resp.content
+
+    def test_get_with_loaded_doc_shows_identities_table(self):
+        session_id, cookies = _create_identity_session()
+        sc = TestClient(app, cookies=cookies)
+        resp = sc.get("/identity")
+        assert resp.status_code == 200
+        assert b"identity-001" in resp.content
+        assert b"identity-002" in resp.content
+
+    # ------------------------------------------------------------------
+    # POST /identity/load-stored/{filename}
+    # ------------------------------------------------------------------
+
+    def test_load_stored_loads_doc_into_session(self):
+        csrf_token, cookies = _get_csrf()
+        mock_storage = MagicMock()
+        mock_storage.load.return_value = json.dumps(SAMPLE_IDENTITY_DOC)
+        sc = TestClient(app, cookies=cookies)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/identity/load-stored/identity_assets_202606011200.json",
+                data={"csrf_token": csrf_token},
+                follow_redirects=False,
+            )
+        assert resp.status_code == 303
+        assert resp.headers["location"] == "/identity"
+        assert "beacon_session" in resp.cookies
+
+    def test_load_stored_missing_file_returns_404(self):
+        csrf_token, cookies = _get_csrf()
+        mock_storage = MagicMock()
+        mock_storage.load.side_effect = FileNotFoundError("not found")
+        sc = TestClient(app, cookies=cookies)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/identity/load-stored/identity_assets_missing.json",
+                data={"csrf_token": csrf_token},
+                follow_redirects=False,
+            )
+        assert resp.status_code == 404
+
+    def test_load_stored_bad_json_returns_400(self):
+        csrf_token, cookies = _get_csrf()
+        mock_storage = MagicMock()
+        mock_storage.load.return_value = "not json {"
+        sc = TestClient(app, cookies=cookies)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/identity/load-stored/identity_assets_bad.json",
+                data={"csrf_token": csrf_token},
+                follow_redirects=False,
+            )
+        assert resp.status_code == 400
+
+    def test_load_stored_csrf_required(self):
+        fresh = TestClient(app, cookies={})
+        mock_storage = MagicMock()
+        mock_storage.load.return_value = json.dumps(SAMPLE_IDENTITY_DOC)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = fresh.post(
+                "/identity/load-stored/identity_assets_202606011200.json",
+                data={},
+                follow_redirects=False,
+            )
+        assert resp.status_code == 403
+
+    # ------------------------------------------------------------------
+    # POST /identity/save
+    # ------------------------------------------------------------------
+
+    def test_save_persists_description(self):
+        session_id, cookies = _create_identity_session()
+        sc = TestClient(app, cookies=cookies)
+        identity_resp = sc.get("/identity")
+        csrf = identity_resp.cookies.get("beacon_csrf", cookies["beacon_csrf"])
+        cookies["beacon_csrf"] = csrf
+        sc = TestClient(app, cookies=cookies)
+
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+        mock_storage.list_files.return_value = []
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/identity/save",
+                data={
+                    "csrf_token": csrf,
+                    "identity_count": "2",
+                    "identity_id_0": "identity-001",
+                    "identity_description_0": "Updated description",
+                    "identity_roles_0": "analyst",
+                    "identity_hvit_0": "",
+                    "identity_risk_factors_0": "",
+                    "identity_id_1": "identity-002",
+                    "identity_description_1": "",
+                    "identity_roles_1": "admin",
+                    "identity_hvit_1": "",
+                    "identity_risk_factors_1": "",
+                    "has_access_json": "",
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 200
+
+        from beacon.web.session import load_session  # noqa: PLC0415
+
+        updated_session = load_session(session_id)
+        assert updated_session is not None
+        identities = updated_session["identity_doc"]["identities"]
+        alice = next(i for i in identities if i["id"] == "identity-001")
+        assert alice["description"] == "Updated description"
+        assert "analyst" in alice["roles"]
+
+    def test_save_persists_hvit_flag(self):
+        session_id, cookies = _create_identity_session()
+        sc = TestClient(app, cookies=cookies)
+        identity_resp = sc.get("/identity")
+        csrf = identity_resp.cookies.get("beacon_csrf", cookies["beacon_csrf"])
+        cookies["beacon_csrf"] = csrf
+        sc = TestClient(app, cookies=cookies)
+
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+        mock_storage.list_files.return_value = []
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/identity/save",
+                data={
+                    "csrf_token": csrf,
+                    "identity_count": "1",
+                    "identity_id_0": "identity-001",
+                    "identity_description_0": "",
+                    "identity_roles_0": "",
+                    "identity_hvit_0": "1",
+                    "identity_risk_factors_0": "executive, public-facing-brand",
+                    "has_access_json": "",
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 200
+
+        from beacon.web.session import load_session  # noqa: PLC0415
+
+        updated_session = load_session(session_id)
+        assert updated_session is not None
+        identities = updated_session["identity_doc"]["identities"]
+        alice = next(i for i in identities if i["id"] == "identity-001")
+        assert alice["is_high_value_impersonation_target"] is True
+        assert "executive" in alice["impersonation_risk_factors"]
+
+    def test_save_persists_has_access_json(self):
+        session_id, cookies = _create_identity_session()
+        sc = TestClient(app, cookies=cookies)
+        identity_resp = sc.get("/identity")
+        csrf = identity_resp.cookies.get("beacon_csrf", cookies["beacon_csrf"])
+        cookies["beacon_csrf"] = csrf
+        sc = TestClient(app, cookies=cookies)
+
+        ha_json = json.dumps(
+            [
+                {
+                    "identity_id": "identity-002",
+                    "asset_id": "asset-db-01",
+                    "access_level": "admin",
+                    "role": "dba",
+                }
+            ]
+        )
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+        mock_storage.list_files.return_value = []
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/identity/save",
+                data={
+                    "csrf_token": csrf,
+                    "identity_count": "0",
+                    "has_access_json": ha_json,
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 200
+
+        from beacon.web.session import load_session  # noqa: PLC0415
+
+        updated_session = load_session(session_id)
+        assert updated_session is not None
+        ha_list = updated_session["identity_doc"]["has_access"]
+        assert len(ha_list) == 1
+        assert ha_list[0]["identity_id"] == "identity-002"
+        assert ha_list[0]["access_level"] == "admin"
+
+    def test_save_writes_to_storage(self):
+        session_id, cookies = _create_identity_session()
+        sc = TestClient(app, cookies=cookies)
+        identity_resp = sc.get("/identity")
+        csrf = identity_resp.cookies.get("beacon_csrf", cookies["beacon_csrf"])
+        cookies["beacon_csrf"] = csrf
+        sc = TestClient(app, cookies=cookies)
+
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+        mock_storage.list_files.return_value = []
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/identity/save",
+                data={
+                    "csrf_token": csrf,
+                    "identity_count": "0",
+                    "has_access_json": "",
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 200
+        save_calls = mock_storage.save.call_args_list
+        assert len(save_calls) >= 1
+        category, filename, _ = save_calls[0][0]
+        assert category == "assets"
+        assert filename.startswith("identity_assets_")
+        assert filename.endswith(".json")
+
+    def test_save_csrf_required(self):
+        session_id, cookies = _create_identity_session()
+        bad_cookies = {**cookies, "beacon_csrf": "mismatch-token"}
+        sc = TestClient(app, cookies=bad_cookies)
+        resp = sc.post(
+            "/identity/save",
+            data={
+                "csrf_token": "different-token",
+                "identity_count": "0",
+                "has_access_json": "",
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 403
+
+    def test_save_no_session_returns_400(self):
+        csrf_token, cookies = _get_csrf()
+        fresh = TestClient(app, cookies=cookies)
+        resp = fresh.post(
+            "/identity/save",
+            data={
+                "csrf_token": csrf_token,
+                "identity_count": "0",
+                "has_access_json": "",
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 400
+
+    def test_save_session_without_identity_doc_returns_400(self):
+        from beacon.web.session import create_session  # noqa: PLC0415
+
+        session_id = create_session({"pirs": [], "collection_plan": ""})
+        csrf_token, _ = _get_csrf()
+        cookies = {"beacon_session": session_id, "beacon_csrf": csrf_token}
+        sc = TestClient(app, cookies=cookies)
+
+        mock_storage = MagicMock()
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/identity/save",
+                data={
+                    "csrf_token": csrf_token,
+                    "identity_count": "0",
+                    "has_access_json": "",
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# Accounts tab tests
+# ---------------------------------------------------------------------------
+
+SAMPLE_ACCOUNTS_DOC = {
+    "user_accounts": [
+        {
+            "id": "acct-001",
+            "account_login": "alice",
+            "display_name": "",
+            "account_type": "windows",
+            "is_privileged": False,
+            "is_service_account": False,
+            "identity_id": "identity-001",
+            "description": "",
+        },
+        {
+            "id": "acct-002",
+            "account_login": "svc-backup",
+            "display_name": "Backup Service",
+            "account_type": "unix",
+            "is_privileged": True,
+            "is_service_account": True,
+            "identity_id": None,
+            "description": "Automated backup account",
+        },
+    ],
+    "account_on_asset": [
+        {
+            "user_account_id": "acct-001",
+            "asset_id": "asset-web-01",
+            "first_seen": "2026-01-01",
+            "last_seen": "2026-05-28",
+        }
+    ],
+}
+
+
+def _create_accounts_session(
+    accounts_doc: dict | None = None,
+) -> tuple[str, dict[str, str]]:
+    """Create a session containing an accounts_doc; return (session_id, cookies_with_csrf)."""
+    from beacon.web.session import create_session  # noqa: PLC0415
+
+    doc = accounts_doc if accounts_doc is not None else SAMPLE_ACCOUNTS_DOC
+    session_id = create_session({"pirs": [], "collection_plan": "", "accounts_doc": doc})
+    csrf_token, _ = _get_csrf()
+    return session_id, {"beacon_session": session_id, "beacon_csrf": csrf_token}
+
+
+class TestAccountsRoute:
+    """Tests for the Accounts tab routes."""
+
+    # ------------------------------------------------------------------
+    # GET /accounts
+    # ------------------------------------------------------------------
+
+    def test_get_returns_200(self):
+        resp = client.get("/accounts")
+        assert resp.status_code == 200
+
+    def test_get_shows_accounts_section(self):
+        resp = client.get("/accounts")
+        assert b"Accounts" in resp.content
+
+    def test_get_shows_nav_link(self):
+        resp = client.get("/accounts")
+        assert b'href="/accounts"' in resp.content
+
+    def test_get_sets_csrf_cookie(self):
+        resp = client.get("/accounts")
+        assert "beacon_csrf" in resp.cookies
+
+    def test_get_shows_stored_drafts_section(self):
+        mock_storage = MagicMock()
+        mock_storage.list_files.return_value = [
+            "user_accounts_202606010900.json",
+            "user_accounts_202606011000.json",
+        ]
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = client.get("/accounts")
+        assert resp.status_code == 200
+        assert b"user_accounts_202606010900.json" in resp.content
+
+    def test_get_no_doc_loaded_shows_hint(self):
+        fresh = TestClient(app, cookies={})
+        resp = fresh.get("/accounts")
+        assert resp.status_code == 200
+        assert b"No accounts draft loaded" in resp.content
+
+    def test_get_with_loaded_doc_shows_accounts_table(self):
+        session_id, cookies = _create_accounts_session()
+        sc = TestClient(app, cookies=cookies)
+        resp = sc.get("/accounts")
+        assert resp.status_code == 200
+        assert b"acct-001" in resp.content
+        assert b"acct-002" in resp.content
+
+    # ------------------------------------------------------------------
+    # POST /accounts/load-stored/{filename}
+    # ------------------------------------------------------------------
+
+    def test_load_stored_loads_doc_into_session(self):
+        csrf_token, cookies = _get_csrf()
+        mock_storage = MagicMock()
+        mock_storage.load.return_value = json.dumps(SAMPLE_ACCOUNTS_DOC)
+        sc = TestClient(app, cookies=cookies)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/accounts/load-stored/user_accounts_202606011200.json",
+                data={"csrf_token": csrf_token},
+                follow_redirects=False,
+            )
+        assert resp.status_code == 303
+        assert resp.headers["location"] == "/accounts"
+        assert "beacon_session" in resp.cookies
+
+    def test_load_stored_missing_file_returns_404(self):
+        csrf_token, cookies = _get_csrf()
+        mock_storage = MagicMock()
+        mock_storage.load.side_effect = FileNotFoundError("not found")
+        sc = TestClient(app, cookies=cookies)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/accounts/load-stored/user_accounts_missing.json",
+                data={"csrf_token": csrf_token},
+                follow_redirects=False,
+            )
+        assert resp.status_code == 404
+
+    def test_load_stored_bad_json_returns_400(self):
+        csrf_token, cookies = _get_csrf()
+        mock_storage = MagicMock()
+        mock_storage.load.return_value = "not json {"
+        sc = TestClient(app, cookies=cookies)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/accounts/load-stored/user_accounts_bad.json",
+                data={"csrf_token": csrf_token},
+                follow_redirects=False,
+            )
+        assert resp.status_code == 400
+
+    def test_load_stored_csrf_required(self):
+        fresh = TestClient(app, cookies={})
+        mock_storage = MagicMock()
+        mock_storage.load.return_value = json.dumps(SAMPLE_ACCOUNTS_DOC)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = fresh.post(
+                "/accounts/load-stored/user_accounts_202606011200.json",
+                data={},
+                follow_redirects=False,
+            )
+        assert resp.status_code == 403
+
+    # ------------------------------------------------------------------
+    # POST /accounts/save
+    # ------------------------------------------------------------------
+
+    def test_save_persists_display_name(self):
+        session_id, cookies = _create_accounts_session()
+        sc = TestClient(app, cookies=cookies)
+        accounts_resp = sc.get("/accounts")
+        csrf = accounts_resp.cookies.get("beacon_csrf", cookies["beacon_csrf"])
+        cookies["beacon_csrf"] = csrf
+        sc = TestClient(app, cookies=cookies)
+
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+        mock_storage.list_files.return_value = []
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/accounts/save",
+                data={
+                    "csrf_token": csrf,
+                    "account_count": "2",
+                    "acct_id_0": "acct-001",
+                    "acct_display_name_0": "Alice Smith",
+                    "acct_type_0": "windows",
+                    "acct_privileged_0": "",
+                    "acct_service_0": "",
+                    "acct_description_0": "",
+                    "acct_id_1": "acct-002",
+                    "acct_display_name_1": "Backup Service",
+                    "acct_type_1": "unix",
+                    "acct_privileged_1": "1",
+                    "acct_service_1": "1",
+                    "acct_description_1": "Automated backup account",
+                    "account_on_asset_json": "",
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 200
+
+        from beacon.web.session import load_session  # noqa: PLC0415
+
+        updated_session = load_session(session_id)
+        assert updated_session is not None
+        accounts = updated_session["accounts_doc"]["user_accounts"]
+        alice = next(a for a in accounts if a["id"] == "acct-001")
+        svc = next(a for a in accounts if a["id"] == "acct-002")
+        assert alice["display_name"] == "Alice Smith"
+        assert svc["is_privileged"] is True
+        assert svc["is_service_account"] is True
+
+    def test_save_persists_account_on_asset_json(self):
+        session_id, cookies = _create_accounts_session()
+        sc = TestClient(app, cookies=cookies)
+        accounts_resp = sc.get("/accounts")
+        csrf = accounts_resp.cookies.get("beacon_csrf", cookies["beacon_csrf"])
+        cookies["beacon_csrf"] = csrf
+        sc = TestClient(app, cookies=cookies)
+
+        aoa_json = json.dumps(
+            [
+                {
+                    "user_account_id": "acct-002",
+                    "asset_id": "asset-db-01",
+                    "first_seen": "2026-02-01",
+                    "last_seen": "2026-05-28",
+                }
+            ]
+        )
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+        mock_storage.list_files.return_value = []
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/accounts/save",
+                data={
+                    "csrf_token": csrf,
+                    "account_count": "0",
+                    "account_on_asset_json": aoa_json,
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 200
+
+        from beacon.web.session import load_session  # noqa: PLC0415
+
+        updated_session = load_session(session_id)
+        assert updated_session is not None
+        aoa_list = updated_session["accounts_doc"]["account_on_asset"]
+        assert len(aoa_list) == 1
+        assert aoa_list[0]["user_account_id"] == "acct-002"
+        assert aoa_list[0]["first_seen"] == "2026-02-01"
+
+    def test_save_writes_to_storage(self):
+        session_id, cookies = _create_accounts_session()
+        sc = TestClient(app, cookies=cookies)
+        accounts_resp = sc.get("/accounts")
+        csrf = accounts_resp.cookies.get("beacon_csrf", cookies["beacon_csrf"])
+        cookies["beacon_csrf"] = csrf
+        sc = TestClient(app, cookies=cookies)
+
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+        mock_storage.list_files.return_value = []
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/accounts/save",
+                data={
+                    "csrf_token": csrf,
+                    "account_count": "0",
+                    "account_on_asset_json": "",
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 200
+        save_calls = mock_storage.save.call_args_list
+        assert len(save_calls) >= 1
+        category, filename, _ = save_calls[0][0]
+        assert category == "assets"
+        assert filename.startswith("user_accounts_")
+        assert filename.endswith(".json")
+
+    def test_save_csrf_required(self):
+        session_id, cookies = _create_accounts_session()
+        bad_cookies = {**cookies, "beacon_csrf": "mismatch-token"}
+        sc = TestClient(app, cookies=bad_cookies)
+        resp = sc.post(
+            "/accounts/save",
+            data={
+                "csrf_token": "different-token",
+                "account_count": "0",
+                "account_on_asset_json": "",
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 403
+
+    def test_save_no_session_returns_400(self):
+        csrf_token, cookies = _get_csrf()
+        fresh = TestClient(app, cookies=cookies)
+        resp = fresh.post(
+            "/accounts/save",
+            data={
+                "csrf_token": csrf_token,
+                "account_count": "0",
+                "account_on_asset_json": "",
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 400
+
+    def test_save_session_without_accounts_doc_returns_400(self):
+        from beacon.web.session import create_session  # noqa: PLC0415
+
+        session_id = create_session({"pirs": [], "collection_plan": ""})
+        csrf_token, _ = _get_csrf()
+        cookies = {"beacon_session": session_id, "beacon_csrf": csrf_token}
+        sc = TestClient(app, cookies=cookies)
+
+        mock_storage = MagicMock()
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/accounts/save",
+                data={
+                    "csrf_token": csrf_token,
+                    "account_count": "0",
+                    "account_on_asset_json": "",
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 400

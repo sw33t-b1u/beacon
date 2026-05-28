@@ -6,7 +6,7 @@ underlying ``cmd/*.py`` ``main(argv)`` function so the business
 logic stays in one place; this module is intentionally a thin
 dispatcher.
 
-The eight subcommands are:
+The nine subcommands are:
 
 * ``beacon pir-generate`` — Generate PIR + collection plan + sources
   candidate; auto-launches the web UI on success (suppress with
@@ -20,10 +20,8 @@ The eight subcommands are:
 * ``beacon misp-cache-refresh`` — Refresh the local MISP cache.
 * ``beacon web`` — Launch the review web UI without running PIR
   generation.
-
-The legacy ``python -m cmd.<name>`` invocation remains for 1.x
-backward compatibility; see ``docs/api-stability.md`` §3.7 for the
-2.0.0 removal schedule.
+* ``beacon schema-regenerate`` — Regenerate JSON Schema files from
+  Pydantic models into ``schema/``.
 """
 
 from __future__ import annotations
@@ -71,13 +69,9 @@ def _load_cmd_module(name: str) -> Any:
 
 
 def _delegate(cmd_name: str, argv: list[str]) -> int:
-    """Invoke the underlying ``cmd.<cmd_name>.main(argv)`` and return its exit code.
-
-    The ``_from_beacon_cli=True`` keyword suppresses the per-script
-    deprecation banner; the user already chose the modern entry point.
-    """
+    """Invoke the underlying ``cmd.<cmd_name>.main(argv)`` and return its exit code."""
     module = _load_cmd_module(cmd_name)
-    result = module.main(argv, _from_beacon_cli=True)
+    result = module.main(argv)
     return int(result) if result is not None else 0
 
 
@@ -340,6 +334,22 @@ def misp_cache_refresh(ctx: click.Context) -> None:
 def web(ctx: click.Context) -> None:
     """Launch the BEACON review web UI without triggering PIR generation."""
     rc = _delegate("web_app", list(ctx.args))
+    if rc and rc != 0:
+        raise click.exceptions.Exit(rc)
+
+
+@cli.command(
+    "schema-regenerate",
+    context_settings={
+        "help_option_names": ["-h", "--help"],
+        "ignore_unknown_options": True,
+        "allow_extra_args": True,
+    },
+)
+@click.pass_context
+def schema_regenerate(ctx: click.Context) -> None:
+    """Regenerate JSON Schema files from Pydantic models into schema/."""
+    rc = _delegate("generate_schemas", list(ctx.args))
     if rc and rc != 0:
         raise click.exceptions.Exit(rc)
 

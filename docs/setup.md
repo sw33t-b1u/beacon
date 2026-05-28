@@ -118,27 +118,24 @@ Place your strategy document in `input/` (see [`schema/context_template.md`](../
 Use when you already have a `business_context.json` and want to avoid LLM costs.
 
 ```bash
-uv run python cmd/generate_pir.py \
+beacon pir-generate \
   --context tests/fixtures/sample_context_manufacturing.json \
-  --no-llm \
-  --output output/pir_output.json \
-  --collection-plan output/collection_plan.md
+  --output-dir output/
 ```
 
 ### Option B: LLM mode — Markdown input (requires GCP)
 
 ```bash
 # Ensure GCP_PROJECT_ID is set and ADC is configured (see Step 4)
-uv run python cmd/generate_pir.py \
+beacon pir-generate \
   --context input/acme.md \
-  --output output/pir_output.json \
-  --collection-plan output/collection_plan.md
+  --output-dir output/
 ```
 
 To also save the intermediate `BusinessContext` JSON for inspection or reuse:
 
 ```bash
-uv run python cmd/generate_pir.py \
+beacon pir-generate \
   --context input/acme.md \
   --save-context output/business_context.json
 # Writes: output/pir_output.json, output/collection_plan.md, output/business_context.json

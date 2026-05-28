@@ -4,28 +4,21 @@ Exercises the click group entry point at ``beacon.cli:cli``:
 
 * All 8 subcommands appear in ``beacon --help``.
 * Each subcommand resolves to the underlying ``cmd/*.py`` ``main(argv)``
-  with ``_from_beacon_cli=True`` (suppresses the deprecation banner) and
-  the original flag set passes through.
+  and the original flag set passes through.
 * ``pir-generate`` translates ``--output-dir`` into the per-artifact
   path triple expected by ``cmd.generate_pir.main``.
 * ``pir-generate --no-web`` skips ``beacon.web.launcher.launch_web``.
 * ``pir-generate`` without ``--no-web`` invokes ``launch_web``.
-* Direct ``cmd.<name>.main()`` invocation still emits the legacy
-  ``DeprecationWarning`` to stderr (verifies the suppression toggle
-  defaults to False).
 """
 
 from __future__ import annotations
 
-import io
-from contextlib import redirect_stderr
 from unittest.mock import MagicMock, patch
 
 import pytest
 from click.testing import CliRunner
 
 from beacon.cli import cli
-from tests.conftest import load_cmd_module
 
 
 @pytest.fixture
@@ -85,9 +78,8 @@ class TestPirGenerateOutputDirTranslation:
         out_dir = tmp_path / "run1"
         captured_argv: list[list[str]] = []
 
-        def _fake_main(argv, *, _from_beacon_cli=False):
+        def _fake_main(argv):
             captured_argv.append(list(argv))
-            assert _from_beacon_cli is True
             return 0
 
         fake_generate_pir = MagicMock()
@@ -125,7 +117,7 @@ class TestPirGenerateOutputDirTranslation:
     def test_no_sage_flag_passes_through(self, runner, tmp_path):
         captured_argv: list[list[str]] = []
 
-        def _fake_main(argv, *, _from_beacon_cli=False):
+        def _fake_main(argv):
             captured_argv.append(list(argv))
             return 0
 
@@ -154,7 +146,7 @@ class TestPirGenerateNoWebSuppressesLauncher:
 
     def test_no_web_skips_launcher(self, runner, tmp_path):
         fake_module = MagicMock()
-        fake_module.main = lambda argv, *, _from_beacon_cli=False: 0
+        fake_module.main = lambda argv: 0
         with patch("beacon.cli._load_cmd_module", return_value=fake_module):
             with patch("beacon.web.launcher.launch_web") as mock_launch:
                 result = runner.invoke(
@@ -173,7 +165,7 @@ class TestPirGenerateNoWebSuppressesLauncher:
 
     def test_default_invokes_launcher(self, runner, tmp_path):
         fake_module = MagicMock()
-        fake_module.main = lambda argv, *, _from_beacon_cli=False: 0
+        fake_module.main = lambda argv: 0
         with patch("beacon.cli._load_cmd_module", return_value=fake_module):
             with patch("beacon.web.launcher.launch_web") as mock_launch:
                 mock_launch.return_value = "http://127.0.0.1:5555/"
@@ -209,9 +201,8 @@ class TestSubcommandPassThrough:
     def test_extra_args_pass_through(self, runner, subcommand, cmd_module):
         captured: dict = {}
 
-        def _fake_main(argv, *, _from_beacon_cli=False):
+        def _fake_main(argv):
             captured["argv"] = list(argv)
-            captured["beacon_flag"] = _from_beacon_cli
             return 0
 
         fake_module = MagicMock()
@@ -221,47 +212,10 @@ class TestSubcommandPassThrough:
         assert result.exit_code == 0, result.output
         load_mock.assert_called_once_with(cmd_module)
         assert captured["argv"] == ["--alpha", "x", "--beta"]
-        assert captured["beacon_flag"] is True
 
     def test_delegate_failure_propagates_exit_code(self, runner):
         fake_module = MagicMock()
-        fake_module.main = lambda argv, *, _from_beacon_cli=False: 7
+        fake_module.main = lambda argv: 7
         with patch("beacon.cli._load_cmd_module", return_value=fake_module):
             result = runner.invoke(cli, ["taxonomy-refresh"])
         assert result.exit_code == 7
-
-
-class TestLegacyCmdEmitsDeprecation:
-    """Direct `python -m cmd.<name>` invocation must still warn."""
-
-    def test_submit_for_review_warns(self):
-        mod = load_cmd_module("submit_for_review")
-        buf = io.StringIO()
-        with redirect_stderr(buf):
-            try:
-                mod.main(["--help"])
-            except SystemExit:
-                pass
-        assert "DeprecationWarning" in buf.getvalue()
-        assert "beacon submit-review" in buf.getvalue()
-
-    def test_generate_pir_warns(self):
-        mod = load_cmd_module("generate_pir")
-        buf = io.StringIO()
-        with redirect_stderr(buf):
-            try:
-                mod.main(["--help"])
-            except SystemExit:
-                pass
-        assert "DeprecationWarning" in buf.getvalue()
-        assert "beacon pir-generate" in buf.getvalue()
-
-    def test_beacon_cli_suppresses_deprecation_banner(self):
-        mod = load_cmd_module("submit_for_review")
-        buf = io.StringIO()
-        with redirect_stderr(buf):
-            try:
-                mod.main(["--help"], _from_beacon_cli=True)
-            except SystemExit:
-                pass
-        assert "DeprecationWarning" not in buf.getvalue()

@@ -15,13 +15,15 @@
 uv run beacon web          # デフォルト: http://localhost:8000
 ```
 
-ダッシュボードは 6 つのタブで構成されます:
+ダッシュボードは 8 つのタブで構成されます:
 
 | タブ | 用途 |
 |------|------|
 | **Dashboard** | パイプラインサマリ: PIR 件数・収集状況・チョークポイント |
 | **PIR** | PIR 生成・出力レビュー・StorageBackend からの過去実行自動ロード |
 | **Assets** | `assets_*.json` ドラフトをロードし、org-known フィールド（owner・セキュリティコントロール・CVE マッピング）を補完して StorageBackend に保存 |
+| **Identity** | `identity_assets_*.json` ドラフトをロードし、org-known フィールド（description・roles・impersonation リスクフラグ・has_access エッジ）を補完して StorageBackend に保存 |
+| **Accounts** | `user_accounts_*.json` ドラフトをロードし、org-known フィールド（表示名・アカウント種別・権限フラグ・account_on_asset エッジ）を補完して StorageBackend に保存 |
 | **Collection** | TRACE の `crawl-single` / `crawl-batch` をサブプロセスで実行 |
 | **Threats** | SAGE API プロキシ: アクター検索・TTP ルックアップ・脅威サマリ |
 | **Settings** | ストレージモード・SAGE URL・TRACE パスを設定。`.beacon_settings.json` に永続化 |
@@ -157,7 +159,7 @@ beacon web --no-web        # ドライラン / バリデーションのみ（サ
 5. **SAGE への読み込み** — `SAGE/` ディレクトリで:
 
    ```bash
-   uv run python cmd/load_assets.py --file output/assets.json
+   cd ../SAGE && uv run sage load-assets --file output/assets.json
    ```
 
    SAGE 1.2.0 以降、Spanner に存在しない CVE に対してはスタブ `Vulnerability` ノードが
@@ -222,22 +224,22 @@ BEACON は [MISP Galaxy](https://github.com/MISP/misp-galaxy) の
 
 ```bash
 # デフォルト: cache/misp-threat-actor.json に書き込む
-uv run python -m cmd.refresh_misp_cache
+beacon misp-cache-refresh
 
 # カスタム出力パスを指定
-uv run python -m cmd.refresh_misp_cache --output /path/to/misp-threat-actor.json
+beacon misp-cache-refresh --output /path/to/misp-threat-actor.json
 
 # ディスクに書き込まずにダウンロードを検証
-uv run python -m cmd.refresh_misp_cache --dry-run
+beacon misp-cache-refresh --dry-run
 
 # すべてのオプション
-uv run python -m cmd.refresh_misp_cache --help
+beacon misp-cache-refresh --help
 ```
 
 ### 推奨 cron エントリ（毎日 03:00 ローカル時間）
 
 ```cron
-0 3 * * * cd /path/to/beacon && unset ALL_PROXY all_proxy HTTP_PROXY http_proxy HTTPS_PROXY https_proxy FTP_PROXY ftp_proxy RSYNC_PROXY GRPC_PROXY grpc_proxy NO_PROXY no_proxy; export UV_CACHE_DIR=$TMPDIR/uv-cache; uv run python -m cmd.refresh_misp_cache >> /var/log/beacon/misp_refresh.log 2>&1
+0 3 * * * cd /path/to/beacon && unset ALL_PROXY all_proxy HTTP_PROXY http_proxy HTTPS_PROXY https_proxy FTP_PROXY ftp_proxy RSYNC_PROXY GRPC_PROXY grpc_proxy NO_PROXY no_proxy; export UV_CACHE_DIR=$TMPDIR/uv-cache; beacon misp-cache-refresh >> /var/log/beacon/misp_refresh.log 2>&1
 ```
 
 cron エントリを有効化する前にログディレクトリを作成すること:
@@ -293,7 +295,7 @@ mkdir -p /var/log/beacon
 - SAGE が稼働しており、Spanner スキーマが初期化済み（SAGE/ で `make init-schema` 実行済み）
 - SAGE の環境に `GCP_PROJECT_ID` および `SPANNER_INSTANCE_ID` が設定済み
 - Spanner インスタンスへの書き込み権限がある
-- BEACON で `pir_output.json` が生成済み（`uv run python cmd/generate_pir.py` で生成）
+- BEACON で `pir_output.json` が生成済み（`beacon pir-generate` で生成）
 
 ---
 
@@ -301,10 +303,9 @@ mkdir -p /var/log/beacon
 
 ```bash
 cd BEACON/
-uv run python cmd/generate_pir.py \
+beacon pir-generate \
   --context path/to/business_context.json \
-  --output pir_output.json \
-  --collection-plan collection_plan.md
+  --output-dir output/
 ```
 
 生成後、`pir_output.json` の内容を確認します:
@@ -333,9 +334,9 @@ PIR バリデーションは BEACON 0.9.0 で TRACE に移管されました
 スキーマチェックに加えて、タクソノミー照合・資産タグ一致・有効期間も検証します。
 
 ```bash
-cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json
+cd ../TRACE && uv run trace validate-pir --pir pir_output.json
 # assets.json を併せて指定すると asset_weight_rules.tag の整合性も確認:
-cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json --assets assets.json
+cd ../TRACE && uv run trace validate-pir --pir pir_output.json --assets assets.json
 ```
 
 ---
@@ -359,8 +360,7 @@ export PIR_FILE_PATH=/path/to/beacon/pir_output.json
 `SAGE/` ディレクトリで実行します:
 
 ```bash
-cd ../SAGE/
-uv run python cmd/run_etl.py
+cd ../SAGE && uv run sage run-etl
 ```
 
 SAGE ETL は以下を実行します:
@@ -384,7 +384,7 @@ targets_generated   count=K
 #### SAGE ビジュアライザー経由
 
 ```bash
-uv run python cmd/visualize_graph.py
+cd ../SAGE && uv run sage visualize-graph
 ```
 
 生成された HTML を開きます。PIR にマッチしたアクターが Targets エッジで紐づく資産は、
@@ -461,7 +461,7 @@ gcloud spanner databases execute-sql sage-db \
 | 主要な脅威アクターキャンペーン | `schema/threat_taxonomy.json` を更新して PIR を再生成 |
 | 新規規制要件 | `organization.regulatory_context` を更新して PIR を再生成 |
 
-再生成後は必ず `TRACE/cmd/validate_pir.py` で検証してから SAGE に配置してください。
+再生成後は必ず `cd ../TRACE && uv run trace validate-pir` で検証してから SAGE に配置してください。
 
 ---
 

@@ -1,9 +1,6 @@
 """CLI: Generate SAGE-compatible PIR JSON from a business context file.
 
-.. deprecated:: 1.0.0
-    Invoke as ``beacon pir-generate`` instead. The ``python -m cmd.generate_pir``
-    form is preserved for 1.x backward compatibility and will be removed in
-    BEACON 2.0.0. See ``docs/api-stability.md`` §3.7.
+Invoke via the unified CLI: ``beacon pir-generate``.
 """
 
 from __future__ import annotations
@@ -21,14 +18,7 @@ load_dotenv()
 logger = structlog.get_logger(__name__)
 
 
-def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> int:
-    if not _from_beacon_cli:
-        print(
-            "DeprecationWarning: `python -m cmd.generate_pir` is deprecated; "
-            "use `beacon pir-generate` instead (removal scheduled for 2.0.0). "
-            "See docs/api-stability.md §3.7.",
-            file=sys.stderr,
-        )
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Generate SAGE-compatible PIR JSON from a business context file."
     )
@@ -309,7 +299,3 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> in
         print(f"User accounts draft → {accounts_out}")
 
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

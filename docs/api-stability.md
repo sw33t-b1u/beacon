@@ -50,7 +50,7 @@ one) ship as minors in step 1.
 | `business_context.schema.json` | ✓ | 1.0.0 | Operator-facing business context input schema |
 | `source_attack_groups.derived.json` | ✗ | n/a | Auto-derived; regenerated via `scripts/derive_source_groups.py` |
 | `beacon` CLI entry + subcommands | ✓ | 1.0.0 | Subcommand names + main flags frozen |
-| Legacy `python -m cmd.<name>` | (deprecated) | n/a | Deprecated in 1.0.0 → removed in 2.0.0 |
+| Legacy `python -m cmd.<name>` | (removed) | n/a | Removed in 2.1.0 (deprecated in 1.0.0) |
 | BEACON web UI route paths + multi-artifact view | ✓ | 1.0.0 | HTML/CSS internals stay Evolving |
 | Env vars (§5) | ✓ | 1.0.0 | Name + meaning + default frozen |
 | Other env vars (LLM model selection, GHE_*) | (internal) | n/a | Deployment-specific; may change |
@@ -191,9 +191,9 @@ visible surface from 1.0.0:
 **Evolving**: optional flag defaults (e.g., `--tlp-max` default), help
 text wording, output formatting.
 
-**Deprecated (removal in 2.0.0)**: `python -m cmd.<name>` invocation
-syntax. The cmd modules remain in 1.x for backward compat but emit
-`DeprecationWarning` directing operators to the unified `beacon` entry.
+**Removed in 2.1.0**: `python -m cmd.<name>` invocation syntax.
+Standalone `__main__` blocks and `DeprecationWarning` machinery were
+removed. Use `beacon <subcommand>` exclusively.
 
 ### 3.8 BEACON web UI (`beacon web` + `beacon pir-generate` auto-launch)
 

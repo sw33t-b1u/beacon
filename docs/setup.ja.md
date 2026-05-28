@@ -119,27 +119,24 @@ make check
 すでに `business_context.json` があり、LLM コストを避けたい場合に使用。
 
 ```bash
-uv run python cmd/generate_pir.py \
+beacon pir-generate \
   --context tests/fixtures/sample_context_manufacturing.json \
-  --no-llm \
-  --output output/pir_output.json \
-  --collection-plan output/collection_plan.md
+  --output-dir output/
 ```
 
 ### Option B: LLM モード — Markdown 入力（GCP 必要）
 
 ```bash
 # GCP_PROJECT_ID を設定し、ADC を構成済みであること（Step 4 参照）
-uv run python cmd/generate_pir.py \
+beacon pir-generate \
   --context input/acme.md \
-  --output output/pir_output.json \
-  --collection-plan output/collection_plan.md
+  --output-dir output/
 ```
 
 中間生成物 `BusinessContext` JSON を確認・再利用したい場合は `--save-context` を追加:
 
 ```bash
-uv run python cmd/generate_pir.py \
+beacon pir-generate \
   --context input/acme.md \
   --save-context output/business_context.json
 # 出力: output/pir_output.json, output/collection_plan.md, output/business_context.json
@@ -153,10 +150,10 @@ uv run python cmd/generate_pir.py \
 
 ```bash
 # Markdown から生成（LLM / Vertex AI が必要）
-uv run python cmd/generate_assets.py --context input/context.md
+beacon assets-generate --context input/context.md
 
 # JSON から生成（LLM 不要）
-uv run python cmd/generate_assets.py \
+beacon assets-generate \
   --context input/context.json \
   --no-llm \
   --output output/assets.json
@@ -176,7 +173,7 @@ SAGE Spanner へのロード (`load_assets.py` は `SAGE/cmd/` 配下のため
 ディレクトリを切り替えて実行):
 
 ```bash
-cd ../SAGE && uv run python cmd/load_assets.py --file ../BEACON/output/assets.json
+cd ../SAGE && uv run sage load-assets --file ../BEACON/output/assets.json
 ```
 
 ---
@@ -192,10 +189,10 @@ cd ../SAGE && uv run python cmd/load_assets.py --file ../BEACON/output/assets.js
 
 ```bash
 # Markdown から生成 (LLM が必要)
-uv run python cmd/generate_identity_assets.py --context input/context.md
+beacon identity-generate --context input/context.md
 
 # JSON から生成 (LLM 不要)
-uv run python cmd/generate_identity_assets.py \
+beacon identity-generate \
   --context input/context.json \
   --no-llm \
   --output output/identity_assets.json
@@ -205,11 +202,11 @@ TRACE で検証 (`has_access[].asset_id` を `assets.json` とクロス参照) �
 SAGE にロード:
 
 ```bash
-cd ../TRACE && uv run python cmd/validate_identity_assets.py \
+cd ../TRACE && uv run trace validate-identity \
   --identity-assets ../BEACON/output/identity_assets.json \
   --assets          ../BEACON/output/assets.json
 
-cd ../SAGE  && uv run python cmd/load_identity_assets.py \
+cd ../SAGE  && uv run sage load-identity-assets \
   --file ../BEACON/output/identity_assets.json
 ```
 
@@ -227,10 +224,10 @@ cd ../SAGE  && uv run python cmd/load_identity_assets.py \
 
 ```bash
 # Markdown から生成 (LLM が必要)
-uv run python cmd/generate_user_accounts.py --context input/context.md
+beacon accounts-generate --context input/context.md
 
 # JSON から生成 (LLM 不要)
-uv run python cmd/generate_user_accounts.py \
+beacon accounts-generate \
   --context input/context.json \
   --no-llm \
   --output output/user_accounts.json
@@ -239,11 +236,11 @@ uv run python cmd/generate_user_accounts.py \
 TRACE で検証してから SAGE にロード:
 
 ```bash
-cd ../TRACE && uv run python cmd/validate_user_accounts.py \
+cd ../TRACE && uv run trace validate-accounts \
   --user-accounts ../BEACON/output/user_accounts.json \
   --assets        ../BEACON/output/assets.json
 
-cd ../SAGE  && uv run python cmd/load_user_accounts.py \
+cd ../SAGE  && uv run sage load-user-accounts \
   --file ../BEACON/output/user_accounts.json
 ```
 
@@ -265,9 +262,9 @@ cd ../SAGE  && uv run python cmd/load_user_accounts.py \
    タクソノミー照合・資産タグ一致・有効期間も確認します:
 
    ```bash
-   cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json
+   cd ../TRACE && uv run trace validate-pir --pir pir_output.json
    # assets.json を併せて渡すと asset_weight_rules のタグ整合性も確認可能:
-   cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json --assets assets.json
+   cd ../TRACE && uv run trace validate-pir --pir pir_output.json --assets assets.json
    ```
 
 2. **レビュー** — `pir_output.json` を手動で確認・編集するか、Web ダッシュボードを使用:
@@ -280,8 +277,8 @@ cd ../SAGE  && uv run python cmd/load_user_accounts.py \
    旧 GHE CLI は非推奨:
 
    ```bash
-   # BEACON 1.1.0 で非推奨 — Web ダッシュボードを使用してください
-   uv run python cmd/submit_for_review.py --pir pir_output.json
+   # BEACON 1.1.0 で非推奨、2.1.0 で削除 — Web ダッシュボードを使用してください
+   beacon submit-review --pir pir_output.json
    ```
 
 4. **SAGE へデプロイ** — 検証済み PIR を SAGE の `PIR_FILE_PATH` にコピーして ETL を実行:
@@ -299,10 +296,10 @@ cd ../SAGE  && uv run python cmd/load_user_accounts.py \
 
 ```bash
 # 変更内容をプレビュー（ファイル書き込みなし）
-uv run python -m cmd.update_taxonomy --dry-run
+beacon taxonomy-refresh --dry-run
 
 # 実際に更新
-uv run python -m cmd.update_taxonomy
+beacon taxonomy-refresh
 ```
 
 オプション:

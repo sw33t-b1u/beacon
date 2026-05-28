@@ -7,7 +7,6 @@ Run once to produce schema/*.schema.json:
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 SCHEMA_DIR = Path(__file__).parent.parent / "schema"
@@ -36,7 +35,3 @@ def _write(path: Path, schema: dict) -> None:
     content = json.dumps(schema, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     path.write_text(content, encoding="utf-8")
     print(f"Written: {path}")
-
-
-if __name__ == "__main__":
-    sys.exit(main())
