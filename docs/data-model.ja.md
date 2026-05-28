@@ -250,7 +250,7 @@ uv run python cmd/generate_pir.py --context ... --output pir_output.json \
 | セクション | 説明 |
 |-----------|------|
 | P3 監視項目 | P2 閾値未満の脅威。即時対応は不要だが継続監視が必要な項目 |
-| トリガー別アクション | 検出されたビジネストリガー（cloud_dependency / it_ot_convergence / third_party_dependency / external_facing_exposure / regulated_disclosure_scope / sectoral_high_risk / ai_adoption_exposure — [`docs/triggers.ja.md`](triggers.ja.md) 参照）に紐づく収集アクション |
+| トリガー別アクション | 検出されたビジネストリガー（cloud_dependency / it_ot_convergence / third_party_dependency / external_facing_exposure / regulated_disclosure_scope / sectoral_high_risk / ai_adoption_exposure — [`schema/triggers.md`](../schema/triggers.md) 参照）に紐づく収集アクション |
 | 収集頻度テーブル | フィードタイプ別の月次/週次/日次スケジュール（CTI チーム向け） |
 
 `collection_plan.md` は `.gitignore` に登録済み（実行時出力のためコミット対象外）。
@@ -265,7 +265,7 @@ uv run python cmd/generate_pir.py --context ... --output pir_output.json \
 | `operational` | 12–19 | +6 ヶ月 | 進行中のランサムウェアキャンペーン |
 | `tactical` | 1–11 | +1 ヶ月 | 特定 CVE の悪用 |
 
-ビジネストリガーが 1 件以上検出されれば、composite に関わらず `tactical` → `operational` に昇格します（NIST SP 800-37 R2 event-driven trigger framework に準拠）。トリガーは BusinessContext 構造化フィールドから検出され、外部出典で裏付けられています — 10 トリガーの正式契約は [`docs/triggers.ja.md`](triggers.ja.md) を参照。
+ビジネストリガーが 1 件以上検出されれば、composite に関わらず `tactical` → `operational` に昇格します（NIST SP 800-37 R2 event-driven trigger framework に準拠）。トリガーは BusinessContext 構造化フィールドから検出され、外部出典で裏付けられています — 10 トリガーの正式契約は [`schema/triggers.md`](../schema/triggers.md) を参照。
 
 ---
 

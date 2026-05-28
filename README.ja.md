@@ -65,60 +65,20 @@ BEACON は同一のコンテキストドキュメントから 4 つの出力パ�
 
 | ドキュメント | 内容 |
 |-------------|------|
-| [docs/setup.ja.md](docs/setup.ja.md) | 前提条件・インストール・環境変数・GCP 認証 |
-| [schema/context_template.ja.md](schema/context_template.ja.md) | `input/context.md` テンプレート — パイプライン入力となる Markdown 戦略ドキュメントの記述ガイド |
-| [docs/data-model.ja.md](docs/data-model.ja.md) | BusinessContext スキーマ・PIR 出力フォーマット・`identity_assets.json` / `user_accounts.json` スキーマ・インテリジェンスレベル・脅威タクソノミー |
-| [docs/operations.ja.md](docs/operations.ja.md) | 日常運用、MISP キャッシュ更新、SAGE 連携と ETL 検証手順 |
+| [docs/setup.ja.md](docs/setup.ja.md) | クローン、インストール、設定、テスト、初回実行 |
+| [docs/deploy.ja.md](docs/deploy.ja.md) | Cloud Run デプロイ |
+| [docs/usage.ja.md](docs/usage.ja.md) | Web ダッシュボード、CLI、ワークフロー、運用 |
+| [docs/pipeline-guide.ja.md](docs/pipeline-guide.ja.md) | エンドツーエンド CTI パイプライン（BEACON → TRACE → SAGE） |
+| [docs/data-model.ja.md](docs/data-model.ja.md) | PIR 出力スキーマ、スコア内訳、アクタートリアージモデル |
+| [docs/structure.ja.md](docs/structure.ja.md) | プロジェクトのディレクトリ構成 |
 | [docs/dependencies.ja.md](docs/dependencies.ja.md) | 依存パッケージの選定理由とライセンス情報 |
+| [docs/api-stability.ja.md](docs/api-stability.ja.md) | API 安定性ポリシーおよび後方互換性保証 |
+| [docs/citations.ja.md](docs/citations.ja.md) | 外部引用とライセンス一覧 |
+| [schema/context_template.ja.md](schema/context_template.ja.md) | ビジネスコンテキスト入力テンプレート |
+| [schema/triggers.md](schema/triggers.md) | ビジネストリガーの定義（英語正本） |
 
-## ストレージバックエンド（Initiative I）
-
-BEACON 1.1.0 は成果物の永続化を抽象化する **StorageBackend** を導入しました。生成された
-すべての成果物（`pir_output.json`・`assets.json`・STIX バンドルなど）は `output/` への
-直接書き込みではなく、プラガブルなバックエンドを経由して保存されます。
-
-| バックエンド | 説明 | 有効化 |
-|-------------|------|--------|
-| `local`（デフォルト） | ローカルディレクトリに書き込む | `BEACON_STORAGE=local` |
-| `gcs` | Google Cloud Storage に書き込む | `BEACON_STORAGE=gcs` |
-
-**環境変数:**
-
-| 変数名 | デフォルト | 説明 |
-|--------|-----------|------|
-| `BEACON_STORAGE` | `local` | ストレージバックエンド: `local` または `gcs` |
-| `BEACON_STORAGE_BASE_DIR` | `output/` | `local` バックエンドのベースディレクトリ |
-| `BEACON_GCS_BUCKET` | — | GCS バケット名（`gcs` バックエンドで必須） |
-| `BEACON_GCS_PREFIX` | (空文字) | GCS バケット内のキープレフィックス |
-
-GCS サポートにはオプションインストールが必要です:
-
-```bash
-uv sync --extra gcs
-```
-
-成果物のファイル名は `<type>_<YYYYMMDDHHmm>.json` 形式
-（例: `pir_202506011430.json`）。カテゴリ: `pir`・`assets`・`stix`・`plans`・`crawl_state`。
-
-## Web ダッシュボード（Initiative I）
-
-Web UI（`uv run beacon web`、デフォルト `http://localhost:8000`）が
-**5 タブダッシュボード**として統合されました:
-
-| タブ | 用途 |
-|------|------|
-| **Dashboard** | パイプラインサマリ: PIR 件数・収集状況・チョークポイント |
-| **PIR** | PIR 生成・出力レビュー・StorageBackend からの過去実行自動ロード |
-| **Collection** | TRACE の `crawl-single` / `crawl-batch` をサブプロセスで実行 |
-| **Threats** | SAGE API プロキシ: アクター検索・TTP ルックアップ・脅威サマリ |
-| **Settings** | ストレージモード・SAGE URL・TRACE パスの設定。`.beacon_settings.json` に永続化 |
-
-設定の優先順位: **環境変数 > `.beacon_settings.json` > デフォルト値**
-
-> **非推奨化（BEACON 1.1.0）:** `cmd/submit_for_review.py`（GHE Issue 作成）は非推奨となり、
-> 将来のリリースで削除予定です。Web ダッシュボードの **Settings タブ** が GHE 承認ワークフロー
-> をブラウザ内承認フローに置き換えます。Collection タブが TRACE を呼び出せるよう
-> `TRACE_ROOT_PATH` を設定してください。
+クロスプロジェクト:
+- [SAGE ir-feedback-flow.md](https://github.com/sw33t-b1u/sage/blob/main/docs/ir-feedback-flow.md) — IR フィードバックループとスコアリング計算式
 
 ## クイックスタート
 

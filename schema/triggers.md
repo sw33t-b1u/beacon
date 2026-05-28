@@ -1,6 +1,6 @@
 # BEACON Business Triggers
 
-Japanese translation: [`docs/triggers.ja.md`](triggers.ja.md)
+This file lives at `schema/triggers.md`. No separate Japanese translation is maintained.
 
 This document is the canonical record of BEACON's ten business triggers,
 their definitions, detection logic, and external citations. If a trigger is
@@ -474,9 +474,8 @@ without external citation; it was removed in 0.10.0.
 2. **When the BusinessContext schema changes**, re-check that all ten
    triggers still have a structural detection path. If a referenced field
    is removed, the trigger must be either rewired or retired.
-3. **All trigger changes require updating both this document and
-   `docs/triggers.ja.md`** in the same commit, plus the relevant
-   `tests/test_element_extractor.py` cases.
+3. **All trigger changes require updating this document** in the same commit,
+   plus the relevant `tests/test_element_extractor.py` cases.
 4. **`HIGH_RISK_GEOPOLITICAL_ZONES` revisions** must cite specific
    annual threat-report evidence (e.g. CrowdStrike GTR / Cloudflare
    nation-state chapter / IOCTA regional ecosystem) for any country added

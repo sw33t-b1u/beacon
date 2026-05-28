@@ -50,19 +50,23 @@ BEACON/
 │   ├── business_context.schema.json  # BusinessContext 検証用 JSONSchema
 │   ├── pir_output.schema.json        # PIR 出力検証用 JSONSchema
 │   ├── context_template.md      # input/context.md 用テンプレート（英語）
-│   └── context_template.ja.md   # input/context.md 用テンプレート（日本語）
+│   ├── context_template.ja.md   # input/context.md 用テンプレート（日本語）
+│   └── triggers.md              # ビジネストリガーの定義と外部出典（英語正本）
 │
 ├── tests/
 │   ├── fixtures/                # ユニットテスト用サンプル JSON / Markdown
 │   └── test_*.py                # pytest テストファイル
 │
 ├── docs/                        # 英語ドキュメント（正本）
-│   ├── README.md                # リーダーペルソナ別ドキュメントインデックス
 │   ├── high-level-design.md     # システム設計書（正本; local-only / gitignored）
-│   ├── setup.md                 # 前提条件、インストール、環境変数
+│   ├── setup.md                 # クローン、インストール、設定、テスト、初回実行
+│   ├── deploy.md                # Cloud Run デプロイ
+│   ├── usage.md                 # Web ダッシュボード、CLI、ワークフロー、運用
+│   ├── pipeline-guide.md        # エンドツーエンド CTI パイプライン（BEACON → TRACE → SAGE）
 │   ├── data-model.md            # BusinessContext スキーマ、PIR フォーマット、LLM 統合
 │   ├── dependencies.md          # サードパーティ依存関係の根拠とライセンス
-│   ├── operations.md            # 日常運用、MISP キャッシュ更新、SAGE 連携
+│   ├── api-stability.md         # API 安定性ポリシーおよび後方互換性保証
+│   ├── citations.md             # 外部引用とライセンス一覧
 │   ├── structure.md             # 本ファイル — ディレクトリ構成リファレンス
 │   └── *.ja.md                  # 日本語翻訳（英語版と同じディレクトリに配置）
 │

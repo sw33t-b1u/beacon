@@ -50,19 +50,23 @@ BEACON/
 │   ├── business_context.schema.json  # JSONSchema for BusinessContext validation
 │   ├── pir_output.schema.json        # JSONSchema for PIR output validation
 │   ├── context_template.md      # Template for input/context.md
-│   └── context_template.ja.md   # Japanese version of the context template
+│   ├── context_template.ja.md   # Japanese version of the context template
+│   └── triggers.md              # Business trigger definitions and citations
 │
 ├── tests/
 │   ├── fixtures/                # Sample JSON / Markdown inputs for unit tests
 │   └── test_*.py                # pytest test files
 │
 ├── docs/                        # English documentation (authoritative)
-│   ├── README.md                # Documentation index by reader persona
 │   ├── high-level-design.md     # Authoritative system design (local-only; gitignored)
-│   ├── setup.md                 # Prerequisites, installation, environment variables
+│   ├── setup.md                 # Clone, install, configure, test, first run
+│   ├── deploy.md                # Cloud Run deployment
+│   ├── usage.md                 # Web dashboard, CLI, workflows, operations
+│   ├── pipeline-guide.md        # End-to-end CTI pipeline (BEACON → TRACE → SAGE)
 │   ├── data-model.md            # BusinessContext schema, PIR format, LLM integration
 │   ├── dependencies.md          # Third-party dependency rationale and licenses
-│   ├── operations.md            # Day-to-day operations, MISP cache, SAGE integration
+│   ├── api-stability.md         # API stability policy and BC guarantees
+│   ├── citations.md             # External citations and license inventory
 │   ├── structure.md             # This file — directory layout reference
 │   └── *.ja.md                  # Japanese translations alongside each English doc
 │

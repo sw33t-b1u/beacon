@@ -1,6 +1,7 @@
 # BEACON — セットアップガイド
 
-英語版（正本）: [`docs/setup.md`](setup.md)
+英語版（正本）: [`docs/setup.md`](setup.md)  
+Cloud Run デプロイ: [`docs/deploy.ja.md`](deploy.ja.md)
 
 ## 前提条件
 
@@ -287,7 +288,7 @@ cd ../SAGE  && uv run python cmd/load_user_accounts.py \
 
    ```bash
    cp pir_output.json /path/to/sage/config/pir.json
-   # その後 SAGE ETL を実行（docs/operations.ja.md — SAGE 連携セクション参照）
+   # その後 SAGE ETL を実行（docs/usage.ja.md — SAGE 連携セクション参照）
    ```
 
 ---
@@ -337,6 +338,112 @@ uv run beacon web   # デフォルト http://localhost:8000
 
 > **非推奨:** `cmd/submit_for_review.py`（GHE Issue 作成）は BEACON 1.1.0 で非推奨となり、
 > 将来のリリースで削除予定です。承認ワークフローには Settings タブを使用してください。
+
+---
+
+## テスト
+
+外部サービスは不要です — MISP はモック済み、SAGE はオプションです。
+
+### テストの実行
+
+```bash
+# フル品質ゲート（lint + test + audit）
+make check
+
+# テストのみ
+make test
+
+# uv から直接実行
+uv run pytest
+
+# 詳細出力
+uv run pytest -v
+
+# 特定のテストファイルを実行
+uv run pytest tests/test_element_extractor.py
+
+# 特定のテストクラスまたはメソッドを実行
+uv run pytest tests/test_element_extractor.py::TestTriggerDetection
+uv run pytest tests/test_element_extractor.py::TestTriggerDetection::test_cloud_dependency
+```
+
+### テストフィクスチャ
+
+サンプル入力ファイルは `tests/fixtures/` に格納されています:
+
+```
+tests/fixtures/
+├── sample_context.json      # ユニットテスト用の最小 BusinessContext
+├── sample_context.md        # Markdown 形式のビジネスコンテキスト例
+└── ...                      # シナリオ別フィクスチャ
+```
+
+テストでフィクスチャを使用するには、標準の `pytest` フィクスチャ機構か直接読み込みを使用します:
+
+```python
+import json
+from pathlib import Path
+
+FIXTURES = Path(__file__).parent / "fixtures"
+
+def test_something():
+    ctx = json.loads((FIXTURES / "sample_context.json").read_text())
+    ...
+```
+
+### 外部サービス不要
+
+| サービス | テスト時の動作 |
+|---------|--------------|
+| MISP | 呼び出しなし — 脅威タクソノミーデータはすべて `schema/threat_taxonomy.json` から読み込む |
+| SAGE | オプション — 実際の API 呼び出しを避けるには `_StubSageClient` を使用 |
+| Vertex AI / Gemini | 呼び出しなし — `--no-llm` パスを使用するかクライアントをモック |
+| GCS | 呼び出しなし — テストではストレージが `local` にデフォルト設定 |
+
+### よく使うテストパターン
+
+**SAGE クライアントのスタブ:**
+
+```python
+from beacon.sage.client import _StubSageClient
+
+client = _StubSageClient()
+# 空のアクターリストを返す；スコアリングロジックのユニットテストに最適
+```
+
+**Web アプリのセッションフィクスチャ:**
+
+FastAPI Web アプリのテストは `httpx.AsyncClient` と `ASGITransport` を使用します:
+
+```python
+import pytest
+from httpx import AsyncClient, ASGITransport
+from beacon.web.app import app
+
+@pytest.fixture
+async def client():
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
+        yield ac
+```
+
+**LLM 無効化パイプラインのテスト:**
+
+パイプラインオブジェクト構築時に `use_llm=False` を渡すか、環境変数を設定します:
+
+```bash
+BEACON_NO_LLM=1 uv run pytest
+```
+
+### Lint
+
+```bash
+make vet      # ruff check（高速）
+make lint     # ruff format --check
+make format   # ruff format + fix（自動修正）
+```
 
 ---
 

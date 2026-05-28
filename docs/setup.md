@@ -146,254 +146,110 @@ uv run python cmd/generate_pir.py \
 
 ---
 
-## Generating SAGE assets.json
+## Testing
 
-Convert the `Critical Assets` section of your context document into a SAGE-compatible
-`assets.json` for loading into Spanner.
+No external services are required — MISP is mocked and SAGE is optional.
 
-```bash
-# From Markdown (requires LLM / Vertex AI)
-uv run python cmd/generate_assets.py --context input/context.md
-
-# From JSON (no LLM required)
-uv run python cmd/generate_assets.py \
-  --context input/context.json \
-  --no-llm \
-  --output output/assets.json
-```
-
-The generated file is written to `output/assets.json`. Open it and fill in:
-
-| Field | Action |
-|-------|--------|
-| `owner` | Team email or name per asset |
-| `security_controls` | Define your EDR/SIEM/firewall entries |
-| `security_control_ids` | Link assets to the controls above |
-| `asset_vulnerabilities` | Populate after running STIX ETL |
-| `actor_targets` | Populate after running STIX ETL |
-
-Then load into SAGE Spanner (`load_assets.py` lives in `SAGE/cmd/`, so switch
-directories first):
+### Running tests
 
 ```bash
-cd ../SAGE && uv run python cmd/load_assets.py --file ../BEACON/output/assets.json
+# Full quality gate (lint + test + audit)
+make check
+
+# Tests only
+make test
+
+# Or directly via uv
+uv run pytest
+
+# Verbose output
+uv run pytest -v
+
+# Run a specific test file
+uv run pytest tests/test_element_extractor.py
+
+# Run a specific test class or method
+uv run pytest tests/test_element_extractor.py::TestTriggerDetection
+uv run pytest tests/test_element_extractor.py::TestTriggerDetection::test_cloud_dependency
 ```
 
----
+### Test fixtures
 
-## Generating SAGE identity_assets.json
+Sample input files live under `tests/fixtures/`:
 
-Convert the `Identities and Access` section of the context document into
-`identity_assets.json` (Initiative A). Each identity carries an `id`, `name`,
-`role_tags`, `has_access` edges to one or more assets, and — from BEACON
-0.13.0 — the Initiative C Phase 2 flag `is_high_value_impersonation_target`
-plus the free-form `impersonation_risk_factors` list.
+```
+tests/fixtures/
+├── sample_context.json      # Minimal BusinessContext for unit tests
+├── sample_context.md        # Markdown business context example
+└── ...                      # Additional scenario-specific fixtures
+```
+
+Use fixtures in tests via the standard `pytest` fixture mechanism or by loading
+them directly:
+
+```python
+import json
+from pathlib import Path
+
+FIXTURES = Path(__file__).parent / "fixtures"
+
+def test_something():
+    ctx = json.loads((FIXTURES / "sample_context.json").read_text())
+    ...
+```
+
+### No external services required
+
+| Service | Behaviour in tests |
+|---------|-------------------|
+| MISP | Not called — all threat-taxonomy data is loaded from `schema/threat_taxonomy.json` |
+| SAGE | Optional — use `_StubSageClient` to avoid real API calls |
+| Vertex AI / Gemini | Not called — tests use `--no-llm` paths or mock the client |
+| GCS | Not called — storage defaults to `local` in tests |
+
+### Common test patterns
+
+**Stub SAGE client:**
+
+```python
+from beacon.sage.client import _StubSageClient
+
+client = _StubSageClient()
+# Returns empty actor lists; safe for unit tests that exercise scoring logic
+```
+
+**Web app session fixtures:**
+
+Tests for the FastAPI web app use `httpx.AsyncClient` with an `ASGITransport`:
+
+```python
+import pytest
+from httpx import AsyncClient, ASGITransport
+from beacon.web.app import app
+
+@pytest.fixture
+async def client():
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
+        yield ac
+```
+
+**LLM-disabled pipeline test:**
+
+Pass `use_llm=False` when constructing pipeline objects, or set the env var:
 
 ```bash
-# Markdown context (requires LLM)
-uv run python cmd/generate_identity_assets.py --context input/context.md
-
-# JSON context (no LLM)
-uv run python cmd/generate_identity_assets.py \
-  --context input/context.json \
-  --no-llm \
-  --output output/identity_assets.json
+BEACON_NO_LLM=1 uv run pytest
 ```
 
-Validate via TRACE (cross-references each `has_access[].asset_id` against
-`assets.json`), then load into SAGE:
+### Lint
 
 ```bash
-cd ../TRACE && uv run python cmd/validate_identity_assets.py \
-  --identity-assets ../BEACON/output/identity_assets.json \
-  --assets          ../BEACON/output/assets.json
-
-cd ../SAGE  && uv run python cmd/load_identity_assets.py \
-  --file ../BEACON/output/identity_assets.json
+make vet      # ruff check (fast)
+make lint     # ruff format --check
+make format   # ruff format + fix (auto-corrects)
 ```
-
-If the context document omits the identity section, the CLI emits an empty
-artifact (`identities: []`, `has_access: []`) which TRACE accepts.
-
----
-
-## Generating SAGE user_accounts.json
-
-Convert the `User Accounts` section into `user_accounts.json`. Each entry
-carries a `username`, optional `identity_id` linking back to
-`identity_assets.json`, and `account_on_asset` edges describing which
-accounts exist on which assets (used by SAGE for credential-flow analytics).
-
-```bash
-# Markdown context (requires LLM)
-uv run python cmd/generate_user_accounts.py --context input/context.md
-
-# JSON context (no LLM)
-uv run python cmd/generate_user_accounts.py \
-  --context input/context.json \
-  --no-llm \
-  --output output/user_accounts.json
-```
-
-Validate via TRACE, then load into SAGE:
-
-```bash
-cd ../TRACE && uv run python cmd/validate_user_accounts.py \
-  --user-accounts ../BEACON/output/user_accounts.json \
-  --assets        ../BEACON/output/assets.json
-
-cd ../SAGE  && uv run python cmd/load_user_accounts.py \
-  --file ../BEACON/output/user_accounts.json
-```
-
----
-
-## Extracting STIX bundles from CTI reports
-
-> **Moved to TRACE in BEACON 0.9.0 (`cmd/stix_from_report.py` deleted in
-> BEACON 0.10.0).** PDF / URL → STIX 2.1 extraction now lives in the
-> sibling project [TRACE](../../TRACE/). Use `TRACE/cmd/crawl_single.py`
-> instead. See `TRACE/docs/setup.md` and `TRACE/docs/beacon_handoff.md`
-> for the new workflow.
-
----
-
-## After Generation: Review and Export
-
-1. **Validate** — moved to TRACE in BEACON 0.9.0 (`BEACON/cmd/validate_pir.py`
-   was deleted in BEACON 0.10.0). The richer validator runs schema +
-   referential checks (taxonomy presence, asset-tag match, validity window):
-
-   ```bash
-   cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json
-   # Optionally combine with assets.json so asset_weight_rules are checked too:
-   cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json --assets assets.json
-   ```
-
-2. **Review** — inspect and edit `pir_output.json` manually, or open the web dashboard:
-
-   ```bash
-   uv run beacon web   # http://localhost:8000 → PIR tab → review → export
-   ```
-
-3. **Submit for review** (optional) — use the web dashboard's **Settings** tab for
-   pipeline approval workflows. The legacy GHE CLI is deprecated:
-
-   ```bash
-   # Deprecated since BEACON 1.1.0 — use the web dashboard instead
-   uv run python cmd/submit_for_review.py --pir pir_output.json
-   ```
-
-4. **Deploy to SAGE** — copy the validated PIR to SAGE's `PIR_FILE_PATH` and run ETL:
-
-   ```bash
-   cp pir_output.json /path/to/sage/config/pir.json
-   # Then run SAGE ETL (see docs/operations.md — SAGE Integration section)
-   ```
-
----
-
-## Updating the Threat Taxonomy
-
-`schema/threat_taxonomy.json` is fully auto-generated from MITRE ATT&CK Enterprise and MISP Galaxy. Run the updater to rebuild the file end-to-end:
-
-```bash
-# Preview changes without writing to disk
-uv run python -m cmd.update_taxonomy --dry-run
-
-# Apply updates
-uv run python -m cmd.update_taxonomy
-```
-
-Options:
-
-- `--mitre-url` / `--misp-url` — override the upstream URLs (defaults point at the canonical GitHub raw endpoints recorded in `_metadata.sources`).
-- `--mitre-cache` / `--misp-cache` — read from a local copy instead of fetching (useful for air-gapped runs); the canonical URLs are still written to `_metadata.sources`.
-
-> Any hand-edits to the JSON will be overwritten on the next run. If a new actor or tag vocabulary is needed, submit it upstream to MITRE/MISP or extend the updater logic, not the JSON.
-
----
-
-## Web Dashboard
-
-```bash
-uv run beacon web   # default http://localhost:8000
-```
-
-Open `http://localhost:8000` in your browser.
-
-The dashboard is organized into five tabs:
-
-| Tab | Description |
-|-----|-------------|
-| **Dashboard** | Pipeline summary: PIR count, collection status, choke-points from SAGE |
-| **PIR** | Generate PIR from a context document; review and export output; auto-loads the latest artifact from StorageBackend |
-| **Collection** | Run TRACE `crawl-single` / `crawl-batch` as a subprocess directly from the browser (requires `TRACE_ROOT_PATH`) |
-| **Threats** | Proxy to the SAGE Analysis API: actor search, TTP lookup, threat-summary (requires `SAGE_API_URL`) |
-| **Settings** | Configure storage mode, SAGE URL, TRACE path; changes are persisted to `.beacon_settings.json` |
-
-**PIR tab** provides two workflows:
-- **Generate from business context** — Upload a context document, choose LLM or dictionary-only mode.
-- **Load existing PIR JSON** — Upload a previously generated `pir_output.json` for review without re-running the pipeline.
-
-> **Deprecated:** `cmd/submit_for_review.py` (GHE Issue creation) is deprecated as of
-> BEACON 1.1.0 and will be removed in a future release. Use the Settings tab for
-> pipeline approval workflows.
-
----
-
-## Step 7 — Deploy Web Dashboard to Cloud Run
-
-Build the container image and deploy the BEACON web UI as a Cloud Run Service with IAP protection.
-
-```sh
-# Load .env if not already sourced
-source .env
-export IMAGE=gcr.io/${GCP_PROJECT_ID}/beacon-web
-
-# Build and push container image via Cloud Build
-gcloud builds submit --tag ${IMAGE} --project=${GCP_PROJECT_ID}
-
-# Deploy as a Cloud Run Service (always-on, no public access)
-gcloud run deploy beacon-web \
-  --image=${IMAGE} \
-  --region=${VERTEX_LOCATION:-us-central1} \
-  --no-allow-unauthenticated \
-  --port=8000 \
-  --set-env-vars="GCP_PROJECT_ID=${GCP_PROJECT_ID},VERTEX_LOCATION=${VERTEX_LOCATION:-us-central1},BEACON_STORAGE=${BEACON_STORAGE:-gcs},BEACON_GCS_BUCKET=${BEACON_GCS_BUCKET},SAGE_API_URL=${SAGE_API_URL}" \
-  --set-secrets="BEACON_GCS_PREFIX=beacon-gcs-prefix:latest" \
-  --project=${GCP_PROJECT_ID}
-```
-
-> **Secret Manager:** Store sensitive values with
-> `gcloud secrets create beacon-gcs-prefix --data-file=- <<< "prod/"` and
-> reference with `--set-secrets` instead of `--set-env-vars`.
-
-> **Service account:** Create a dedicated service account and grant
-> `roles/aiplatform.user` (Vertex AI Gemini), `roles/storage.objectAdmin`
-> (GCS artifacts), and `roles/run.invoker` before deploying.
->
-> ```sh
-> gcloud iam service-accounts create beacon-web \
->   --display-name="BEACON Web Service" \
->   --project=${GCP_PROJECT_ID}
->
-> for ROLE in roles/aiplatform.user roles/storage.objectAdmin roles/run.invoker; do
->   gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
->     --member="serviceAccount:beacon-web@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
->     --role="${ROLE}"
-> done
->
-> gcloud run services update beacon-web \
->   --service-account="beacon-web@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
->   --region=${VERTEX_LOCATION:-us-central1} \
->   --project=${GCP_PROJECT_ID}
-> ```
-
-> **IAP protection:** Enable Identity-Aware Proxy on the Cloud Run service to
-> restrict access to authorized users only. The service is deployed with
-> `--no-allow-unauthenticated`; combine with Cloud IAP + Internal Load Balancer
-> for VPC-internal access without a public IP.
 
 ---
 

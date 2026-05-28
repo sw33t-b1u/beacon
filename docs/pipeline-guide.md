@@ -1,7 +1,8 @@
 # CTI Pipeline Operations Guide
 
-End-to-end workflow for BEACON, TRACE, and SAGE — from business context
-to actionable threat intelligence.
+End-to-end workflow: BEACON → TRACE → SAGE.
+
+## Data Flow
 
 ```
 context.md ──→ BEACON ──→ TRACE ──→ SAGE
@@ -10,372 +11,73 @@ context.md ──→ BEACON ──→ TRACE ──→ SAGE
 
 ---
 
-## Prerequisites
+## Phase 1: BEACON — PIR + Assets
 
-| Requirement | Notes |
-|---|---|
-| Python ≥ 3.12 | All three projects target 3.12+ |
-| `uv` | Package manager; run `uv sync` in each repo |
-| GCP Project (Vertex AI) | `GCP_PROJECT_ID` env var; used by BEACON + TRACE LLM calls |
-| GCP Spanner instance | SAGE storage backend; set `SPANNER_INSTANCE` + `SPANNER_DB` |
-| `beacon` / `trace` / `sage` CLI | Installed via `uv sync` in each repo (see `[project.scripts]` in pyproject.toml) |
+BEACON converts a business context document into Priority Intelligence Requirements (PIR)
+and asset bundles for SAGE. It scores threat relevance using industry/geography matching,
+optional Gemini LLM enrichment, and SAGE actor-triage IR-boost.
 
----
+Key commands:
 
-## Phase 1: BEACON — PIR Development + Collection Strategy
+- `beacon pir-generate` — generate PIR + collection plan + recommended sources
+- `beacon assets-generate` — generate SAGE-compatible assets.json
+- `beacon identity-generate` — generate identity_assets.json
+- `beacon accounts-generate` — generate user_accounts.json
+- `beacon web` — 5-tab dashboard (http://localhost:8000)
 
-### 1.1 Prepare the business context document
-
-Create `input/context.md` following the template at `schema/context_template.md`
-(Japanese: `schema/context_template.ja.md`). The document should cover:
-
-| Section | Impact on PIR Generation |
-|---|---|
-| Organization Overview (industry, geography, size) | Industry-specific threat matching; `geopolitical_exposure` trigger |
-| Strategic Objectives (M&A, IPO, partnerships) | `m_and_a`, `ipo_or_listing` triggers |
-| Projects (AI/ML adoption) | `ai_adoption_exposure` trigger |
-| IT Assets (servers, networks, cloud) | Asset bundle for SAGE attack-path analysis |
-| Business Continuity (BCP, DR test cadence) | `ransomware_resilience_gap` trigger |
-| Identity Management (MFA %, PIM/PAM) | `identity_credential_exposure` trigger |
-| Regulatory Requirements (e.g. FISC, PCI-DSS) | `regulatory_change` trigger |
-
-### 1.2 Generate PIR + collection plan + recommended sources
-
-```bash
-cd BEACON/
-
-uv run beacon pir-generate \
-  --context input/context.md \
-  --output-dir output/
-```
-
-Three artifacts are produced and a review web UI auto-launches:
-
-| Output | Purpose |
-|---|---|
-| `output/pir_output.json` | PIR document (CU-GIR decimal IDs, schema_version 1.0.0, wrapped envelope) |
-| `output/collection_plan.md` | Per-PIR collection guidance: frequency, responsible role, recommended actions |
-| `output/sources_candidate.yaml` | Recommended CTI sources with tier / region / industry / ATT&CK Group ID annotations |
-
-The web UI (`http://localhost:<port>/`) presents all generated artifacts
-for interactive review. Suppress with `--no-web` if running headless.
-
-**Key options:**
-
-| Flag | Effect |
-|---|---|
-| `--use-sage` | Pull SAGE observation counts into risk scoring (requires `SAGE_API_URL`) |
-| `--no-sage` | Skip actor-triage IR-boost SAGE call |
-| `--save-context path` | Write the parsed BusinessContext as JSON for inspection |
-
-### 1.3 Generate asset bundles (for SAGE ingestion)
-
-```bash
-uv run beacon assets-generate --context input/context.md
-uv run beacon identity-generate --context input/context.md
-uv run beacon accounts-generate --context input/context.md
-```
-
-Produces artifacts in the configured StorageBackend (see below).
-
-### 1.4 StorageBackend — artifact persistence
-
-All BEACON-generated artifacts flow through a pluggable **StorageBackend** instead of
-being written directly to `output/`. The backend is selected via `BEACON_STORAGE`:
-
-```
-BEACON pipeline
-      │
-      ├─── StorageBackend.save(category="pir",   filename="pir_202506011430.json")
-      ├─── StorageBackend.save(category="assets", filename="assets_202506011430.json")
-      └─── StorageBackend.save(category="plans",  filename="plans_202506011430.json")
-```
-
-**Local backend (default):**
-
-```bash
-# Artifacts land in output/ by default
-export BEACON_STORAGE=local
-export BEACON_STORAGE_BASE_DIR=output/   # optional override
-uv run beacon pir-generate --context input/context.md
-```
-
-**GCS backend:**
-
-```bash
-# Requires: uv sync --extra gcs
-export BEACON_STORAGE=gcs
-export BEACON_GCS_BUCKET=my-beacon-artifacts
-export BEACON_GCS_PREFIX=prod/          # optional; default is "beacon/"
-uv run beacon pir-generate --context input/context.md
-```
-
-Filename format: `<category>_<YYYYMMDDHHmm>.json` (e.g., `pir_202506011430.json`).
-The Dashboard and PIR tabs auto-load the most recent file for each category.
-
-### 1.5 Web dashboard
-
-Start the dashboard and review pipeline status in one place:
-
-```bash
-uv run beacon web   # default http://localhost:8000
-```
-
-| Tab | What you can do |
-|-----|----------------|
-| **Dashboard** | View pipeline summary: PIR count, collection status, choke-points pulled from SAGE |
-| **PIR** | Run PIR generation, review the generated output, load previous runs from StorageBackend |
-| **Collection** | Trigger TRACE `crawl-single` or `crawl-batch` as a subprocess from the browser |
-| **Threats** | Search actors, look up TTPs, and fetch `/threat-summary` via the SAGE API proxy |
-| **Settings** | Change storage mode, set SAGE URL and TRACE path; changes persist to `.beacon_settings.json` |
-
-Settings priority: **env vars** (highest) > **`.beacon_settings.json`** > **built-in defaults**.
-
-> To connect the Collection tab to TRACE, set `TRACE_ROOT_PATH` to the absolute path
-> of your TRACE repo root (e.g. `/path/to/TRACE`).
+→ Full details: [BEACON docs/usage.md](usage.md)
 
 ---
 
-## Phase 2: TRACE — Threat Collection + Validation
+## Phase 2: TRACE — Collection + Validation
 
-### 2.1 Validate BEACON outputs
+TRACE validates BEACON output artifacts and collects external CTI reports from
+URLs and PDFs. A PIR-driven L2 relevance gate filters content before STIX 2.1
+bundle extraction with LLM-powered IoC indexing.
 
-```bash
-cd TRACE/
+Key commands:
 
-uv run trace validate-all \
-  --pir ../BEACON/output/pir_output.json \
-  --it-assets ../BEACON/output/assets.json
-```
+- `trace validate-all` — validate PIR + assets before collection
+- `trace crawl-single` — crawl a single URL or PDF with PIR gate
+- `trace crawl-batch` — batch-crawl a sources list from BEACON
+- `trace validate-stix` — validate collected STIX bundles
+- `trace enrich-bundle` — add PIR taxonomy tags to bundles
+- `trace search-iocs` — query the crawl-state IoC index
 
-Runs the PIR and asset validators and emits a Markdown report.
-Fix any findings before proceeding.
-
-Identity and account validation use separate commands:
-
-```bash
-uv run trace validate-identity --identity-assets ../BEACON/output/identity_assets.json \
-                               --it-assets ../BEACON/output/assets.json
-uv run trace validate-accounts --user-accounts ../BEACON/output/user_accounts.json \
-                               --it-assets ../BEACON/output/assets.json
-```
-
-### 2.2 Collect threat reports (PIR-driven)
-
-**Single URL or PDF:**
-
-```bash
-uv run trace crawl-single \
-  --input https://www.jpcert.or.jp/at/2025/at250001.html \
-  --pir ../BEACON/output/pir_output.json
-```
-
-The L2 PIR relevance gate automatically scores the content against your
-PIRs. Articles below the threshold are skipped; relevant articles produce
-a STIX 2.1 bundle with LLM-extracted IoCs.
-
-By default the bundle is written to the configured **StorageBackend**
-(`output/stix/stix_bundle_<YYYYMMDDHHmm>.json` for `LocalStorage`).
-Pass `--output <path>` to bypass StorageBackend and write to an explicit file.
-
-**Batch collection from recommended sources:**
-
-```bash
-cp ../BEACON/output/sources_candidate.yaml input/sources.yaml
-
-uv run trace crawl-batch \
-  --sources input/sources.yaml \
-  --pir ../BEACON/output/pir_output.json
-```
-
-Each source URL listed in `sources_candidate.yaml` is crawled; only
-content passing the PIR relevance gate is converted to STIX bundles.
-Each bundle is saved to the StorageBackend `stix/` category
-(`output/stix/stix_bundle_<YYYYMMDDHHmm>.json` by default).
-Pass `--output-dir <dir>` to write to an explicit directory instead.
-
-#### TRACE StorageBackend configuration
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `TRACE_STORAGE` | `local` | `local` or `gcs` |
-| `TRACE_STORAGE_BASE_DIR` | `output/` | Root for `LocalStorage` |
-| `TRACE_GCS_BUCKET` | — | Required when `TRACE_STORAGE=gcs` |
-| `TRACE_GCS_PREFIX` | `trace/` | Key prefix in GCS bucket |
-
-#### BEACON Collection tab integration
-
-BEACON's **Collection** tab invokes `crawl-batch` as a subprocess.
-TRACE writes each bundle to the StorageBackend so BEACON can list and
-display the results via the `stix` category path.
-
-```
-BEACON web UI (Collection tab)
-  └─► subprocess: uv run trace crawl-batch --pir pir_output.json
-        └─► StorageBackend.write("stix", "stix_bundle_YYYYMMDDHHmm.json", data)
-              └─► output/stix/stix_bundle_YYYYMMDDHHmm.json  (LocalStorage)
-                  gs://<bucket>/trace/stix/stix_bundle_YYYYMMDDHHmm.json  (GCSStorage)
-```
-
-BEACON reads back the bundle list by scanning the `stix/` category in its
-own StorageBackend, which points to the same base directory or GCS bucket.
-
-### 2.3 Validate collected STIX bundles
-
-```bash
-uv run trace validate-stix --bundle output/stix/*.json
-```
-
-### 2.4 Enrich bundles with PIR tags (optional)
-
-```bash
-uv run trace enrich-bundle \
-  --input output/stix/bundle_xxx.json \
-  --output output/stix/bundle_xxx_enriched.json
-```
-
-Adds taxonomy tags to STIX objects for downstream filtering in SAGE.
-
-### 2.5 Search extracted IoCs
-
-```bash
-uv run trace search-iocs --ioc 203.0.113.42
-```
-
-Queries the crawl-state IoC index for a specific indicator value.
+→ Full details: [TRACE docs/usage.md](https://github.com/sw33t-b1u/trace/blob/main/docs/usage.md)
 
 ---
 
-## Phase 3: SAGE — Threat Analysis + Risk Assessment
+## Phase 3: SAGE — Analysis
 
-### 3.1 Initialize the Spanner Graph (first time only)
+SAGE ingests BEACON asset bundles and TRACE STIX bundles into a Spanner Graph,
+computes FollowedBy transition weights, applies PIR-based criticality adjustment,
+and exposes an Analysis API for attack-path queries and threat summaries.
 
-```bash
-cd SAGE/
+Key commands:
 
-uv run sage init-schema
-```
+- `sage init-schema` — initialize Spanner Graph schema (first time only)
+- `sage load-assets` — load BEACON asset bundles
+- `sage run-etl` — ingest STIX bundles into Spanner Graph
+- `sage serve-api` — start the Analysis API (default port 8080)
+- `sage visualize-graph` — generate interactive HTML graph
+- `sage incident-register` — register IR feedback (Diamond Model)
 
-### 3.2 Load BEACON asset data
-
-When `SAGE_STORAGE_BASE_DIR` points to the shared BEACON output directory,
-you can omit `--input` and the commands load the latest file automatically
-from the StorageBackend `assets/` category:
-
-```bash
-# With explicit --input (always works)
-uv run sage load-assets           --input ../BEACON/output/assets.json
-uv run sage load-identity-assets  --input ../BEACON/output/identity_assets.json
-uv run sage load-user-accounts    --input ../BEACON/output/user_accounts.json
-
-# Without --input — auto-loads from StorageBackend (SAGE_STORAGE_BASE_DIR/assets/)
-uv run sage load-assets
-uv run sage load-identity-assets
-uv run sage load-user-accounts
-```
-
-### 3.3 Ingest STIX bundles (ETL)
-
-**StorageBackend mode (recommended):** `run-etl` without `--input` reads and
-processes **all** bundles found in the StorageBackend `stix/` category. This
-is the standard path when TRACE writes bundles to `output/stix/`:
-
-```bash
-export PIR_FILE_PATH=../BEACON/output/pir_output.json
-
-# Process all bundles from StorageBackend stix/ category
-uv run sage run-etl
-```
-
-**Single-file mode:** Pass `--input` to process one specific bundle:
-
-```bash
-uv run sage run-etl --input ../TRACE/output/stix/bundle.json
-```
-
-The ETL pipeline parses STIX 2.1 bundles, maps objects to Spanner Graph
-nodes and edges, computes `FollowedBy` transition weights from kill-chain
-phase ordering, and applies PIR-based asset criticality adjustment.
-In StorageBackend mode, all bundles are accumulated into a single stats
-report and a single Slack notification is sent on completion.
-
-### 3.4 Start the Analysis API
-
-```bash
-uv run sage serve-api --port 8080
-```
-
-### 3.5 Query threat intelligence
-
-| Endpoint | Method | Purpose |
-|---|---|---|
-| `/threat-summary?asset=<id>` | GET | Aggregated per-asset view: actors, attack paths, choke points, vulnerabilities, incidents |
-| `/actor-ttps?actor_id=<id>&since=YYYY-MM-DD&until=YYYY-MM-DD` | GET | Per-actor TTP list with time-range filter |
-| `/actors?name=<query>&limit=20` | GET | Case-insensitive actor name search (min 2 chars); returns `{"actors":[…],"count":N}` |
-| `/attack-paths?asset_id=<id>&limit=N` | GET | Multi-hop attack path search (actor → asset) |
-| `/choke-points` | GET | Defense priority — graph-wide choke-point computation |
-| `/asset-exposure?since=YYYY-MM-DD` | GET | Externally-exposed assets and reachable TTP counts (time-windowed) |
-| `/similar-incidents?incident_id=<id>` | GET | Hybrid-score similar-incident search (TTP Jaccard + transition coverage) |
-| `/api/incidents` | POST | Register an incident directly (Diamond Model) |
-| `/api/incidents?since=YYYY-MM-DD` | GET | Retrieve registered incidents |
-| `/api/annotate` | POST | Write an analyst annotation on an actor |
-
-**Example — threat trends for the past 6 months:**
-
-```bash
-# Actor TTPs since 6 months ago
-curl "http://localhost:8080/actor-ttps?actor_id=intrusion-set--apt-XX&since=2025-01-01"
-
-# Per-asset threat summary
-curl "http://localhost:8080/threat-summary?asset=core-banking-001"
-
-# Attack paths to a critical asset
-curl "http://localhost:8080/attack-paths?asset_id=core-banking-001&limit=10"
-```
-
-### 3.6 Visualize the attack graph
-
-```bash
-uv run sage visualize-graph
-```
-
-Generates an interactive HTML visualization of the Spanner Graph
-(nodes + edges rendered via pyvis).
-
-### 3.7 Register IR feedback (optional)
-
-Record past incidents for the IR-boost feedback loop:
-
-```bash
-uv run sage incident-register
-```
-
-Interactive Diamond Model 4-quadrant prompt (adversary / capability /
-infrastructure / victim) with kill-chain phase and IoC fields.
+→ Full details: [SAGE docs/usage.md](https://github.com/sw33t-b1u/sage/blob/main/docs/usage.md)
 
 ---
 
 ## Feedback Loop
 
-```
-                 ┌──────────────────────────────────────────┐
-                 │                                          ▼
-BEACON           TRACE              SAGE               BEACON (next run)
-pir-generate ──→ crawl-batch ──→  run-etl ──→         pir-generate
-  PIR             (PIR gate)      Spanner Graph          --use-sage
-  collection      STIX bundles    /threat-summary         │
-  sources.yaml                    /actor-ttps             IR boost
-                                  incident-register ──→  reflected in
-                                                         Likelihood
-```
-
-On subsequent runs, `beacon pir-generate --use-sage` pulls observation
-data from SAGE into the actor-triage Intent score (`ir_observed`),
+On subsequent BEACON runs, `beacon pir-generate --use-sage` pulls SAGE observation
+data (incident history, actor counts) into the actor-triage Intent score (`ir_observed`),
 improving PIR accuracy as the system accumulates operational history.
+
+→ IR feedback loop formulas: [SAGE ir-feedback-flow.md](https://github.com/sw33t-b1u/sage/blob/main/docs/ir-feedback-flow.md)
 
 ---
 
-## Environment Variables
+## Environment Variables (Quick Reference)
 
 ### BEACON
 
@@ -390,7 +92,7 @@ improving PIR accuracy as the system accumulates operational history.
 | `BEACON_STORAGE` | `local` | Storage backend: `local` or `gcs` |
 | `BEACON_STORAGE_BASE_DIR` | `output/` | Base directory for `local` backend |
 | `BEACON_GCS_BUCKET` | (none) | GCS bucket name (required for `gcs` backend) |
-| `BEACON_GCS_PREFIX` | `beacon/` | Key prefix within the GCS bucket |
+| `BEACON_GCS_PREFIX` | (empty) | Key prefix within the GCS bucket |
 | `TRACE_ROOT_PATH` | (none) | Absolute path to the TRACE repo root (enables Collection tab) |
 
 ### TRACE
@@ -406,7 +108,7 @@ improving PIR accuracy as the system accumulates operational history.
 | `TRACE_STORAGE` | `local` | Storage backend: `local` or `gcs` |
 | `TRACE_STORAGE_BASE_DIR` | `output/` | Base directory for `local` backend |
 | `TRACE_GCS_BUCKET` | (none) | GCS bucket name (required for `gcs` backend) |
-| `TRACE_GCS_PREFIX` | `trace/` | Key prefix within the GCS bucket |
+| `TRACE_GCS_PREFIX` | (empty) | Key prefix within the GCS bucket |
 
 ### SAGE
 
@@ -424,7 +126,7 @@ improving PIR accuracy as the system accumulates operational history.
 
 ---
 
-## Quick Reference — Command Cheat Sheet
+## Command Cheat Sheet
 
 ```bash
 # --- Phase 1: BEACON ---
@@ -432,7 +134,7 @@ uv run beacon pir-generate --context input/context.md
 uv run beacon assets-generate --context input/context.md
 uv run beacon identity-generate --context input/context.md
 uv run beacon accounts-generate --context input/context.md
-uv run beacon web                                    # 5-tab dashboard (http://localhost:8000)
+uv run beacon web
 
 # --- Phase 2: TRACE ---
 uv run trace validate-all --pir ../BEACON/output/pir_output.json --it-assets ../BEACON/output/assets.json
@@ -444,13 +146,9 @@ uv run trace search-iocs --ioc <indicator>
 
 # --- Phase 3: SAGE ---
 uv run sage init-schema
-uv run sage load-assets                                  # StorageBackend auto-load
-uv run sage load-assets --input ../BEACON/output/assets.json  # explicit path
-uv run sage run-etl                                      # StorageBackend: all stix/ bundles
-uv run sage run-etl --input ../TRACE/output/stix/bundle.json  # single-file mode
+uv run sage load-assets
+uv run sage run-etl
 uv run sage serve-api --port 8080
-uv run sage query-attack-paths --asset-id <id>
-curl "http://localhost:8080/actors?name=apt&limit=10"    # actor name search
 uv run sage visualize-graph
 uv run sage incident-register
 ```

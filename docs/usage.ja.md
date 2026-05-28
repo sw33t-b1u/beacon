@@ -1,4 +1,144 @@
-# BEACON 運用ガイド
+# BEACON — 使用ガイド
+
+英語版（正本）: [`docs/usage.md`](usage.md)
+
+このガイドはアナリストおよびオペレーターが BEACON を日常的に使用する際のリファレンスです。
+環境構築は [docs/setup.ja.md](setup.ja.md)、Cloud Run デプロイは [docs/deploy.ja.md](deploy.ja.md) を参照。
+
+---
+
+## Web ダッシュボード
+
+ダッシュボードを起動する:
+
+```bash
+uv run beacon web          # デフォルト: http://localhost:8000
+```
+
+ダッシュボードは 5 つのタブで構成されます:
+
+| タブ | 用途 |
+|------|------|
+| **Dashboard** | パイプラインサマリ: PIR 件数・収集状況・チョークポイント |
+| **PIR** | PIR 生成・出力レビュー・StorageBackend からの過去実行自動ロード |
+| **Collection** | TRACE の `crawl-single` / `crawl-batch` をサブプロセスで実行 |
+| **Threats** | SAGE API プロキシ: アクター検索・TTP ルックアップ・脅威サマリ |
+| **Settings** | ストレージモード・SAGE URL・TRACE パスを設定。`.beacon_settings.json` に永続化 |
+
+設定の優先順位: **環境変数 > `.beacon_settings.json` > デフォルト値**
+
+---
+
+## CLI コマンド
+
+すべてのコマンドは `uv sync` でインストールされる `beacon` エントリポイントから実行します。
+
+### `beacon pir-generate`
+
+ビジネスコンテキストドキュメントから PIR JSON を生成します。
+
+```bash
+beacon pir-generate                    # input/context.md を使用、フル LLM モード
+beacon pir-generate --no-llm           # 辞書ベースのみ、Gemini 呼び出しなし
+beacon pir-generate --no-sage          # SAGE アクタートリアージ拡張をスキップ
+beacon pir-generate --use-sage         # SAGE 拡張を明示的に有効化
+beacon pir-generate --save-context     # 構造化 BusinessContext を output/ に保存
+```
+
+### `beacon assets-generate`
+
+ビジネスコンテキストから `assets.json` を生成します。
+
+```bash
+beacon assets-generate
+beacon assets-generate --no-llm
+```
+
+### `beacon identity-generate`
+
+`identity_assets.json`（Identity ノード + `has_access` エッジ）を生成します。
+
+```bash
+beacon identity-generate
+beacon identity-generate --no-llm
+```
+
+### `beacon accounts-generate`
+
+`user_accounts.json`（UserAccount ノード + `account_on_asset` エッジ）を生成します。
+
+```bash
+beacon accounts-generate
+```
+
+### `beacon web`
+
+Web ダッシュボードを起動します。
+
+```bash
+beacon web                 # http://localhost:8000
+beacon web --no-web        # ドライラン / バリデーションのみ（サーバー起動なし）
+```
+
+---
+
+## 主要フラグ
+
+| フラグ | 効果 |
+|--------|------|
+| `--use-sage` | SAGE アクタートリアージ API 呼び出しを有効化 |
+| `--no-sage` | SAGE 呼び出しを無効化（SAGE が利用不可の場合に便利） |
+| `--no-llm` | すべての Gemini / Vertex AI 呼び出しをスキップ（辞書のみモード） |
+| `--no-web` | Web サーバー起動をスキップ |
+| `--save-context` | 解析した `BusinessContext` JSON を `output/` に書き出す |
+
+---
+
+## PIR レビューワークフロー
+
+1. **生成** — `beacon pir-generate` を実行するか、PIR タブの **Generate** をクリック。
+2. **レビュー** — PIR タブで各 PIR のスコア内訳（likelihood・impact・intelligence level・アクタータグ）を確認。
+3. **承認** — **Settings** タブで承認ワークフローを設定。
+   Web ダッシュボードが非推奨化された `submit_for_review.py` の GHE フローを置き換えます。
+4. **エクスポート** — 承認済み成果物は設定済み StorageBackend（`local` または `gcs`）を経由して保存。
+   ファイル名は `<type>_<YYYYMMDDHHmm>.json` 形式（例: `pir_202506011430.json`）。
+
+---
+
+## よくある操作
+
+### LLM モデルティアの変更
+
+`.env` で `VERTEX_MODEL` を設定するか、実行前にエクスポートします:
+
+```bash
+VERTEX_MODEL=gemini-2.0-flash beacon pir-generate
+```
+
+使用可能な値は Vertex AI プロジェクトのクォータに依存します。
+
+### 過去の PIR 結果を読み込む
+
+PIR タブには StorageBackend から取得した過去の実行一覧が表示されます。
+ドロップダウンから実行を選択すると、再生成せずにレビュービューへ読み込めます。
+
+パスを直接指定することもできます:
+
+```bash
+beacon pir-generate --input output/pir_202506011430.json --review-only
+```
+
+### GCS ストレージへの切り替え
+
+```bash
+export BEACON_STORAGE=gcs
+export BEACON_GCS_BUCKET=my-beacon-bucket
+beacon pir-generate
+```
+
+ストレージ環境変数の完全な一覧は [docs/setup.ja.md](setup.ja.md) を参照。
+
+---
 
 ## MISP キャッシュの更新
 
@@ -101,13 +241,13 @@ uv run python cmd/generate_pir.py \
   --collection-plan collection_plan.md
 ```
 
-生成後、`pir_output.json` の内容を確認します：
+生成後、`pir_output.json` の内容を確認します:
 
 ```bash
 cat pir_output.json | python -m json.tool
 ```
 
-各 PIR エントリに含まれる必須フィールド：
+各 PIR エントリに含まれる必須フィールド:
 
 | フィールド | 型 | 例 |
 |-----------|----|----|
@@ -136,13 +276,13 @@ cd ../TRACE && uv run python cmd/validate_pir.py --pir pir_output.json --assets 
 
 ### Step 3: PIR を SAGE に配置する
 
-`pir_output.json` を SAGE の `PIR_FILE_PATH` 環境変数が指すパスにコピーします：
+`pir_output.json` を SAGE の `PIR_FILE_PATH` 環境変数が指すパスにコピーします:
 
 ```bash
 # SAGE のデフォルト PIR パス（SAGE/src/sage/config.py の PIR_FILE_PATH を確認）
 cp pir_output.json /path/to/sage/config/pir.json
 
-# または環境変数で BEACON の出力を直接参照する：
+# または環境変数で BEACON の出力を直接参照する:
 export PIR_FILE_PATH=/path/to/beacon/pir_output.json
 ```
 
@@ -150,20 +290,20 @@ export PIR_FILE_PATH=/path/to/beacon/pir_output.json
 
 ### Step 4: SAGE ETL を実行する
 
-`SAGE/` ディレクトリで実行します：
+`SAGE/` ディレクトリで実行します:
 
 ```bash
 cd ../SAGE/
 uv run python cmd/run_etl.py
 ```
 
-SAGE ETL は以下を実行します：
+SAGE ETL は以下を実行します:
 1. `PIRFilter.from_file()` で `pir_output.json` を読み込む
 2. `threat_actor_tags` で STIX ThreatActor をフィルタリング（関連アクターのみ取り込み）
 3. PIR の アクター × 資産タグ マッチングから `Targets` エッジを自動生成
 4. `asset_weight_rules` を使って全資産の `pir_adjusted_criticality` を計算
 
-ETL ログで確認すべき出力行：
+ETL ログで確認すべき出力行:
 
 ```
 pir_loaded          count=1
@@ -195,26 +335,26 @@ gcloud spanner databases execute-sql sage-db \
          LIMIT 20"
 ```
 
-期待値：`tags` が PIR の `asset_weight_rules[*].tag` と重複している資産は
+期待値: `tags` が PIR の `asset_weight_rules[*].tag` と重複している資産は
 `pir_adjusted_criticality > criticality` となること。
 
 #### 乗数の計算式
 
-SAGE の計算式（`src/sage/pir/filter.py:adjust_asset_criticality`）：
+SAGE の計算式（`src/sage/pir/filter.py:adjust_asset_criticality`）:
 
 ```
 pir_adjusted_criticality = min(base_criticality × max_matching_multiplier, 10.0)
 ```
 
-Targets エッジが存在する場合（PIR マッチアクター → 資産）：
+Targets エッジが存在する場合（PIR マッチアクター → 資産）:
 
 ```
 pir_adjusted_criticality = min(base × max_multiplier × 1.5, 10.0)
 ```
 
-**例：** `tags=["plm"]`、`criticality=4.0`、PIR ルール `{"tag":"plm","criticality_multiplier":2.5}` の資産：
-- Targets エッジなし：`min(4.0 × 2.5, 10.0) = 10.0`
-- Targets エッジあり：`min(4.0 × 2.5 × 1.5, 10.0) = 10.0`（上限 cap）
+**例:** `tags=["plm"]`、`criticality=4.0`、PIR ルール `{"tag":"plm","criticality_multiplier":2.5}` の資産:
+- Targets エッジなし: `min(4.0 × 2.5, 10.0) = 10.0`
+- Targets エッジあり: `min(4.0 × 2.5 × 1.5, 10.0) = 10.0`（上限 cap）
 
 ---
 

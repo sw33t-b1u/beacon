@@ -1,6 +1,150 @@
-# BEACON Operations Guide
+# BEACON — Usage Guide
 
-## MISP cache refresh
+Japanese translation: [`docs/usage.ja.md`](usage.ja.md)
+
+This guide is for analysts and operators who run BEACON day-to-day. For
+environment setup see [docs/setup.md](setup.md). For Cloud Run deployment
+see [docs/deploy.md](deploy.md).
+
+---
+
+## Web Dashboard
+
+Start the dashboard:
+
+```bash
+uv run beacon web          # default: http://localhost:8000
+```
+
+The dashboard has five tabs:
+
+| Tab | Purpose |
+|-----|---------|
+| **Dashboard** | Pipeline summary: PIR count, collection status, choke-points |
+| **PIR** | Generate PIR, review output, auto-load previous runs from StorageBackend |
+| **Collection** | Run TRACE `crawl-single` / `crawl-batch` via subprocess |
+| **Threats** | SAGE API proxy: actor search, TTP lookup, threat-summary |
+| **Settings** | Configure storage mode, SAGE URL, TRACE path; persisted to `.beacon_settings.json` |
+
+Settings priority chain: **env vars > `.beacon_settings.json` > defaults**.
+
+---
+
+## CLI Commands
+
+All commands are exposed through the `beacon` entry point installed by `uv sync`.
+
+### `beacon pir-generate`
+
+Generate a PIR JSON from a business context document.
+
+```bash
+beacon pir-generate                    # uses input/context.md, full LLM mode
+beacon pir-generate --no-llm           # dictionary-only, no Gemini call
+beacon pir-generate --no-sage          # skip SAGE actor-triage enrichment
+beacon pir-generate --use-sage         # explicitly enable SAGE enrichment
+beacon pir-generate --save-context     # save structured BusinessContext to output/
+```
+
+### `beacon assets-generate`
+
+Generate `assets.json` from the business context.
+
+```bash
+beacon assets-generate
+beacon assets-generate --no-llm
+```
+
+### `beacon identity-generate`
+
+Generate `identity_assets.json` (Identity nodes + `has_access` edges).
+
+```bash
+beacon identity-generate
+beacon identity-generate --no-llm
+```
+
+### `beacon accounts-generate`
+
+Generate `user_accounts.json` (UserAccount nodes + `account_on_asset` edges).
+
+```bash
+beacon accounts-generate
+```
+
+### `beacon web`
+
+Launch the web dashboard.
+
+```bash
+beacon web                 # http://localhost:8000
+beacon web --no-web        # dry-run / validation only (no server started)
+```
+
+---
+
+## Key Flags
+
+| Flag | Effect |
+|------|--------|
+| `--use-sage` | Enable SAGE actor-triage API calls |
+| `--no-sage` | Disable SAGE calls (useful when SAGE is unavailable) |
+| `--no-llm` | Skip all Gemini / Vertex AI calls; dictionary-only mode |
+| `--no-web` | Skip launching the web server |
+| `--save-context` | Write the parsed `BusinessContext` JSON to `output/` |
+
+---
+
+## PIR Review Workflow
+
+1. **Generate** — run `beacon pir-generate` or click **Generate** in the PIR tab.
+2. **Review** — the PIR tab displays each PIR with its score breakdown. Review
+   likelihood, impact, intelligence level, and actor tags.
+3. **Approve** — use the **Settings** tab to configure the approval workflow.
+   The web dashboard replaces the deprecated `submit_for_review.py` GHE flow.
+4. **Export** — approved artifacts are saved via the configured StorageBackend
+   (`local` or `gcs`). File names follow the pattern
+   `<type>_<YYYYMMDDHHmm>.json` (e.g. `pir_202506011430.json`).
+
+---
+
+## Common Tasks
+
+### Change LLM model tier
+
+Set `VERTEX_MODEL` in `.env` (or export it before running):
+
+```bash
+VERTEX_MODEL=gemini-2.0-flash beacon pir-generate
+```
+
+Available values depend on your Vertex AI project quota.
+
+### Load a previous PIR result
+
+The PIR tab lists previous runs fetched from the StorageBackend. Select a run
+from the dropdown to load it into the review view without regenerating.
+
+Alternatively, pass the path directly:
+
+```bash
+beacon pir-generate --input output/pir_202506011430.json --review-only
+```
+
+### Switch to GCS storage
+
+```bash
+export BEACON_STORAGE=gcs
+export BEACON_GCS_BUCKET=my-beacon-bucket
+beacon pir-generate
+```
+
+See [docs/setup.md](setup.md) for the full list of storage environment
+variables.
+
+---
+
+## MISP Cache Refresh
 
 ### Purpose
 
