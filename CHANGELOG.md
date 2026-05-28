@@ -6,6 +6,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [2.1.0] — 2026-05-28
+
+### Added
+
+- PIR generation (CLI + web) now also emits `assets.json`, `identity_assets.json`,
+  and `user_accounts.json` drafts from the same context in a single `beacon pir-generate`
+  invocation (or web `/pir/generate` call). Stored under the `assets` StorageBackend
+  category with filenames `assets_<YYYYMMDDHHmm>.json`,
+  `identity_assets_<YYYYMMDDHHmm>.json`, and `user_accounts_<YYYYMMDDHHmm>.json`.
+  `asset_vulnerabilities` and `actor_targets` remain empty drafts (filled after STIX ETL).
+
+---
+
 ## [2.0.0] — 2026-05-28
 
 **Breaking: CIO scoring field rename.** The actor-triage score_breakdown

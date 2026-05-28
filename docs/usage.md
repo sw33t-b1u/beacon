@@ -22,6 +22,7 @@ The dashboard has five tabs:
 |-----|---------|
 | **Dashboard** | Pipeline summary: PIR count, collection status, choke-points |
 | **PIR** | Generate PIR, review output, auto-load previous runs from StorageBackend |
+| **Assets** | Load `assets_*.json` draft, complete org-known fields (owner, security controls, CVE mappings), save to StorageBackend |
 | **Collection** | Run TRACE `crawl-single` / `crawl-batch` via subprocess |
 | **Threats** | SAGE API proxy: actor search, TTP lookup, threat-summary |
 | **Settings** | Configure storage mode, SAGE URL, TRACE path; persisted to `.beacon_settings.json` |
@@ -37,6 +38,18 @@ All commands are exposed through the `beacon` entry point installed by `uv sync`
 ### `beacon pir-generate`
 
 Generate a PIR JSON from a business context document.
+
+As of 2.1.0 this command also emits three companion draft artifacts from the
+same parsed context in a single pass:
+
+| Artifact | StorageBackend category | Filename pattern |
+|----------|------------------------|-----------------|
+| `assets.json` | `assets` | `assets_<YYYYMMDDHHmm>.json` |
+| `identity_assets.json` | `assets` | `identity_assets_<YYYYMMDDHHmm>.json` |
+| `user_accounts.json` | `assets` | `user_accounts_<YYYYMMDDHHmm>.json` |
+
+`asset_vulnerabilities` and `actor_targets` remain empty in the drafts —
+fill them in after running STIX ETL or the dedicated generate commands.
 
 ```bash
 beacon pir-generate                    # uses input/context.md, full LLM mode
@@ -105,6 +118,66 @@ beacon web --no-web        # dry-run / validation only (no server started)
 4. **Export** — approved artifacts are saved via the configured StorageBackend
    (`local` or `gcs`). File names follow the pattern
    `<type>_<YYYYMMDDHHmm>.json` (e.g. `pir_202506011430.json`).
+
+---
+
+## Assets Tab Workflow
+
+The **Assets** tab lets operators complete the org-known draft fields of
+`assets.json` in the browser without hand-editing JSON.
+
+### What you can edit here
+
+| Field | Location in assets.json | Notes |
+|-------|------------------------|-------|
+| `owner` | per asset | Team name or email address |
+| `security_control_ids` | per asset | Comma-separated control IDs |
+| `security_controls` | top-level list | Define EDR/SIEM/firewall entries |
+| `asset_vulnerabilities` | top-level list | CVE id → asset_id from org scanner |
+
+**`actor_targets` is CTI-derived and is not editable here.** It is populated
+automatically by SAGE ETL when threat actors are ingested from STIX bundles.
+
+### Step-by-step
+
+1. **Generate** — run `beacon pir-generate` (or use the PIR tab). This stores
+   three draft files in the StorageBackend `assets` category:
+   `assets_<ts>.json`, `identity_assets_<ts>.json`, `user_accounts_<ts>.json`.
+
+2. **Load draft** — open the **Assets** tab. Under **Stored Assets Drafts**,
+   click **Load** next to the `assets_*.json` draft you want to edit. The
+   draft is loaded into the browser session.
+
+3. **Complete org-known fields**:
+   - Fill in the **Owner** column for each asset (team or email).
+   - Add **Security Control IDs** (comma-separated) that protect each asset.
+   - Paste or edit the **Security Controls** JSON array to define EDR, SIEM,
+     firewall entries (each entry needs `id`, `name`, `type`).
+   - Paste the **Asset Vulnerabilities** JSON array from your vulnerability
+     scanner output. Each entry must have:
+     - `vuln_stix_id_ref`: CVE id (format `CVE-<year>-<4+ digits>`)
+     - `asset_id`: id of the affected asset
+     - `remediation_status` (optional): `open` | `in_progress` | `resolved`
+
+4. **Save** — click **Save to StorageBackend**. A new
+   `assets_<YYYYMMDDHHmm>.json` is written to the configured StorageBackend.
+
+5. **Load into SAGE** — from the `SAGE/` directory:
+
+   ```bash
+   uv run python cmd/load_assets.py --file output/assets.json
+   ```
+
+   SAGE 1.2.0+ creates a stub `Vulnerability` node for any CVE that is not yet
+   in Spanner (deterministic uuid5 id matching TRACE's naming). When a STIX
+   bundle containing the same CVE is later ingested, SAGE upserts (enriches)
+   the existing stub node — no data is lost.
+
+### CVE id validation
+
+CVE ids in `asset_vulnerabilities` are validated client-side (format
+`^CVE-\d{4}-\d{4,}$`). The save endpoint rejects any entry with a
+malformed id with HTTP 400.
 
 ---
 

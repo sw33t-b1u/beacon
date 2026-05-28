@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as _dt
 import json
 import os
+import re
 import secrets
 import sys
 import tempfile
@@ -1016,6 +1017,253 @@ async def pir_single(request: Request, pir_id: str):
 
 
 # ---------------------------------------------------------------------------
+# Assets tab routes
+# ---------------------------------------------------------------------------
+
+# CVE identifier validation pattern (mirrors TRACE _CVE_ID_PATTERN; MUST stay in sync).
+# "MUST match TRACE _CVE_ID_PATTERN" (Rule 26: no shared importable package).
+_CVE_ID_PATTERN = re.compile(r"^CVE-\d{4}-\d{4,}$")
+
+
+def _validate_cve_id(cve_id: str) -> bool:
+    """Return True if *cve_id* matches the canonical CVE format."""
+    return bool(_CVE_ID_PATTERN.match(cve_id))
+
+
+@app.get("/assets")
+async def assets_page(request: Request, beacon_session: str = Cookie(default="")):
+    """Assets tab: list stored drafts + edit org-known fields when a doc is loaded."""
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    # Collect stored assets_*.json drafts from StorageBackend
+    try:
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        all_assets_files = storage.list_files("assets")
+        stored_assets_files = [f for f in all_assets_files if f.startswith("assets_")]
+    except Exception:  # noqa: BLE001
+        stored_assets_files = []
+
+    # Load the currently-active assets doc from session (if any)
+    session = load_session(beacon_session) if beacon_session else None
+    assets_doc = session.get("assets_doc") if session else None
+
+    csrf_token = _generate_csrf_token()
+    response = templates.TemplateResponse(
+        request=request,
+        name="assets.html",
+        context={
+            "active_tab": "assets",
+            "csrf_token": csrf_token,
+            "stored_assets_files": stored_assets_files,
+            "assets_doc": assets_doc,
+            "saved_filename": None,
+        },
+    )
+    _set_csrf_cookie(response, csrf_token)
+    return response
+
+
+@app.post("/assets/load-stored/{filename}")
+async def assets_load_stored(
+    request: Request,
+    filename: str,
+    csrf_token: str = Form(default=""),
+    beacon_csrf: str = Cookie(default=""),
+    beacon_session: str = Cookie(default=""),
+):
+    """Load a stored assets_*.json draft from StorageBackend into session."""
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    try:
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        raw = storage.load("assets", filename)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=404, detail=f"Stored assets draft not found: {filename}"
+        ) from exc
+
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(
+            status_code=400, detail=f"Invalid JSON in stored assets: {exc}"
+        ) from exc
+
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=400, detail="assets.json must be a JSON object")
+
+    # Merge into existing session (preserves PIR data) or create a new one
+    session: dict = {}
+    if beacon_session:
+        existing = load_session(beacon_session)
+        if existing:
+            session = existing
+    session["assets_doc"] = data
+
+    if beacon_session and load_session(beacon_session) is not None:
+        save_session(beacon_session, session)
+        session_id = beacon_session
+    else:
+        session_id = create_session(session)
+
+    new_csrf = _generate_csrf_token()
+    response = RedirectResponse(url="/assets", status_code=303)
+    response.set_cookie(
+        "beacon_session", session_id, httponly=True, secure=True, samesite="lax", max_age=86400
+    )
+    _set_csrf_cookie(response, new_csrf)
+    return response
+
+
+@app.post("/assets/save")
+async def assets_save(
+    request: Request,
+    beacon_session: str = Cookie(default=""),
+    beacon_csrf: str = Cookie(default=""),
+    csrf_token: str = Form(default=""),
+    asset_count: int = Form(default=0),
+    security_controls_json: str = Form(default=""),
+    asset_vulnerabilities_json: str = Form(default=""),
+):
+    """Persist edited assets fields (owner, security_control_ids, security_controls,
+    asset_vulnerabilities) back into the session doc and write a new timestamped
+    assets_<ts>.json to StorageBackend.
+    """
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    if not beacon_session:
+        raise HTTPException(status_code=400, detail="No session")
+    session = load_session(beacon_session)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session not found or expired")
+
+    assets_doc = session.get("assets_doc")
+    if assets_doc is None:
+        raise HTTPException(status_code=400, detail="No assets doc loaded in session")
+
+    # --- Parse form data for per-asset edits ---
+    # FastAPI provides raw form data via request.form()
+    form_data = await request.form()
+
+    assets_list: list[dict] = assets_doc.get("assets", [])
+    for idx in range(asset_count):
+        asset_id_key = f"asset_id_{idx}"
+        owner_key = f"asset_owner_{idx}"
+        sc_ids_key = f"asset_sc_ids_{idx}"
+
+        asset_id = form_data.get(asset_id_key, "")
+        if not asset_id:
+            continue
+
+        # Find the matching asset in the list
+        for asset in assets_list:
+            if asset.get("id") == asset_id:
+                asset["owner"] = str(form_data.get(owner_key, "") or "").strip()
+                raw_sc = str(form_data.get(sc_ids_key, "") or "").strip()
+                asset["security_control_ids"] = (
+                    [s.strip() for s in raw_sc.split(",") if s.strip()] if raw_sc else []
+                )
+                break
+
+    assets_doc["assets"] = assets_list
+
+    # --- Parse security_controls JSON (optional) ---
+    sc_raw = security_controls_json.strip()
+    if sc_raw:
+        try:
+            sc_parsed = json.loads(sc_raw)
+        except json.JSONDecodeError as exc:
+            raise HTTPException(
+                status_code=400, detail=f"Invalid JSON in security_controls: {exc}"
+            ) from exc
+        if not isinstance(sc_parsed, list):
+            raise HTTPException(status_code=400, detail="security_controls must be a JSON array")
+        assets_doc["security_controls"] = sc_parsed
+
+    # --- Parse asset_vulnerabilities JSON (optional) ---
+    vuln_raw = asset_vulnerabilities_json.strip()
+    if vuln_raw:
+        try:
+            vuln_parsed = json.loads(vuln_raw)
+        except json.JSONDecodeError as exc:
+            raise HTTPException(
+                status_code=400, detail=f"Invalid JSON in asset_vulnerabilities: {exc}"
+            ) from exc
+        if not isinstance(vuln_parsed, list):
+            raise HTTPException(
+                status_code=400, detail="asset_vulnerabilities must be a JSON array"
+            )
+        # Validate every CVE id
+        for entry in vuln_parsed:
+            if not isinstance(entry, dict):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Each asset_vulnerabilities entry must be a JSON object",
+                )
+            cve_id = entry.get("vuln_stix_id_ref", "")
+            if not _validate_cve_id(cve_id):
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Invalid CVE ID '{cve_id}'. "
+                        "Must match CVE-<year>-<4+ digits>, e.g. CVE-2024-12345."
+                    ),
+                )
+        assets_doc["asset_vulnerabilities"] = vuln_parsed
+
+    session["assets_doc"] = assets_doc
+    save_session(beacon_session, session)
+
+    # --- Write to StorageBackend ---
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    ts = _dt.datetime.now().strftime("%Y%m%d%H%M")
+    saved_filename = f"assets_{ts}.json"
+    try:
+        cfg = load_config()
+        storage = create_storage_backend(cfg)
+        storage.save(
+            "assets",
+            saved_filename,
+            json.dumps(assets_doc, ensure_ascii=False, indent=2),
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("assets_save_storage_failed", error=str(exc))
+        saved_filename = None
+
+    new_csrf = _generate_csrf_token()
+    # Rebuild the stored assets files list for re-rendering
+    try:
+        cfg = load_config()  # type: ignore[assignment]
+        storage = create_storage_backend(cfg)
+        all_assets_files = storage.list_files("assets")
+        stored_assets_files = [f for f in all_assets_files if f.startswith("assets_")]
+    except Exception:  # noqa: BLE001
+        stored_assets_files = []
+
+    response = templates.TemplateResponse(
+        request=request,
+        name="assets.html",
+        context={
+            "active_tab": "assets",
+            "csrf_token": new_csrf,
+            "stored_assets_files": stored_assets_files,
+            "assets_doc": assets_doc,
+            "saved_filename": saved_filename,
+        },
+    )
+    _set_csrf_cookie(response, new_csrf)
+    return response
+
+
+# ---------------------------------------------------------------------------
 # Backward-compatibility redirects
 # ---------------------------------------------------------------------------
 
@@ -1305,11 +1553,24 @@ def _build_config(model_simple: str, model_medium: str, model_complex: str):
 
 
 def _run_pipeline(context_path: Path, *, config=None) -> tuple[list[dict], str]:
-    """Execute the BEACON pipeline and return (pirs_as_dicts, collection_plan_markdown)."""
+    """Execute the BEACON pipeline and return (pirs_as_dicts, collection_plan_markdown).
+
+    Side-effects: also builds and stores assets.json, identity_assets.json, and
+    user_accounts.json drafts via StorageBackend.  The return tuple is unchanged
+    for backward compatibility; the three artifact files are written as a
+    side-effect so callers do not need updating.
+    """
     from beacon.analysis.asset_mapper import load_asset_tags, map_asset_tags  # noqa: PLC0415
+    from beacon.analysis.assets_generator import generate_assets_json  # noqa: PLC0415
     from beacon.analysis.element_extractor import extract  # noqa: PLC0415
+    from beacon.analysis.identity_assets_generator import (  # noqa: PLC0415
+        generate_identity_assets_json,
+    )
     from beacon.analysis.risk_scorer import score  # noqa: PLC0415
     from beacon.analysis.threat_mapper import load_taxonomy, map_threats  # noqa: PLC0415
+    from beacon.analysis.user_accounts_generator import (  # noqa: PLC0415
+        generate_user_accounts_json,
+    )
     from beacon.generator.pir_builder import build_pirs  # noqa: PLC0415
     from beacon.generator.report_builder import build_collection_plan  # noqa: PLC0415
     from beacon.ingest.context_parser import parse  # noqa: PLC0415
@@ -1336,5 +1597,37 @@ def _run_pipeline(context_path: Path, *, config=None) -> tuple[list[dict], str]:
     write_collection_plan(plan, tmp_md)
     collection_plan_md = tmp_md.read_text(encoding="utf-8")
     tmp_md.unlink(missing_ok=True)
+
+    # --- Companion artifacts: assets / identity / accounts ---
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    try:
+        _cfg = config if config is not None else load_config()
+        _storage = create_storage_backend(_cfg)
+        _ts = _dt.datetime.now().strftime("%Y%m%d%H%M")
+
+        _assets_data = generate_assets_json(ctx)
+        _storage.save(
+            "assets",
+            f"assets_{_ts}.json",
+            json.dumps(_assets_data, indent=2, ensure_ascii=False),
+        )
+
+        _identity_data = generate_identity_assets_json(ctx)
+        _storage.save(
+            "assets",
+            f"identity_assets_{_ts}.json",
+            json.dumps(_identity_data, indent=2, ensure_ascii=False),
+        )
+
+        _accounts_data = generate_user_accounts_json(ctx)
+        _storage.save(
+            "assets",
+            f"user_accounts_{_ts}.json",
+            json.dumps(_accounts_data, indent=2, ensure_ascii=False),
+        )
+    except Exception as _exc:
+        logger.warning("companion_artifacts_failed", error=str(_exc))
 
     return [p.model_dump() for p in pirs], collection_plan_md

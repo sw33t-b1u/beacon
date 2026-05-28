@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -602,3 +603,515 @@ class TestReviewSaveActorRoute:
             follow_redirects=False,
         )
         assert resp.status_code == 403
+
+
+# ---------------------------------------------------------------------------
+# Companion artifact side-effects from _run_pipeline (Phase 2)
+# ---------------------------------------------------------------------------
+
+
+class TestRunPipelineCompanionArtifacts:
+    """_run_pipeline stores assets/identity/accounts via StorageBackend as a side-effect."""
+
+    def _call_generate(self, csrf_token: str, cookies: dict) -> None:
+        """POST to /pir/generate with a real _run_pipeline mock that also invokes
+        the companion-artifact logic (i.e. we do NOT mock _run_pipeline — we
+        mock the StorageBackend and LLM call only)."""
+        context_bytes = SAMPLE_CONTEXT_PATH.read_bytes()
+        session_client = TestClient(app, cookies=cookies)
+        return session_client.post(
+            "/pir/generate",
+            files={"context_file": ("sample.json", context_bytes, "application/json")},
+            data={"csrf_token": csrf_token},
+            follow_redirects=False,
+        )
+
+    def test_generate_stores_three_companion_artifacts(self, monkeypatch):
+        monkeypatch.delenv("SAGE_API_URL", raising=False)
+        csrf_token, cookies = _get_csrf()
+
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+
+        with (
+            patch("beacon.llm.client.call_llm_json", return_value={}),
+            patch("beacon.storage.create_storage_backend", return_value=mock_storage),
+        ):
+            resp = self._call_generate(csrf_token, cookies)
+
+        # Must redirect (generate succeeded)
+        assert resp.status_code == 303
+
+        asset_filenames = [
+            args[1] for args, _ in mock_storage.save.call_args_list if args[0] == "assets"
+        ]
+        has_assets = any(f.startswith("assets_") for f in asset_filenames)
+        has_identity = any(f.startswith("identity_assets_") for f in asset_filenames)
+        has_accounts = any(f.startswith("user_accounts_") for f in asset_filenames)
+        assert has_assets and has_identity and has_accounts
+
+    def test_companion_artifact_content_is_valid_json(self, monkeypatch):
+        monkeypatch.delenv("SAGE_API_URL", raising=False)
+        csrf_token, cookies = _get_csrf()
+
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+
+        with (
+            patch("beacon.llm.client.call_llm_json", return_value={}),
+            patch("beacon.storage.create_storage_backend", return_value=mock_storage),
+        ):
+            self._call_generate(csrf_token, cookies)
+
+        import json as _json
+
+        for args, _ in mock_storage.save.call_args_list:
+            category, filename, content = args
+            if category == "assets":
+                parsed = _json.loads(content)
+                assert isinstance(parsed, dict)
+
+    def test_generate_still_returns_pirs_in_session(self, monkeypatch):
+        """Companion artifact storage must not break PIR session creation."""
+        monkeypatch.delenv("SAGE_API_URL", raising=False)
+        csrf_token, cookies = _get_csrf()
+
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+
+        with (
+            patch("beacon.llm.client.call_llm_json", return_value={}),
+            patch("beacon.storage.create_storage_backend", return_value=mock_storage),
+        ):
+            resp = self._call_generate(csrf_token, cookies)
+
+        assert resp.status_code == 303
+        assert "beacon_session" in resp.cookies
+
+
+# ---------------------------------------------------------------------------
+# Assets tab tests
+# ---------------------------------------------------------------------------
+
+SAMPLE_ASSETS_DOC = {
+    "_comment": "Test assets doc",
+    "network_segments": [],
+    "security_controls": [],
+    "assets": [
+        {
+            "id": "asset-web-01",
+            "name": "Web Server",
+            "asset_type": "server",
+            "environment": "onprem",
+            "criticality": 8.0,
+            "owner": "",
+            "network_segment_id": "seg-0001-inet0-0000-000000000001",
+            "exposed_to_internet": True,
+            "tags": ["dmz"],
+            "security_control_ids": [],
+        },
+        {
+            "id": "asset-db-01",
+            "name": "Database",
+            "asset_type": "server",
+            "environment": "onprem",
+            "criticality": 10.0,
+            "owner": "",
+            "network_segment_id": "seg-0003-corp0-0000-000000000001",
+            "exposed_to_internet": False,
+            "tags": ["database"],
+            "security_control_ids": [],
+        },
+    ],
+    "asset_vulnerabilities": [],
+    "asset_connections": [],
+    "actor_targets": [],
+}
+
+
+def _create_assets_session(assets_doc: dict | None = None) -> tuple[str, dict[str, str]]:
+    """Create a session containing an assets_doc; return (session_id, cookies_with_csrf)."""
+    from beacon.web.session import create_session  # noqa: PLC0415
+
+    doc = assets_doc if assets_doc is not None else SAMPLE_ASSETS_DOC
+    session_id = create_session({"pirs": [], "collection_plan": "", "assets_doc": doc})
+    csrf_token, _ = _get_csrf()
+    return session_id, {"beacon_session": session_id, "beacon_csrf": csrf_token}
+
+
+class TestAssetsRoute:
+    """Tests for the Assets tab routes."""
+
+    # ------------------------------------------------------------------
+    # GET /assets
+    # ------------------------------------------------------------------
+
+    def test_get_returns_200(self):
+        resp = client.get("/assets")
+        assert resp.status_code == 200
+
+    def test_get_shows_assets_section(self):
+        resp = client.get("/assets")
+        assert b"Assets" in resp.content
+
+    def test_get_shows_nav_link(self):
+        resp = client.get("/assets")
+        # Nav must contain href="/assets"
+        assert b'href="/assets"' in resp.content
+
+    def test_get_sets_csrf_cookie(self):
+        resp = client.get("/assets")
+        assert "beacon_csrf" in resp.cookies
+
+    def test_get_shows_stored_drafts_section(self):
+        mock_storage = MagicMock()
+        mock_storage.list_files.return_value = [
+            "assets_202606010900.json",
+            "assets_202606011000.json",
+        ]
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = client.get("/assets")
+        assert resp.status_code == 200
+        assert b"assets_202606010900.json" in resp.content
+
+    def test_get_no_doc_loaded_shows_hint(self):
+        fresh = TestClient(app, cookies={})
+        resp = fresh.get("/assets")
+        assert resp.status_code == 200
+        # Without a loaded doc the template shows a hint to load a draft
+        assert b"No assets draft loaded" in resp.content
+
+    def test_get_with_loaded_doc_shows_assets_table(self):
+        session_id, cookies = _create_assets_session()
+        sc = TestClient(app, cookies=cookies)
+        resp = sc.get("/assets")
+        assert resp.status_code == 200
+        assert b"asset-web-01" in resp.content
+        assert b"asset-db-01" in resp.content
+
+    # ------------------------------------------------------------------
+    # POST /assets/load-stored/{filename}
+    # ------------------------------------------------------------------
+
+    def test_load_stored_loads_doc_into_session(self):
+        csrf_token, cookies = _get_csrf()
+        mock_storage = MagicMock()
+        mock_storage.load.return_value = json.dumps(SAMPLE_ASSETS_DOC)
+        sc = TestClient(app, cookies=cookies)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/assets/load-stored/assets_202606011200.json",
+                data={"csrf_token": csrf_token},
+                follow_redirects=False,
+            )
+        assert resp.status_code == 303
+        assert resp.headers["location"] == "/assets"
+        # Session cookie must be set
+        assert "beacon_session" in resp.cookies
+
+    def test_load_stored_missing_file_returns_404(self):
+        csrf_token, cookies = _get_csrf()
+        mock_storage = MagicMock()
+        mock_storage.load.side_effect = FileNotFoundError("not found")
+        sc = TestClient(app, cookies=cookies)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/assets/load-stored/assets_missing.json",
+                data={"csrf_token": csrf_token},
+                follow_redirects=False,
+            )
+        assert resp.status_code == 404
+
+    def test_load_stored_bad_json_returns_400(self):
+        csrf_token, cookies = _get_csrf()
+        mock_storage = MagicMock()
+        mock_storage.load.return_value = "not json {"
+        sc = TestClient(app, cookies=cookies)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/assets/load-stored/assets_bad.json",
+                data={"csrf_token": csrf_token},
+                follow_redirects=False,
+            )
+        assert resp.status_code == 400
+
+    def test_load_stored_csrf_required(self):
+        fresh = TestClient(app, cookies={})
+        mock_storage = MagicMock()
+        mock_storage.load.return_value = json.dumps(SAMPLE_ASSETS_DOC)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = fresh.post(
+                "/assets/load-stored/assets_202606011200.json",
+                data={},
+                follow_redirects=False,
+            )
+        assert resp.status_code == 403
+
+    # ------------------------------------------------------------------
+    # POST /assets/save
+    # ------------------------------------------------------------------
+
+    def test_save_persists_owner(self):
+        session_id, cookies = _create_assets_session()
+        sc = TestClient(app, cookies=cookies)
+        # Refresh CSRF from /assets
+        assets_resp = sc.get("/assets")
+        csrf = assets_resp.cookies.get("beacon_csrf", cookies["beacon_csrf"])
+        cookies["beacon_csrf"] = csrf
+        sc = TestClient(app, cookies=cookies)
+
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+        mock_storage.list_files.return_value = []
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/assets/save",
+                data={
+                    "csrf_token": csrf,
+                    "asset_count": "2",
+                    "asset_id_0": "asset-web-01",
+                    "asset_owner_0": "webteam@example.com",
+                    "asset_sc_ids_0": "",
+                    "asset_id_1": "asset-db-01",
+                    "asset_owner_1": "dbteam@example.com",
+                    "asset_sc_ids_1": "ctrl-edr-001",
+                    "security_controls_json": "",
+                    "asset_vulnerabilities_json": "",
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 200
+
+        # Verify owner persisted in session
+        from beacon.web.session import load_session  # noqa: PLC0415
+
+        updated_session = load_session(session_id)
+        assert updated_session is not None
+        assets = updated_session["assets_doc"]["assets"]
+        web_asset = next(a for a in assets if a["id"] == "asset-web-01")
+        db_asset = next(a for a in assets if a["id"] == "asset-db-01")
+        assert web_asset["owner"] == "webteam@example.com"
+        assert db_asset["owner"] == "dbteam@example.com"
+        assert "ctrl-edr-001" in db_asset["security_control_ids"]
+
+    def test_save_persists_security_controls(self):
+        session_id, cookies = _create_assets_session()
+        sc = TestClient(app, cookies=cookies)
+        assets_resp = sc.get("/assets")
+        csrf = assets_resp.cookies.get("beacon_csrf", cookies["beacon_csrf"])
+        cookies["beacon_csrf"] = csrf
+        sc = TestClient(app, cookies=cookies)
+
+        sc_json = json.dumps([{"id": "ctrl-edr-001", "name": "Falcon", "type": "edr"}])
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+        mock_storage.list_files.return_value = []
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/assets/save",
+                data={
+                    "csrf_token": csrf,
+                    "asset_count": "0",
+                    "security_controls_json": sc_json,
+                    "asset_vulnerabilities_json": "",
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 200
+
+        from beacon.web.session import load_session  # noqa: PLC0415
+
+        updated_session = load_session(session_id)
+        assert updated_session is not None
+        sc_list = updated_session["assets_doc"]["security_controls"]
+        assert len(sc_list) == 1
+        assert sc_list[0]["id"] == "ctrl-edr-001"
+
+    def test_save_persists_asset_vulnerabilities(self):
+        session_id, cookies = _create_assets_session()
+        sc = TestClient(app, cookies=cookies)
+        assets_resp = sc.get("/assets")
+        csrf = assets_resp.cookies.get("beacon_csrf", cookies["beacon_csrf"])
+        cookies["beacon_csrf"] = csrf
+        sc = TestClient(app, cookies=cookies)
+
+        vuln_json = json.dumps(
+            [
+                {
+                    "vuln_stix_id_ref": "CVE-2024-12345",
+                    "asset_id": "asset-web-01",
+                    "remediation_status": "open",
+                }
+            ]
+        )
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+        mock_storage.list_files.return_value = []
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/assets/save",
+                data={
+                    "csrf_token": csrf,
+                    "asset_count": "0",
+                    "security_controls_json": "",
+                    "asset_vulnerabilities_json": vuln_json,
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 200
+
+        from beacon.web.session import load_session  # noqa: PLC0415
+
+        updated_session = load_session(session_id)
+        assert updated_session is not None
+        vulns = updated_session["assets_doc"]["asset_vulnerabilities"]
+        assert len(vulns) == 1
+        assert vulns[0]["vuln_stix_id_ref"] == "CVE-2024-12345"
+
+    def test_save_malformed_cve_returns_400(self):
+        session_id, cookies = _create_assets_session()
+        sc = TestClient(app, cookies=cookies)
+        assets_resp = sc.get("/assets")
+        csrf = assets_resp.cookies.get("beacon_csrf", cookies["beacon_csrf"])
+        cookies["beacon_csrf"] = csrf
+        sc = TestClient(app, cookies=cookies)
+
+        bad_vuln_json = json.dumps(
+            [
+                {
+                    "vuln_stix_id_ref": "NOT-A-CVE",
+                    "asset_id": "asset-web-01",
+                    "remediation_status": "open",
+                }
+            ]
+        )
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+        mock_storage.list_files.return_value = []
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/assets/save",
+                data={
+                    "csrf_token": csrf,
+                    "asset_count": "0",
+                    "security_controls_json": "",
+                    "asset_vulnerabilities_json": bad_vuln_json,
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 400
+
+    def test_save_malformed_cve_partial_format_returns_400(self):
+        """CVE-2024-123 (only 3 digits) must be rejected."""
+        session_id, cookies = _create_assets_session()
+        sc = TestClient(app, cookies=cookies)
+        assets_resp = sc.get("/assets")
+        csrf = assets_resp.cookies.get("beacon_csrf", cookies["beacon_csrf"])
+        cookies["beacon_csrf"] = csrf
+        sc = TestClient(app, cookies=cookies)
+
+        bad_vuln_json = json.dumps(
+            [{"vuln_stix_id_ref": "CVE-2024-123", "asset_id": "asset-web-01"}]
+        )
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+        mock_storage.list_files.return_value = []
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/assets/save",
+                data={
+                    "csrf_token": csrf,
+                    "asset_count": "0",
+                    "security_controls_json": "",
+                    "asset_vulnerabilities_json": bad_vuln_json,
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 400
+
+    def test_save_csrf_required(self):
+        session_id, cookies = _create_assets_session()
+        # Use mismatched CSRF
+        bad_cookies = {**cookies, "beacon_csrf": "mismatch-token"}
+        sc = TestClient(app, cookies=bad_cookies)
+        resp = sc.post(
+            "/assets/save",
+            data={
+                "csrf_token": "different-token",
+                "asset_count": "0",
+                "security_controls_json": "",
+                "asset_vulnerabilities_json": "",
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 403
+
+    def test_save_writes_to_storage(self):
+        session_id, cookies = _create_assets_session()
+        sc = TestClient(app, cookies=cookies)
+        assets_resp = sc.get("/assets")
+        csrf = assets_resp.cookies.get("beacon_csrf", cookies["beacon_csrf"])
+        cookies["beacon_csrf"] = csrf
+        sc = TestClient(app, cookies=cookies)
+
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+        mock_storage.list_files.return_value = []
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/assets/save",
+                data={
+                    "csrf_token": csrf,
+                    "asset_count": "0",
+                    "security_controls_json": "",
+                    "asset_vulnerabilities_json": "",
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 200
+        # Verify storage.save was called with category "assets" and a timestamped filename
+        save_calls = mock_storage.save.call_args_list
+        assert len(save_calls) >= 1
+        category, filename, _ = save_calls[0][0]
+        assert category == "assets"
+        assert filename.startswith("assets_")
+        assert filename.endswith(".json")
+
+    def test_save_no_session_returns_400(self):
+        csrf_token, cookies = _get_csrf()
+        fresh = TestClient(app, cookies=cookies)
+        resp = fresh.post(
+            "/assets/save",
+            data={
+                "csrf_token": csrf_token,
+                "asset_count": "0",
+                "security_controls_json": "",
+                "asset_vulnerabilities_json": "",
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 400
+
+    def test_save_session_without_assets_doc_returns_400(self):
+        """Session that has PIRs but no assets_doc should return 400."""
+        from beacon.web.session import create_session  # noqa: PLC0415
+
+        session_id = create_session({"pirs": [], "collection_plan": ""})
+        csrf_token, csrf_cookies = _get_csrf()
+        cookies = {"beacon_session": session_id, "beacon_csrf": csrf_token}
+        sc = TestClient(app, cookies=cookies)
+
+        mock_storage = MagicMock()
+        mock_storage.save = MagicMock()
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            resp = sc.post(
+                "/assets/save",
+                data={
+                    "csrf_token": csrf_token,
+                    "asset_count": "0",
+                    "security_controls_json": "",
+                    "asset_vulnerabilities_json": "",
+                },
+                follow_redirects=False,
+            )
+        assert resp.status_code == 400

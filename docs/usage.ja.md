@@ -15,12 +15,13 @@
 uv run beacon web          # デフォルト: http://localhost:8000
 ```
 
-ダッシュボードは 5 つのタブで構成されます:
+ダッシュボードは 6 つのタブで構成されます:
 
 | タブ | 用途 |
 |------|------|
 | **Dashboard** | パイプラインサマリ: PIR 件数・収集状況・チョークポイント |
 | **PIR** | PIR 生成・出力レビュー・StorageBackend からの過去実行自動ロード |
+| **Assets** | `assets_*.json` ドラフトをロードし、org-known フィールド（owner・セキュリティコントロール・CVE マッピング）を補完して StorageBackend に保存 |
 | **Collection** | TRACE の `crawl-single` / `crawl-batch` をサブプロセスで実行 |
 | **Threats** | SAGE API プロキシ: アクター検索・TTP ルックアップ・脅威サマリ |
 | **Settings** | ストレージモード・SAGE URL・TRACE パスを設定。`.beacon_settings.json` に永続化 |
@@ -36,6 +37,16 @@ uv run beacon web          # デフォルト: http://localhost:8000
 ### `beacon pir-generate`
 
 ビジネスコンテキストドキュメントから PIR JSON を生成します。
+
+2.1.0 以降、同じ解析済みコンテキストから 3 つのコンパニオンドラフト成果物も同時に生成されます:
+
+| 成果物 | StorageBackend カテゴリ | ファイル名パターン |
+|--------|------------------------|-----------------|
+| `assets.json` | `assets` | `assets_<YYYYMMDDHHmm>.json` |
+| `identity_assets.json` | `assets` | `identity_assets_<YYYYMMDDHHmm>.json` |
+| `user_accounts.json` | `assets` | `user_accounts_<YYYYMMDDHHmm>.json` |
+
+`asset_vulnerabilities` と `actor_targets` はドラフトでは空のままです — STIX ETL 実行後または専用の generate コマンドで補完してください。
 
 ```bash
 beacon pir-generate                    # input/context.md を使用、フル LLM モード
@@ -102,6 +113,61 @@ beacon web --no-web        # ドライラン / バリデーションのみ（サ
    Web ダッシュボードが非推奨化された `submit_for_review.py` の GHE フローを置き換えます。
 4. **エクスポート** — 承認済み成果物は設定済み StorageBackend（`local` または `gcs`）を経由して保存。
    ファイル名は `<type>_<YYYYMMDDHHmm>.json` 形式（例: `pir_202506011430.json`）。
+
+---
+
+## Assets タブワークフロー
+
+**Assets** タブでは、ブラウザ上で `assets.json` の org-known ドラフトフィールドを補完できます（JSON の手動編集不要）。
+
+### 編集可能なフィールド
+
+| フィールド | assets.json 内の場所 | 説明 |
+|------------|---------------------|------|
+| `owner` | 各アセット | チーム名またはメールアドレス |
+| `security_control_ids` | 各アセット | カンマ区切りのコントロール ID |
+| `security_controls` | トップレベルリスト | EDR・SIEM・ファイアウォール等のエントリを定義 |
+| `asset_vulnerabilities` | トップレベルリスト | org スキャナーデータ: CVE id → asset_id マッピング |
+
+**`actor_targets` は CTI 由来のフィールドであり、ここでは編集できません。** STIX バンドルの取り込み時に SAGE ETL が自動補完します。
+
+### 手順
+
+1. **生成** — `beacon pir-generate` を実行するか、PIR タブで Generate をクリック。
+   StorageBackend の `assets` カテゴリに 3 つのドラフトファイルが書き出されます:
+   `assets_<ts>.json`、`identity_assets_<ts>.json`、`user_accounts_<ts>.json`。
+
+2. **ドラフトのロード** — **Assets** タブを開きます。**Stored Assets Drafts** セクションの
+   対象 `assets_*.json` の **Load** ボタンをクリック。ドラフトがブラウザセッションに読み込まれます。
+
+3. **org-known フィールドの補完**:
+   - 各アセットの **Owner** 列にチーム名またはメールアドレスを入力。
+   - 各アセットの **Security Control IDs** にカンマ区切りで ID を入力。
+   - **Security Controls** JSON 配列を編集して EDR・SIEM・ファイアウォール等のエントリを定義
+     （各エントリに `id`・`name`・`type` が必要）。
+   - **Asset Vulnerabilities** JSON 配列に脆弱性スキャナーの出力を貼り付け。
+     各エントリは以下を含む必要があります:
+     - `vuln_stix_id_ref`: CVE id（形式: `CVE-<year>-<4桁以上の数字>`）
+     - `asset_id`: 影響を受けるアセットの ID
+     - `remediation_status`（省略可）: `open` | `in_progress` | `resolved`
+
+4. **保存** — **Save to StorageBackend** をクリック。設定済み StorageBackend に
+   新しい `assets_<YYYYMMDDHHmm>.json` が書き出されます。
+
+5. **SAGE への読み込み** — `SAGE/` ディレクトリで:
+
+   ```bash
+   uv run python cmd/load_assets.py --file output/assets.json
+   ```
+
+   SAGE 1.2.0 以降、Spanner に存在しない CVE に対してはスタブ `Vulnerability` ノードが
+   作成されます（TRACE の命名と一致する決定論的 uuid5 ID）。同一 CVE を含む STIX バンドルが
+   後で取り込まれた場合、SAGE は既存のスタブノードを upsert（エンリッチ）します。
+
+### CVE id バリデーション
+
+`asset_vulnerabilities` の CVE id は `^CVE-\d{4}-\d{4,}$` 形式で検証されます。
+不正な形式の id が含まれる場合、保存エンドポイントは HTTP 400 を返します。
 
 ---
 

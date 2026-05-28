@@ -269,6 +269,45 @@ def main(argv: list[str] | None = None, *, _from_beacon_cli: bool = False) -> in
             write_sources_candidate(yaml_str, sources_path)
             print(f"Sources candidate → {args.sources_candidate}")
 
+    # --- Emit companion artifacts from the same parsed context ---
+    from beacon.analysis.assets_generator import generate_assets_json  # noqa: PLC0415
+    from beacon.analysis.identity_assets_generator import (  # noqa: PLC0415
+        generate_identity_assets_json,
+    )
+    from beacon.analysis.user_accounts_generator import (  # noqa: PLC0415
+        generate_user_accounts_json,
+    )
+
+    assets_data = generate_assets_json(ctx)
+    identity_data = generate_identity_assets_json(ctx)
+    accounts_data = generate_user_accounts_json(ctx)
+
+    assets_json_str = json.dumps(assets_data, indent=2, ensure_ascii=False)
+    identity_json_str = json.dumps(identity_data, indent=2, ensure_ascii=False)
+    accounts_json_str = json.dumps(accounts_data, indent=2, ensure_ascii=False)
+
+    if use_storage_backend:
+        assets_filename = f"assets_{ts}.json"
+        identity_filename = f"identity_assets_{ts}.json"
+        accounts_filename = f"user_accounts_{ts}.json"
+        storage.save("assets", assets_filename, assets_json_str)
+        print(f"Assets draft → assets/{assets_filename}")
+        storage.save("assets", identity_filename, identity_json_str)
+        print(f"Identity assets draft → assets/{identity_filename}")
+        storage.save("assets", accounts_filename, accounts_json_str)
+        print(f"User accounts draft → assets/{accounts_filename}")
+    else:
+        output_dir = output_path.parent
+        assets_out = output_dir / "assets.json"
+        identity_out = output_dir / "identity_assets.json"
+        accounts_out = output_dir / "user_accounts.json"
+        assets_out.write_text(assets_json_str, encoding="utf-8")
+        print(f"Assets draft → {assets_out}")
+        identity_out.write_text(identity_json_str, encoding="utf-8")
+        print(f"Identity assets draft → {identity_out}")
+        accounts_out.write_text(accounts_json_str, encoding="utf-8")
+        print(f"User accounts draft → {accounts_out}")
+
     return 0
 
 
