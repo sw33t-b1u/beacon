@@ -87,3 +87,6 @@ output/
 
 # Local-only design notes (kept out of VCS by maintainer policy)
 docs/high-level-design.md
+
+# Local Claude Code agent state
+.claude/
