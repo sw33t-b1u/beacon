@@ -51,8 +51,6 @@ Edit `.env` and fill in the required values:
 | `BEACON_LLM_SIMPLE` | No | `gemini-2.5-flash-lite` | Simple task model |
 | `BEACON_LLM_MEDIUM` | No | `gemini-2.5-flash` | Medium task model |
 | `BEACON_LLM_COMPLEX` | No | `gemini-2.5-pro` | Complex reasoning model |
-| `GHE_TOKEN` | No (deprecated) | — | GitHub / GHE Personal Access Token (`submit_for_review.py` — deprecated in 1.1.0) |
-| `GHE_REPO` | No (deprecated) | — | `owner/repo` format (deprecated in 1.1.0) |
 | `GHE_API_BASE` | No | `https://api.github.com` | Override for self-hosted GHE |
 | `SAGE_API_URL` | SAGE mode | — | SAGE Analysis API URL (also configurable via Settings tab) |
 | `BEACON_STORAGE` | No | `local` | Storage backend: `local` or `gcs` |

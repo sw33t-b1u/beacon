@@ -52,8 +52,6 @@ cp .env.example .env
 | `BEACON_LLM_SIMPLE` | 任意 | `gemini-2.5-flash-lite` | 軽量タスク用モデル |
 | `BEACON_LLM_MEDIUM` | 任意 | `gemini-2.5-flash` | 中程度タスク用モデル |
 | `BEACON_LLM_COMPLEX` | 任意 | `gemini-2.5-pro` | 複雑推論用モデル |
-| `GHE_TOKEN` | 任意（非推奨） | — | GitHub / GHE Personal Access Token（`submit_for_review.py` — 1.1.0 で非推奨化） |
-| `GHE_REPO` | 任意（非推奨） | — | `owner/repo` 形式（1.1.0 で非推奨化） |
 | `GHE_API_BASE` | 任意 | `https://api.github.com` | セルフホスト GHE 用に上書き |
 | `SAGE_API_URL` | SAGE モード | — | SAGE Analysis API の URL（Settings タブからも設定可） |
 | `BEACON_STORAGE` | 任意 | `local` | ストレージバックエンド: `local` または `gcs` |
@@ -181,10 +179,9 @@ cd ../SAGE && uv run sage load-assets --file ../BEACON/output/assets.json
 ## SAGE identity_assets.json の生成
 
 コンテキストドキュメントの `Identities and Access` セクションを
-`identity_assets.json` (Initiative A) に変換します。各 identity は
+`identity_assets.json` に変換します。各 identity は
 `id` / `name` / `role_tags` / `has_access` エッジ (アセットへのアクセス)
-を持ち、BEACON 0.13.0 以降は Initiative C Phase 2 のフラグ
-`is_high_value_impersonation_target` と自由形式の
+を持ち、なりすましフラグ `is_high_value_impersonation_target` と自由形式の
 `impersonation_risk_factors` list も搬送します。
 
 ```bash
@@ -248,18 +245,15 @@ cd ../SAGE  && uv run sage load-user-accounts \
 
 ## CTI レポートからの STIX バンドル生成
 
-> **BEACON 0.9.0 で TRACE に移管済み (`cmd/stix_from_report.py` は
-> BEACON 0.10.0 で削除済)。** PDF / URL → STIX 2.1 抽出は姉妹プロジェクト
-> [TRACE](../../TRACE/) に移った。後継コマンドは `TRACE/cmd/crawl_single.py`。
+> **PDF / URL → STIX 2.1 抽出は姉妹プロジェクト [TRACE](../../TRACE/) で処理する。**
+> コマンドは `TRACE/cmd/crawl_single.py`。
 > 詳細は `TRACE/docs/setup.ja.md` と `TRACE/docs/beacon_handoff.md` を参照。
 
 ---
 
 ## 生成後のレビューとエクスポート
 
-1. **バリデーション** — BEACON 0.9.0 で TRACE に移管済 (`BEACON/cmd/validate_pir.py`
-   は BEACON 0.10.0 で削除済)。新しい検証はスキーマに加えて
-   タクソノミー照合・資産タグ一致・有効期間も確認します:
+1. **バリデーション** — スキーマ・タクソノミー照合・資産タグ一致・有効期間を確認します:
 
    ```bash
    cd ../TRACE && uv run trace validate-pir --pir pir_output.json
@@ -274,12 +268,6 @@ cd ../SAGE  && uv run sage load-user-accounts \
    ```
 
 3. **レビュー依頼**（任意）— Web ダッシュボードの **Settings** タブで承認ワークフローを管理。
-   旧 GHE CLI は非推奨:
-
-   ```bash
-   # BEACON 1.1.0 で非推奨、2.1.0 で削除 — Web ダッシュボードを使用してください
-   beacon submit-review --pir pir_output.json
-   ```
 
 4. **SAGE へデプロイ** — 検証済み PIR を SAGE の `PIR_FILE_PATH` にコピーして ETL を実行:
 
@@ -333,8 +321,7 @@ uv run beacon web   # デフォルト http://localhost:8000
 - **Business Context から生成** — コンテキストドキュメントをアップロードし、LLM モードまたは辞書のみモードを選択
 - **既存 PIR JSON の読み込み** — 生成済みの `pir_output.json` をパイプライン再実行なしにレビュー・編集・エクスポート
 
-> **非推奨:** `cmd/submit_for_review.py`（GHE Issue 作成）は BEACON 1.1.0 で非推奨となり、
-> 将来のリリースで削除予定です。承認ワークフローには Settings タブを使用してください。
+> 承認ワークフローには Settings タブを使用してください。
 
 ---
 

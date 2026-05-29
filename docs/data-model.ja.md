@@ -102,7 +102,7 @@ LLM が Markdown を構造化 `BusinessContext` JSON に変換します。`--sav
 
 ---
 
-## 出力: identity_assets.json (Initiative A + Initiative C Phase 2)
+## 出力: identity_assets.json
 
 `cmd/generate_identity_assets.py` がコンテキストドキュメントの
 `Identities and Access` セクションから生成します。SAGE
@@ -146,8 +146,8 @@ LLM が Markdown を構造化 `BusinessContext` JSON に変換します。`--sav
 | `sectors` | list[string] | 業種セクター |
 | `roles` | list[string] | 自由形式 role タグ (例: `executive`, `dba`, `it-admin`) |
 | `description` | string | 自由形式アナリスト description |
-| `is_high_value_impersonation_target` | bool | **Initiative C Phase 2 (BEACON 0.13.0+)** — `true` の場合、SAGE 0.9.0 は `ImpersonatesIdentity` の `effective_priority` 計算式に multiplier=1.5 を無条件適用 (`HIGH_VALUE_IMPERSONATION_ROLES` 15 entry role-tag フォールバックを上書き)。TRACE 1.6.0 PIR L2 ゲートは、文書にフラグ付き identity 名が出現すると relevance score を +0.2 boost。 |
-| `impersonation_risk_factors` | list[string] | **Initiative C Phase 2** — 自由形式タグ (例: `["public-facing-brand", "executive", "trusted-supplier"]`)。アナリスト dashboard 用。`effective_priority` 計算式には**関与しない**。 |
+| `is_high_value_impersonation_target` | bool | `true` の場合、`ImpersonatesIdentity` の `effective_priority` 計算式に multiplier=1.5 を無条件適用 (`HIGH_VALUE_IMPERSONATION_ROLES` 15 entry role-tag フォールバックを上書き)。PIR L2 ゲートは、文書にフラグ付き identity 名が出現すると relevance score を +0.2 boost。 |
+| `impersonation_risk_factors` | list[string] | 自由形式タグ (例: `["public-facing-brand", "executive", "trusted-supplier"]`)。アナリスト dashboard 用。`effective_priority` 計算式には**関与しない**。 |
 
 ### HasAccess フィールド
 
@@ -165,7 +165,7 @@ LLM が Markdown を構造化 `BusinessContext` JSON に変換します。`--sav
 
 ---
 
-## 出力: user_accounts.json (Initiative B)
+## 出力: user_accounts.json
 
 `cmd/generate_user_accounts.py` が `User Accounts` セクションから生成。
 identity 層より細かい account レベルの粒度 (個別ログイン識別子、例:
@@ -203,7 +203,7 @@ identity 層より細かい account レベルの粒度 (個別ログイン識別
 | `id` | string | BEACON 内部の安定 id |
 | `account_login` | string | ログイン識別子 (例: `alice@corp`, `svc-jenkins`) |
 | `display_name` | string | 自由形式表示名 |
-| `account_type` | enum | STIX 2.1 §6.4 `account-type-ov`: 空文字 / `unix` / `windows-local` / `windows-domain` / `ldap` / `tacacs` / `radius` / `nis` / `openid` / `facebook` / `skype` / `twitter` / `kavi`。サービスアカウントは空文字 + `is_service_account=true` を使用 (BEACON 0.12.1 で spec 外の値は削除) |
+| `account_type` | enum | STIX 2.1 §6.4 `account-type-ov`: 空文字 / `unix` / `windows-local` / `windows-domain` / `ldap` / `tacacs` / `radius` / `nis` / `openid` / `facebook` / `skype` / `twitter` / `kavi`。サービスアカウントは空文字 + `is_service_account=true` を使用。 |
 | `is_privileged` | bool | 特権アカウントフラグ |
 | `is_service_account` | bool | STIX 2.1 §6.4 ネイティブプロパティ — サービス / 自動化アカウント |
 | `identity_id` | string | 任意 FK → `identity_assets.json` `identities[*].id` |

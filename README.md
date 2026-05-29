@@ -35,9 +35,9 @@ BEACON provides four output pipelines, all driven from the same context document
          │
          ├─── beacon identity-generate ── output/identity_assets.json
          │        Identity + has_access edges            │
-         │        (+ Initiative C Phase 2 flags:         ▼
+         │        impersonation flags:                   ▼
          │         is_high_value_impersonation_target,   TRACE validate_identity_assets
-         │         impersonation_risk_factors)           │
+         │         impersonation_risk_factors            │
          │                                                ▼
          │                                       SAGE load_identity_assets
          │
@@ -50,9 +50,8 @@ BEACON provides four output pipelines, all driven from the same context document
                                               SAGE load_user_accounts
 ```
 
-> **CTI report ingestion (PDF / URL → STIX 2.1) has moved to the sibling
-> project [TRACE](../TRACE/) as of BEACON 0.9.0.** Use `TRACE/cmd/crawl_single.py`
-> instead of the removed `BEACON/cmd/stix_from_report.py`.
+> **CTI report ingestion (PDF / URL → STIX 2.1) is handled by the sibling
+> project [TRACE](../TRACE/).** Use `TRACE/cmd/crawl_single.py` for PDF/URL → STIX extraction.
 
 **Modes:**
 
@@ -111,6 +110,7 @@ make audit     # pip-audit
 
 BEACON's PIR generation follows published CTI methodology:
 
+- [Red Hat InfoSec — Priority Intelligence Requirements Development](https://github.com/redhat-infosec/priority-intelligence-requirements-dev) — BEACON's 5-step pipeline (element extraction → asset mapping → threat mapping → risk scoring → PIR generation) follows this methodology.
 - [FIRST CTI-SIG — Priority Intelligence Requirements curriculum](https://www.first.org/global/sigs/cti/curriculum/pir)
 - [SANS — Bridging Gaps in CTI: A Practical Guide to Threat-Informed Security PIRs](https://www.sans.org/blog/bridging-gaps-cti-practical-guide-threat-informed-security-pirs)
 

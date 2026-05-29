@@ -35,7 +35,7 @@ BEACON/
 ├── cmd/                         # CLI エントリポイント（コマンドごとに1スクリプト）
 │   ├── generate_pir.py              # メイン PIR パイプライン (context.md → pir_output.json)
 │   ├── generate_assets.py           # CriticalAsset → SAGE assets.json
-│   ├── generate_identity_assets.py  # Identity + has_access → SAGE identity_assets.json (Initiative A / Initiative C Phase 2)
+│   ├── generate_identity_assets.py  # Identity + has_access → SAGE identity_assets.json
 │   ├── generate_user_accounts.py    # ユーザーアカウント + account_on_asset → SAGE user_accounts.json
 │   ├── generate_schemas.py          # Pydantic モデルから JSONSchema 生成
 │   ├── update_taxonomy.py           # MITRE ATT&CK STIX から脅威タクソノミ同期

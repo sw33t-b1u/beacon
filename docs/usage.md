@@ -41,8 +41,8 @@ All commands are exposed through the `beacon` entry point installed by `uv sync`
 
 Generate a PIR JSON from a business context document.
 
-As of 2.1.0 this command also emits three companion draft artifacts from the
-same parsed context in a single pass:
+This command also emits three companion draft artifacts from the same parsed
+context in a single pass:
 
 | Artifact | StorageBackend category | Filename pattern |
 |----------|------------------------|-----------------|
@@ -115,8 +115,8 @@ beacon web --no-web        # dry-run / validation only (no server started)
 1. **Generate** — run `beacon pir-generate` or click **Generate** in the PIR tab.
 2. **Review** — the PIR tab displays each PIR with its score breakdown. Review
    likelihood, impact, intelligence level, and actor tags.
-3. **Approve** — use the **Settings** tab to configure the approval workflow.
-   The web dashboard replaces the deprecated `submit_for_review.py` GHE flow.
+3. **Approve** — use the web dashboard to review and approve PIRs. Configure
+   the approval workflow in the **Settings** tab.
 4. **Export** — approved artifacts are saved via the configured StorageBackend
    (`local` or `gcs`). File names follow the pattern
    `<type>_<YYYYMMDDHHmm>.json` (e.g. `pir_202506011430.json`).
@@ -170,7 +170,7 @@ automatically by SAGE ETL when threat actors are ingested from STIX bundles.
    cd ../SAGE && uv run sage load-assets --file output/assets.json
    ```
 
-   SAGE 1.2.0+ creates a stub `Vulnerability` node for any CVE that is not yet
+   SAGE creates a stub `Vulnerability` node for any CVE that is not yet
    in Spanner (deterministic uuid5 id matching TRACE's naming). When a STIX
    bundle containing the same CVE is later ingested, SAGE upserts (enriches)
    the existing stub node — no data is lost.
@@ -226,7 +226,7 @@ variables.
 BEACON uses a local copy of the [MISP Galaxy](https://github.com/MISP/misp-galaxy)
 threat-actor cluster (`cache/misp-threat-actor.json`) as a taxonomy fallback
 for actor attribution, target-industry classification, and sophistication scoring.
-The cache is loaded by `MispClient` and queried during PIR generation (Initiative D/E).
+The cache is loaded by `MispClient` and queried during PIR generation.
 
 Keeping the cache fresh ensures that newly-added actors and updated metadata from
 the MISP community are reflected in BEACON output without requiring a code change.
@@ -340,9 +340,8 @@ Expected fields in each PIR entry:
 
 ### Step 2: Validate PIR for SAGE Compatibility
 
-PIR validation moved to TRACE in BEACON 0.9.0 (`BEACON/cmd/validate_pir.py`
-was deleted in BEACON 0.10.0). The richer validator covers schema plus
-referential checks (taxonomy presence, asset-tag match, validity window).
+The validator covers schema plus referential checks (taxonomy presence,
+asset-tag match, validity window).
 
 ```bash
 cd ../TRACE && uv run trace validate-pir --pir pir_output.json
@@ -477,19 +476,17 @@ After regenerating, always validate with `cd ../TRACE && uv run trace validate-p
 
 ---
 
-### Identity Asset Handoff (Initiative A + Initiative C Phase 2)
+### Identity Asset Handoff
 
 BEACON also emits `identity_assets.json` describing per-identity access on
-internal assets. SAGE 0.6.0+ ingests it into the `HasAccess` edge table
-(Initiative A). From BEACON 0.13.0 / SAGE 0.9.0 / TRACE 1.6.0 (Initiative C
-Phase 2), two additional fields propagate through the handoff:
+internal assets. SAGE ingests it into the `HasAccess` edge table. Two
+additional fields propagate through the handoff:
 
 | Field | Producer | Consumer effect |
 |-------|----------|-----------------|
-| `is_high_value_impersonation_target: bool` | BEACON 0.13.0+ (LLM-populated when the identity is a publicly-recognizable brand, executive role with public exposure, or critical supplier per HLD §4.3) | SAGE 0.9.0+: `effective_priority` formula on `ImpersonatesIdentity` switches to multiplier=1.5 unconditionally when this flag is true; falls back to `HIGH_VALUE_IMPERSONATION_ROLES` role-tag intersection (15-entry frozenset) when false. TRACE 1.6.0+: PIR L2 relevance score gains a +0.2 boost when the crawled document mentions a flagged identity name. |
-| `impersonation_risk_factors: list[str]` | BEACON 0.13.0+ (free-form tags, e.g. `["public-facing-brand", "executive", "trusted-supplier"]`) | Stored on the SAGE `Identity` row for analyst-facing dashboards; not used in `effective_priority` formula. |
+| `is_high_value_impersonation_target: bool` | LLM-populated when the identity is a publicly-recognizable brand, executive role with public exposure, or critical supplier per HLD §4.3 | `effective_priority` formula on `ImpersonatesIdentity` switches to multiplier=1.5 unconditionally when this flag is true; falls back to `HIGH_VALUE_IMPERSONATION_ROLES` role-tag intersection (15-entry frozenset) when false. The PIR L2 relevance score gains a +0.2 boost when the crawled document mentions a flagged identity name. |
+| `impersonation_risk_factors: list[str]` | Free-form tags, e.g. `["public-facing-brand", "executive", "trusted-supplier"]` | Stored on the SAGE `Identity` row for analyst-facing dashboards; not used in `effective_priority` formula. |
 
-Both fields are optional with safe defaults (`False` / `[]`), so BEACON 0.12.x
-`identity_assets.json` artifacts remain valid input to SAGE 0.9.0 / TRACE 1.6.0
-without migration. See `docs/initiative_c_attributed_impersonates.md` §11 in
-the project root for the full Initiative C Phase 2 design.
+Both fields are optional with safe defaults (`False` / `[]`). See
+`docs/initiative_c_attributed_impersonates.md` §11 in the project root for
+the full design reference.

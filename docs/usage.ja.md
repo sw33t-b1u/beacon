@@ -40,7 +40,7 @@ uv run beacon web          # デフォルト: http://localhost:8000
 
 ビジネスコンテキストドキュメントから PIR JSON を生成します。
 
-2.1.0 以降、同じ解析済みコンテキストから 3 つのコンパニオンドラフト成果物も同時に生成されます:
+このコマンドは同じ解析済みコンテキストから 3 つのコンパニオンドラフト成果物も同時に生成します:
 
 | 成果物 | StorageBackend カテゴリ | ファイル名パターン |
 |--------|------------------------|-----------------|
@@ -111,8 +111,7 @@ beacon web --no-web        # ドライラン / バリデーションのみ（サ
 
 1. **生成** — `beacon pir-generate` を実行するか、PIR タブの **Generate** をクリック。
 2. **レビュー** — PIR タブで各 PIR のスコア内訳（likelihood・impact・intelligence level・アクタータグ）を確認。
-3. **承認** — **Settings** タブで承認ワークフローを設定。
-   Web ダッシュボードが非推奨化された `submit_for_review.py` の GHE フローを置き換えます。
+3. **承認** — Web ダッシュボードで PIR をレビューして承認します。**Settings** タブで承認ワークフローを設定。
 4. **エクスポート** — 承認済み成果物は設定済み StorageBackend（`local` または `gcs`）を経由して保存。
    ファイル名は `<type>_<YYYYMMDDHHmm>.json` 形式（例: `pir_202506011430.json`）。
 
@@ -162,8 +161,8 @@ beacon web --no-web        # ドライラン / バリデーションのみ（サ
    cd ../SAGE && uv run sage load-assets --file output/assets.json
    ```
 
-   SAGE 1.2.0 以降、Spanner に存在しない CVE に対してはスタブ `Vulnerability` ノードが
-   作成されます（TRACE の命名と一致する決定論的 uuid5 ID）。同一 CVE を含む STIX バンドルが
+   Spanner に存在しない CVE に対しては SAGE がスタブ `Vulnerability` ノードを
+   作成します（TRACE の命名と一致する決定論的 uuid5 ID）。同一 CVE を含む STIX バンドルが
    後で取り込まれた場合、SAGE は既存のスタブノードを upsert（エンリッチ）します。
 
 ### CVE id バリデーション
@@ -215,7 +214,7 @@ beacon pir-generate
 BEACON は [MISP Galaxy](https://github.com/MISP/misp-galaxy) の
 脅威アクタークラスター（`cache/misp-threat-actor.json`）のローカルコピーを、
 アクターの帰属・標的業界の分類・巧妙さスコアリングのタクソノミーフォールバックとして使用する。
-このキャッシュは `MispClient` によって読み込まれ、PIR 生成中に照会される（Initiative D/E）。
+このキャッシュは `MispClient` によって読み込まれ、PIR 生成中に照会される。
 
 キャッシュを最新の状態に保つことで、MISP コミュニティから新たに追加された
 アクターや更新されたメタデータが、コード変更なしに BEACON の出力に反映される。
@@ -329,9 +328,7 @@ cat pir_output.json | python -m json.tool
 
 ### Step 2: SAGE 互換性を検証する
 
-PIR バリデーションは BEACON 0.9.0 で TRACE に移管されました
-(`BEACON/cmd/validate_pir.py` は BEACON 0.10.0 で削除済)。新バリデーターは
-スキーマチェックに加えて、タクソノミー照合・資産タグ一致・有効期間も検証します。
+バリデーターはスキーマチェックに加えて、タクソノミー照合・資産タグ一致・有効期間も検証します。
 
 ```bash
 cd ../TRACE && uv run trace validate-pir --pir pir_output.json
@@ -465,19 +462,16 @@ gcloud spanner databases execute-sql sage-db \
 
 ---
 
-### Identity Asset 連携 (Initiative A + Initiative C Phase 2)
+### Identity Asset 連携
 
 BEACON は `identity_assets.json` も emit し、内部資産に対する identity 別
-アクセス情報を表現します。SAGE 0.6.0+ は `HasAccess` エッジテーブルに
-取り込みます (Initiative A)。BEACON 0.13.0 / SAGE 0.9.0 / TRACE 1.6.0
-(Initiative C Phase 2) からは、handoff に 2 つの field が追加で伝搬します:
+アクセス情報を表現します。SAGE は `HasAccess` エッジテーブルに取り込みます。
+handoff には 2 つの field が伝搬します:
 
 | Field | Producer | Consumer 効果 |
 |-------|----------|---------------|
-| `is_high_value_impersonation_target: bool` | BEACON 0.13.0+ (HLD §4.3 に従い LLM が公開ブランド・公開露出のある幹部役職・顧客向け communication に登場する critical supplier に対して true を設定) | SAGE 0.9.0+: `ImpersonatesIdentity` の `effective_priority` 計算式が、flag=true で multiplier=1.5 を無条件適用に切替。flag=false では `HIGH_VALUE_IMPERSONATION_ROLES` 15 entry frozenset との role-tag 交差にフォールバック。TRACE 1.6.0+: PIR L2 relevance score が、文書中に flag 付き identity 名が出現すると +0.2 boost。 |
-| `impersonation_risk_factors: list[str]` | BEACON 0.13.0+ (自由形式タグ、例: `["public-facing-brand", "executive", "trusted-supplier"]`) | SAGE `Identity` 行に保存しアナリスト dashboard 向けに使用。`effective_priority` の式自体には関与しない。 |
+| `is_high_value_impersonation_target: bool` | HLD §4.3 に従い LLM が公開ブランド・公開露出のある幹部役職・critical supplier に対して true を設定 | `ImpersonatesIdentity` の `effective_priority` 計算式が、flag=true で multiplier=1.5 を無条件適用に切替。flag=false では `HIGH_VALUE_IMPERSONATION_ROLES` 15 entry frozenset との role-tag 交差にフォールバック。PIR L2 relevance score が、文書中に flag 付き identity 名が出現すると +0.2 boost。 |
+| `impersonation_risk_factors: list[str]` | 自由形式タグ、例: `["public-facing-brand", "executive", "trusted-supplier"]` | SAGE `Identity` 行に保存しアナリスト dashboard 向けに使用。`effective_priority` の式自体には関与しない。 |
 
-両 field とも optional default (`False` / `[]`) のため、BEACON 0.12.x の
-`identity_assets.json` artifact は移行作業なしで SAGE 0.9.0 / TRACE 1.6.0 の
-入力として有効です。Initiative C Phase 2 の設計詳細はプロジェクトルートの
+両 field とも optional default (`False` / `[]`)。設計詳細はプロジェクトルートの
 `docs/initiative_c_attributed_impersonates.md` §11 を参照。

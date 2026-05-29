@@ -35,9 +35,9 @@ BEACON は同一のコンテキストドキュメントから 4 つの出力パ�
          │
          ├─── beacon identity-generate ── output/identity_assets.json
          │        Identity + has_access エッジ            │
-         │        (+ Initiative C Phase 2 フラグ:          ▼
+         │        なりすましフラグ:                         ▼
          │         is_high_value_impersonation_target,    TRACE validate_identity_assets
-         │         impersonation_risk_factors)            │
+         │         impersonation_risk_factors             │
          │                                                 ▼
          │                                        SAGE load_identity_assets
          │
@@ -50,9 +50,8 @@ BEACON は同一のコンテキストドキュメントから 4 つの出力パ�
                                                SAGE load_user_accounts
 ```
 
-> **CTI レポート取り込み（PDF / URL → STIX 2.1）は BEACON 0.9.0 で姉妹プロジェクト
-> [TRACE](../TRACE/) に移管された。** 削除された `BEACON/cmd/stix_from_report.py` の
-> 代わりに `TRACE/cmd/crawl_single.py` を使うこと。
+> **CTI レポート取り込み（PDF / URL → STIX 2.1）は姉妹プロジェクト
+> [TRACE](../TRACE/) で処理する。** PDF/URL → STIX 抽出には `TRACE/cmd/crawl_single.py` を使うこと。
 
 **モード:**
 
@@ -111,6 +110,7 @@ make audit     # pip-audit
 
 BEACON の PIR 生成は以下の CTI 方法論に準拠しています:
 
+- [Red Hat InfoSec — Priority Intelligence Requirements Development](https://github.com/redhat-infosec/priority-intelligence-requirements-dev) — BEACON の 5 ステップパイプライン（要素抽出 → アセットマッピング → 脅威マッピング → リスクスコアリング → PIR 生成）はこの方法論に基づいています。
 - [FIRST CTI-SIG — Priority Intelligence Requirements カリキュラム](https://www.first.org/global/sigs/cti/curriculum/pir)
 - [SANS — Bridging Gaps in CTI: A Practical Guide to Threat-Informed Security PIRs](https://www.sans.org/blog/bridging-gaps-cti-practical-guide-threat-informed-security-pirs)
 
