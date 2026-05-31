@@ -1900,3 +1900,56 @@ class TestPirStoragePersistence:
         assert "pir_save_storage_failed" in log_output, (
             "Expected warning log 'pir_save_storage_failed' not found in structlog output"
         )
+
+
+# ---------------------------------------------------------------------------
+# Tests for stdlib-only Markdown rendering + dashboard .json filter
+# ---------------------------------------------------------------------------
+
+
+class TestRenderCollectionPlanMd:
+    def test_render_collection_plan_md_basic(self):
+        """_render_collection_plan_md converts a known Markdown subset to HTML."""
+        from beacon.web.app import _render_collection_plan_md
+
+        result = _render_collection_plan_md("## H\n\n- a\n- b\n\n**bold** text")
+        assert "<h2>H</h2>" in result
+        assert "<ul>" in result
+        assert "<li>a</li>" in result
+        assert "<strong>bold</strong>" in result
+
+
+class TestPirViewRendersCollectionPlan:
+    def test_pir_view_renders_collection_plan_as_html(self):
+        """GET /pir with a session that has a collection_plan renders HTML, not raw Markdown."""
+        from beacon.web.session import create_session
+
+        session_id = create_session(
+            {"pirs": [SAMPLE_PIR], "collection_plan": "## Heading\n\n- item1"}
+        )
+        cookies = {"beacon_session": session_id}
+        session_client = TestClient(app, cookies=cookies)
+        resp = session_client.get("/pir")
+        assert resp.status_code == 200
+        assert b"<h2>" in resp.content
+        assert b"## Heading" not in resp.content
+
+
+class TestDashboardExcludesCollectionPlanMd:
+    def test_dashboard_latest_pir_excludes_collection_plan_md(self, tmp_path, monkeypatch):
+        """Dashboard 'Latest PIR' shows only .json files, not .md files."""
+        monkeypatch.setenv("BEACON_STORAGE", "local")
+        monkeypatch.setenv("BEACON_STORAGE_BASE_DIR", str(tmp_path))
+
+        # Create both a JSON PIR and a collection_plan .md in the pir/ directory
+        pir_dir = tmp_path / "pir"
+        pir_dir.mkdir()
+        json_name = "pir_output_20260601.json"
+        md_name = "collection_plan_20260601.md"
+        (pir_dir / json_name).write_text('{"pir_id": "PIR-2026-TEST"}')
+        (pir_dir / md_name).write_text("## Collection Plan\n\n- item")
+
+        resp = client.get("/dashboard")
+        assert resp.status_code == 200
+        assert json_name.encode() in resp.content
+        assert md_name.encode() not in resp.content

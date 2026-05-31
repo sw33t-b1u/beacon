@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as _dt
+import html as _html
 import json
 import os
 import re
@@ -23,6 +24,120 @@ logger = structlog.get_logger(__name__)
 
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
+
+
+# ---------------------------------------------------------------------------
+# Stdlib-only Markdown → HTML filter (no PyPI dep; sandbox-compatible)
+# ---------------------------------------------------------------------------
+
+
+def _inline(escaped: str) -> str:
+    """Apply inline Markdown to already-HTML-escaped text."""
+    # Bold **x**
+    escaped = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", escaped)
+    # Inline code `x`
+    escaped = re.sub(r"`([^`]+)`", r"<code>\1</code>", escaped)
+    return escaped
+
+
+def _render_collection_plan_md(text: str) -> str:
+    """Render a known subset of Markdown for collection_plan as HTML.
+
+    Handles: H1-H6, unordered (- or *) and ordered (1.) lists, **bold**,
+    ``inline code``, horizontal rules (---), > blockquote. Anything else
+    falls through as an escaped paragraph.
+
+    Stdlib-only (only ``re`` and ``html`` modules) — no PyPI dep.
+    """
+    if not text:
+        return ""
+    lines = text.split("\n")
+    out: list[str] = []
+    in_ul = False
+    in_ol = False
+    for raw in lines:
+        line = raw.rstrip()
+        if not line.strip():
+            if in_ul:
+                out.append("</ul>")
+                in_ul = False
+            if in_ol:
+                out.append("</ol>")
+                in_ol = False
+            out.append("")
+            continue
+        # Horizontal rule
+        if re.fullmatch(r"-{3,}", line.strip()):
+            if in_ul:
+                out.append("</ul>")
+                in_ul = False
+            if in_ol:
+                out.append("</ol>")
+                in_ol = False
+            out.append("<hr>")
+            continue
+        # Headings
+        m = re.match(r"^(#{1,6})\s+(.*)$", line)
+        if m:
+            if in_ul:
+                out.append("</ul>")
+                in_ul = False
+            if in_ol:
+                out.append("</ol>")
+                in_ol = False
+            level = len(m.group(1))
+            text_in = _inline(_html.escape(m.group(2)))
+            out.append(f"<h{level}>{text_in}</h{level}>")
+            continue
+        # Blockquote
+        if line.lstrip().startswith("> "):
+            if in_ul:
+                out.append("</ul>")
+                in_ul = False
+            if in_ol:
+                out.append("</ol>")
+                in_ol = False
+            content = _inline(_html.escape(line.lstrip()[2:]))
+            out.append(f"<blockquote>{content}</blockquote>")
+            continue
+        # Unordered list
+        m = re.match(r"^\s*[-*]\s+(.*)$", line)
+        if m:
+            if in_ol:
+                out.append("</ol>")
+                in_ol = False
+            if not in_ul:
+                out.append("<ul>")
+                in_ul = True
+            out.append(f"  <li>{_inline(_html.escape(m.group(1)))}</li>")
+            continue
+        # Ordered list
+        m = re.match(r"^\s*\d+\.\s+(.*)$", line)
+        if m:
+            if in_ul:
+                out.append("</ul>")
+                in_ul = False
+            if not in_ol:
+                out.append("<ol>")
+                in_ol = True
+            out.append(f"  <li>{_inline(_html.escape(m.group(1)))}</li>")
+            continue
+        # Plain paragraph
+        if in_ul:
+            out.append("</ul>")
+            in_ul = False
+        if in_ol:
+            out.append("</ol>")
+            in_ol = False
+        out.append(f"<p>{_inline(_html.escape(line))}</p>")
+    if in_ul:
+        out.append("</ul>")
+    if in_ol:
+        out.append("</ol>")
+    return "\n".join(out)
+
+
+templates.env.filters["md_to_html"] = _render_collection_plan_md
 
 # Maximum upload size: 10 MB
 _MAX_UPLOAD_BYTES = 10 * 1024 * 1024
@@ -166,6 +281,7 @@ async def dashboard(request: Request):
     try:
         storage = create_storage_backend(cfg)
         pir_files = storage.list_files("pir")
+        pir_files = [f for f in pir_files if f.endswith(".json")]
         stix_files = storage.list_files("stix")
     except Exception:  # noqa: BLE001
         pass
@@ -664,6 +780,7 @@ async def pir_page(request: Request, beacon_session: str = Cookie(default="")):
         cfg = load_config()
         storage = create_storage_backend(cfg)
         stored_pir_files = storage.list_files("pir")
+        stored_pir_files = [f for f in stored_pir_files if f.endswith(".json")]
     except Exception:
         stored_pir_files = []
 
@@ -1007,6 +1124,7 @@ async def pir_single(request: Request, pir_id: str):
         cfg = load_config()
         storage = create_storage_backend(cfg)
         stored_pir_files = storage.list_files("pir")
+        stored_pir_files = [f for f in stored_pir_files if f.endswith(".json")]
     except Exception:
         stored_pir_files = []
 

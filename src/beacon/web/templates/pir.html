@@ -301,7 +301,9 @@
 {% if collection_plan %}
 <div class="card">
   <h2>Collection Plan</h2>
-  <pre style="font-size:0.82rem; white-space:pre-wrap; background:#f9f9f9; padding:1rem; border-radius:4px;">{{ collection_plan }}</pre>
+  <div class="md-rendered" style="font-size:0.9rem; background:#f9f9f9; padding:1rem; border-radius:4px;">
+    {{ collection_plan | md_to_html | safe }}
+  </div>
 </div>
 {% endif %}
 
