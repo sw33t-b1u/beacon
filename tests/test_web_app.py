@@ -1972,6 +1972,89 @@ class TestPirViewRendersCollectionPlan:
         assert b"## Heading" not in resp.content
 
 
+class TestLoadStoredPairCollectionPlan:
+    def test_load_stored_pairs_collection_plan_when_present(self):
+        """When stored PIR has matching collection_plan_<ts>.md, both load into session."""
+        ts = "202612311200"
+        pir_data = json.dumps(
+            [{"pir_id": "PIR-X", "description": "Test", "rationale": "...", "collection_focus": []}]
+        )
+        collection_plan_content = "# Collection Plan\n\n## Section A\n\n- item\n"
+
+        def _mock_load(category, fname):
+            if fname == f"pir_output_{ts}.json":
+                return pir_data
+            if fname == f"collection_plan_{ts}.md":
+                return collection_plan_content
+            raise FileNotFoundError(fname)
+
+        mock_storage = MagicMock()
+        mock_storage.load.side_effect = _mock_load
+        mock_storage.list_files.return_value = []
+        csrf_token, cookies = _get_csrf()
+        sc = TestClient(app, cookies=cookies)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            post_resp = sc.post(
+                f"/pir/load-stored/pir_output_{ts}.json",
+                data={"csrf_token": csrf_token},
+                follow_redirects=False,
+            )
+        assert post_resp.status_code == 303
+        assert post_resp.headers["location"] == "/pir"
+
+        # Carry the new session cookie forward and GET /pir to verify collection_plan rendered
+        session_cookie = post_resp.cookies.get("beacon_session", "")
+        new_csrf = post_resp.cookies.get("beacon_csrf", "")
+        session_cookies = {"beacon_session": session_cookie, "beacon_csrf": new_csrf}
+        sc2 = TestClient(app, cookies=session_cookies)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            get_resp = sc2.get("/pir")
+        assert get_resp.status_code == 200
+        body = get_resp.content.decode()
+        assert "Section A" in body
+        # Sectioning wrap should appear
+        assert "<details" in body
+
+    def test_load_stored_continues_when_collection_plan_missing(self):
+        """When only PIR exists (no matching collection_plan), load succeeds with empty plan."""
+        ts = "202612311300"
+        pir_data = json.dumps(
+            [{"pir_id": "PIR-Y", "description": "Test", "rationale": "...", "collection_focus": []}]
+        )
+
+        def _mock_load(category, fname):
+            if fname == f"pir_output_{ts}.json":
+                return pir_data
+            raise FileNotFoundError(fname)
+
+        mock_storage = MagicMock()
+        mock_storage.load.side_effect = _mock_load
+        mock_storage.list_files.return_value = []
+        csrf_token, cookies = _get_csrf()
+        sc = TestClient(app, cookies=cookies)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            post_resp = sc.post(
+                f"/pir/load-stored/pir_output_{ts}.json",
+                data={"csrf_token": csrf_token},
+                follow_redirects=False,
+            )
+        assert post_resp.status_code == 303
+
+        # Carry the new session cookie forward and GET /pir
+        session_cookie = post_resp.cookies.get("beacon_session", "")
+        new_csrf = post_resp.cookies.get("beacon_csrf", "")
+        session_cookies = {"beacon_session": session_cookie, "beacon_csrf": new_csrf}
+        sc2 = TestClient(app, cookies=session_cookies)
+        with patch("beacon.storage.create_storage_backend", return_value=mock_storage):
+            get_resp = sc2.get("/pir")
+        assert get_resp.status_code == 200
+        body = get_resp.content.decode()
+        # PIR section visible
+        assert "PIR-Y" in body or "Test" in body
+        # No collection plan section (empty -> {% if collection_plan %} hides it)
+        assert "Section A" not in body
+
+
 class TestDashboardExcludesCollectionPlanMd:
     def test_dashboard_latest_pir_excludes_collection_plan_md(self, tmp_path, monkeypatch):
         """Dashboard 'Latest PIR' shows only .json files, not .md files."""

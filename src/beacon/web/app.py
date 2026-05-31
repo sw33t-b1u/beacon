@@ -939,7 +939,24 @@ async def pir_load_stored(
     else:
         raise HTTPException(status_code=400, detail="Stored PIR must be a JSON array or object")
 
-    session_data = {"pirs": pirs, "collection_plan": ""}
+    # Pair-load matching collection_plan_<ts>.md from the same "pir" category.
+    # Plan 1 saves both pir_output_<ts>.json and collection_plan_<ts>.md with
+    # the same timestamp; load both so reload restores the full review view.
+    collection_plan_md = ""
+    ts_match = re.match(r"^pir_output_(\d+)\.json$", filename)
+    if ts_match:
+        ts = ts_match.group(1)
+        try:
+            collection_plan_md = storage.load("pir", f"collection_plan_{ts}.md")
+        except FileNotFoundError:
+            collection_plan_md = ""
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "collection_plan_pair_load_failed", error=str(exc), pir_filename=filename
+            )
+            collection_plan_md = ""
+
+    session_data = {"pirs": pirs, "collection_plan": collection_plan_md}
     session_id = create_session(session_data)
 
     new_csrf = _generate_csrf_token()
