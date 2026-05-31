@@ -47,6 +47,10 @@ def _render_collection_plan_md(text: str) -> str:
     ``inline code``, horizontal rules (---), > blockquote. Anything else
     falls through as an escaped paragraph.
 
+    H2 headings are wrapped in ``<details class="collection-plan-section">``
+    (default closed). H1 and H3+ headings are rendered as plain heading tags.
+    Content before the first H2 (preamble) is rendered without wrapping.
+
     Stdlib-only (only ``re`` and ``html`` modules) — no PyPI dep.
     """
     if not text:
@@ -55,48 +59,63 @@ def _render_collection_plan_md(text: str) -> str:
     out: list[str] = []
     in_ul = False
     in_ol = False
+    in_section = False  # True when inside a <details> H2 section
+
+    def _close_lists() -> None:
+        nonlocal in_ul, in_ol
+        if in_ul:
+            out.append("</ul>")
+            in_ul = False
+        if in_ol:
+            out.append("</ol>")
+            in_ol = False
+
+    def _close_section() -> None:
+        nonlocal in_section
+        if in_section:
+            out.append("</div></details>")
+            in_section = False
+
     for raw in lines:
         line = raw.rstrip()
         if not line.strip():
-            if in_ul:
-                out.append("</ul>")
-                in_ul = False
-            if in_ol:
-                out.append("</ol>")
-                in_ol = False
+            _close_lists()
             out.append("")
             continue
         # Horizontal rule
         if re.fullmatch(r"-{3,}", line.strip()):
-            if in_ul:
-                out.append("</ul>")
-                in_ul = False
-            if in_ol:
-                out.append("</ol>")
-                in_ol = False
+            _close_lists()
             out.append("<hr>")
             continue
         # Headings
         m = re.match(r"^(#{1,6})\s+(.*)$", line)
         if m:
-            if in_ul:
-                out.append("</ul>")
-                in_ul = False
-            if in_ol:
-                out.append("</ol>")
-                in_ol = False
+            _close_lists()
             level = len(m.group(1))
-            text_in = _inline(_html.escape(m.group(2)))
-            out.append(f"<h{level}>{text_in}</h{level}>")
+            title_escaped = _html.escape(m.group(2))
+            if level == 1:
+                # H1: close any open section, render as plain <h1>
+                _close_section()
+                out.append(f"<h{level}>{_inline(title_escaped)}</h{level}>")
+            elif level == 2:
+                # H2: close previous section, open new <details> section
+                _close_section()
+                summary = (
+                    f'<summary><span class="section-title">'
+                    f"{_inline(title_escaped)}"
+                    f"</span></summary>"
+                )
+                out.append(
+                    f'<details class="collection-plan-section">{summary}<div class="section-body">'
+                )
+                in_section = True
+            else:
+                # H3+: render as plain heading inside (or outside) section
+                out.append(f"<h{level}>{_inline(title_escaped)}</h{level}>")
             continue
         # Blockquote
         if line.lstrip().startswith("> "):
-            if in_ul:
-                out.append("</ul>")
-                in_ul = False
-            if in_ol:
-                out.append("</ol>")
-                in_ol = False
+            _close_lists()
             content = _inline(_html.escape(line.lstrip()[2:]))
             out.append(f"<blockquote>{content}</blockquote>")
             continue
@@ -123,17 +142,10 @@ def _render_collection_plan_md(text: str) -> str:
             out.append(f"  <li>{_inline(_html.escape(m.group(1)))}</li>")
             continue
         # Plain paragraph
-        if in_ul:
-            out.append("</ul>")
-            in_ul = False
-        if in_ol:
-            out.append("</ol>")
-            in_ol = False
+        _close_lists()
         out.append(f"<p>{_inline(_html.escape(line))}</p>")
-    if in_ul:
-        out.append("</ul>")
-    if in_ol:
-        out.append("</ol>")
+    _close_lists()
+    _close_section()
     return "\n".join(out)
 
 

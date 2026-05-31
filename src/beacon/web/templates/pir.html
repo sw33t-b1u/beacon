@@ -299,6 +299,13 @@
 {% endfor %}
 
 {% if collection_plan %}
+<style>
+.collection-plan-section { margin-bottom: 0.5rem; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9; }
+.collection-plan-section summary { padding: 0.5rem 0.75rem; cursor: pointer; font-weight: 600; user-select: none; }
+.collection-plan-section[open] summary { border-bottom: 1px solid #ddd; }
+.collection-plan-section .section-body { padding: 0.75rem 1rem; }
+.collection-plan-section .section-title { font-size: 1rem; }
+</style>
 <div class="card">
   <h2>Collection Plan</h2>
   <div class="md-rendered" style="font-size:0.9rem; background:#f9f9f9; padding:1rem; border-radius:4px;">

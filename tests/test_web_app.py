@@ -1913,10 +1913,46 @@ class TestRenderCollectionPlanMd:
         from beacon.web.app import _render_collection_plan_md
 
         result = _render_collection_plan_md("## H\n\n- a\n- b\n\n**bold** text")
-        assert "<h2>H</h2>" in result
+        # H2 is now wrapped in <details><summary>, not a bare <h2> tag
+        assert "H" in result
+        assert "<summary>" in result
         assert "<ul>" in result
         assert "<li>a</li>" in result
         assert "<strong>bold</strong>" in result
+
+    def test_render_collection_plan_md_wraps_h2_in_details(self):
+        """H2 sections are each wrapped in a <details class="collection-plan-section"> block."""
+        from beacon.web.app import _render_collection_plan_md
+
+        text = "# Title\n\nIntro paragraph.\n\n## Section A\n\nBody A\n\n## Section B\n\nBody B"
+        html = _render_collection_plan_md(text)
+        assert html.count('<details class="collection-plan-section">') == 2
+        assert "Section A" in html
+        assert "Section B" in html
+        assert html.count("</details>") == 2
+
+    def test_render_collection_plan_md_preamble_not_wrapped(self):
+        """Content before the first H2 (preamble) is rendered outside any <details> block."""
+        from beacon.web.app import _render_collection_plan_md
+
+        text = "# Title\n\nPreamble line before any section.\n\n## Section\n\nBody"
+        html = _render_collection_plan_md(text)
+        # Preamble paragraph must appear before the first <details>
+        preamble_pos = html.find("Preamble line")
+        details_pos = html.find("<details")
+        assert preamble_pos != -1 and details_pos != -1
+        assert preamble_pos < details_pos
+
+    def test_render_collection_plan_md_h3_stays_inline(self):
+        """H3 headings are rendered as plain <h3>, not wrapped in their own <details>."""
+        from beacon.web.app import _render_collection_plan_md
+
+        text = "## Section\n\n### Subsection\n\nBody"
+        html = _render_collection_plan_md(text)
+        # H3 should be a plain <h3>, not wrapped in its own <details>
+        assert "<h3>Subsection</h3>" in html
+        # Only one <details> for the H2
+        assert html.count('<details class="collection-plan-section">') == 1
 
 
 class TestPirViewRendersCollectionPlan:
@@ -1931,7 +1967,8 @@ class TestPirViewRendersCollectionPlan:
         session_client = TestClient(app, cookies=cookies)
         resp = session_client.get("/pir")
         assert resp.status_code == 200
-        assert b"<h2>" in resp.content
+        # H2 is now in <summary>, not a bare <h2> tag; check for section wrapper instead
+        assert b"<summary>" in resp.content
         assert b"## Heading" not in resp.content
 
 
