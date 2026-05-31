@@ -1804,3 +1804,99 @@ class TestAccountsRoute:
                 follow_redirects=False,
             )
         assert resp.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# PIR StorageBackend persistence tests
+# ---------------------------------------------------------------------------
+
+
+class TestPirStoragePersistence:
+    """Verify that /pir/generate and /api/generate persist PIR to StorageBackend."""
+
+    def test_pir_generate_persists_to_storage(self, monkeypatch, tmp_path):
+        """POST /pir/generate writes pir_output_*.json to LocalStorage."""
+        monkeypatch.setenv("BEACON_STORAGE", "local")
+        monkeypatch.setenv("BEACON_STORAGE_BASE_DIR", str(tmp_path))
+
+        csrf_token, cookies = _get_csrf()
+        context_bytes = SAMPLE_CONTEXT_PATH.read_bytes()
+        session_client = TestClient(app, cookies=cookies)
+
+        mock_pirs = [{"pir_id": "PIR-1", "description": "Test PIR for storage"}]
+        mock_plan = "# Collection plan\n- item1"
+
+        with patch("beacon.web.app._run_pipeline", MagicMock(return_value=(mock_pirs, mock_plan))):
+            resp = session_client.post(
+                "/pir/generate",
+                files={"context_file": ("sample.json", context_bytes, "application/json")},
+                data={"csrf_token": csrf_token},
+                follow_redirects=False,
+            )
+
+        assert resp.status_code == 303
+
+        pir_dir = tmp_path / "pir"
+        assert pir_dir.is_dir(), f"Expected pir/ subdir under {tmp_path}"
+        pir_files = list(pir_dir.glob("pir_output_*.json"))
+        assert len(pir_files) >= 1, f"No pir_output_*.json found in {pir_dir}"
+
+        content = json.loads(pir_files[0].read_text(encoding="utf-8"))
+        assert isinstance(content, list)
+        assert content[0]["pir_id"] == "PIR-1"
+
+    def test_api_generate_persists_to_storage(self, monkeypatch, tmp_path):
+        """POST /api/generate writes pir_output_*.json to LocalStorage."""
+        monkeypatch.setenv("BEACON_STORAGE", "local")
+        monkeypatch.setenv("BEACON_STORAGE_BASE_DIR", str(tmp_path))
+
+        context_bytes = SAMPLE_CONTEXT_PATH.read_bytes()
+
+        mock_pirs = [{"pir_id": "PIR-API-1", "description": "API generated PIR"}]
+        mock_plan = "# Collection plan\n- api-item"
+
+        with patch("beacon.web.app._run_pipeline", MagicMock(return_value=(mock_pirs, mock_plan))):
+            resp = client.post(
+                "/api/generate",
+                files={"context_file": ("sample.json", context_bytes, "application/json")},
+            )
+
+        assert resp.status_code == 200
+
+        pir_dir = tmp_path / "pir"
+        assert pir_dir.is_dir(), f"Expected pir/ subdir under {tmp_path}"
+        pir_files = list(pir_dir.glob("pir_output_*.json"))
+        assert len(pir_files) >= 1, f"No pir_output_*.json found in {pir_dir}"
+
+    def test_pir_generate_storage_failure_does_not_break_handler(self, monkeypatch, capsys):
+        """Storage save failure emits warning but handler still returns 303."""
+        monkeypatch.setenv("BEACON_STORAGE", "local")
+        monkeypatch.setenv("BEACON_STORAGE_BASE_DIR", "/nonexistent-path-does-not-matter")
+
+        csrf_token, cookies = _get_csrf()
+        context_bytes = SAMPLE_CONTEXT_PATH.read_bytes()
+        session_client = TestClient(app, cookies=cookies)
+
+        mock_pirs = [{"pir_id": "PIR-FAIL", "description": "Storage will fail"}]
+        mock_plan = "# Collection plan\n- item"
+
+        broken_storage = MagicMock()
+        broken_storage.save.side_effect = Exception("simulated storage failure")
+
+        with (
+            patch("beacon.web.app._run_pipeline", MagicMock(return_value=(mock_pirs, mock_plan))),
+            patch("beacon.storage.create_storage_backend", return_value=broken_storage),
+        ):
+            resp = session_client.post(
+                "/pir/generate",
+                files={"context_file": ("sample.json", context_bytes, "application/json")},
+                data={"csrf_token": csrf_token},
+                follow_redirects=False,
+            )
+
+        assert resp.status_code == 303, "Handler must still redirect even when storage fails"
+        captured = capsys.readouterr()
+        log_output = captured.out + captured.err
+        assert "pir_save_storage_failed" in log_output, (
+            "Expected warning log 'pir_save_storage_failed' not found in structlog output"
+        )

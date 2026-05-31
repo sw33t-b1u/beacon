@@ -713,6 +713,18 @@ async def pir_generate(
     finally:
         tmp_path.unlink(missing_ok=True)
 
+    # Persist PIR to StorageBackend (matches assets/identity/user_accounts pattern)
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    try:
+        storage = create_storage_backend(cfg)
+        ts = _dt.datetime.now().strftime("%Y%m%d%H%M")
+        storage.save("pir", f"pir_output_{ts}.json", json.dumps(pirs, ensure_ascii=False, indent=2))
+        if collection_plan_md:
+            storage.save("pir", f"collection_plan_{ts}.md", collection_plan_md)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("pir_save_storage_failed", error=str(exc))
+
     session_data = {
         "pirs": pirs,
         "collection_plan": collection_plan_md,
@@ -1931,6 +1943,18 @@ async def api_generate(
         pirs, collection_plan_md = _run_pipeline(tmp_path, config=cfg)
     finally:
         tmp_path.unlink(missing_ok=True)
+
+    # Persist PIR to StorageBackend (matches assets/identity/user_accounts pattern)
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    try:
+        storage = create_storage_backend(cfg)
+        ts = _dt.datetime.now().strftime("%Y%m%d%H%M")
+        storage.save("pir", f"pir_output_{ts}.json", json.dumps(pirs, ensure_ascii=False, indent=2))
+        if collection_plan_md:
+            storage.save("pir", f"collection_plan_{ts}.md", collection_plan_md)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("pir_save_storage_failed", error=str(exc))
 
     return JSONResponse({"pirs": pirs, "collection_plan": collection_plan_md})
 
