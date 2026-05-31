@@ -5,11 +5,25 @@ from __future__ import annotations
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from fastapi.testclient import TestClient
 
 from beacon.web.app import app
 
 client = TestClient(app, raise_server_exceptions=True)
+
+
+@pytest.fixture(autouse=True)
+def _isolate_beacon_env(monkeypatch):
+    """Remove BEACON_* env vars so SettingsManager tests see clean defaults."""
+    for key in (
+        "BEACON_STORAGE",
+        "BEACON_STORAGE_BASE_DIR",
+        "BEACON_GCS_BUCKET",
+        "BEACON_GCS_PREFIX",
+        "TRACE_ROOT_PATH",
+    ):
+        monkeypatch.delenv(key, raising=False)
 
 
 # ---------------------------------------------------------------------------
