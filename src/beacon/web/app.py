@@ -873,6 +873,7 @@ async def pir_generate(
 async def pir_load(
     request: Request,
     pir_file: UploadFile = File(...),
+    collection_plan_file: UploadFile | None = File(default=None),
     csrf_token: str = Form(default=""),
     beacon_csrf: str = Cookie(default=""),
 ):
@@ -895,7 +896,16 @@ async def pir_load(
             status_code=400, detail="pir_output.json must be a JSON array or object"
         )
 
-    session_data = {"pirs": pirs, "collection_plan": ""}
+    collection_plan_md = ""
+    if collection_plan_file is not None and collection_plan_file.filename:
+        try:
+            cp_content = await _read_upload(collection_plan_file)
+            collection_plan_md = cp_content.decode("utf-8")
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("collection_plan_upload_failed", error=str(exc))
+            collection_plan_md = ""
+
+    session_data = {"pirs": pirs, "collection_plan": collection_plan_md}
     session_id = create_session(session_data)
 
     new_csrf = _generate_csrf_token()

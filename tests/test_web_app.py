@@ -2073,3 +2073,75 @@ class TestDashboardExcludesCollectionPlanMd:
         assert resp.status_code == 200
         assert json_name.encode() in resp.content
         assert md_name.encode() not in resp.content
+
+
+class TestPirLoadWithCollectionPlanFile:
+    def test_pir_load_with_collection_plan_file(self):
+        """POST /pir/load with both files stores collection_plan in session."""
+        import json as _json
+
+        csrf_token, cookies = _get_csrf()
+        session_client = TestClient(app, cookies=cookies)
+        pir_payload = _json.dumps(
+            [{"pir_id": "PIR-1", "description": "X", "rationale": "Y", "collection_focus": []}]
+        )
+        cp_payload = "# Collection Plan\n\n## Section A\n\n- item\n"
+
+        post_resp = session_client.post(
+            "/pir/load",
+            files={
+                "pir_file": (
+                    "pir_output.json",
+                    pir_payload.encode("utf-8"),
+                    "application/json",
+                ),
+                "collection_plan_file": (
+                    "collection_plan.md",
+                    cp_payload.encode("utf-8"),
+                    "text/markdown",
+                ),
+            },
+            data={"csrf_token": csrf_token},
+            follow_redirects=False,
+        )
+        assert post_resp.status_code == 303
+        sid = post_resp.cookies.get("beacon_session", "")
+        new_csrf = post_resp.cookies.get("beacon_csrf", "")
+        session_client2 = TestClient(app, cookies={"beacon_session": sid, "beacon_csrf": new_csrf})
+        resp = session_client2.get("/pir")
+        assert resp.status_code == 200
+        body = resp.content.decode()
+        assert "Section A" in body
+        assert "<details" in body
+
+    def test_pir_load_without_collection_plan_continues(self):
+        """POST /pir/load without collection_plan_file still works; collection_plan is empty."""
+        import json as _json
+
+        csrf_token, cookies = _get_csrf()
+        session_client = TestClient(app, cookies=cookies)
+        pir_payload = _json.dumps(
+            [{"pir_id": "PIR-Z", "description": "X", "rationale": "Y", "collection_focus": []}]
+        )
+
+        post_resp = session_client.post(
+            "/pir/load",
+            files={
+                "pir_file": (
+                    "pir_output.json",
+                    pir_payload.encode("utf-8"),
+                    "application/json",
+                ),
+            },
+            data={"csrf_token": csrf_token},
+            follow_redirects=False,
+        )
+        assert post_resp.status_code == 303
+        sid = post_resp.cookies.get("beacon_session", "")
+        new_csrf = post_resp.cookies.get("beacon_csrf", "")
+        session_client2 = TestClient(app, cookies={"beacon_session": sid, "beacon_csrf": new_csrf})
+        resp = session_client2.get("/pir")
+        assert resp.status_code == 200
+        body = resp.content.decode()
+        # PIR appears; collection_plan section is absent (empty plan hides via {% if %})
+        assert "PIR-Z" in body or "X" in body
