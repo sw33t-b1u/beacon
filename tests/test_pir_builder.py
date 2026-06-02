@@ -11,7 +11,7 @@ from beacon.analysis.asset_mapper import load_asset_tags, map_asset_tags
 from beacon.analysis.element_extractor import extract
 from beacon.analysis.risk_scorer import RiskScore, score
 from beacon.analysis.threat_mapper import load_taxonomy, map_threats
-from beacon.generator.pir_builder import PIROutput, PIROutputDocument, build_pirs
+from beacon.generator.pir_builder import PIROutput, PIROutputDocument, build_pirs, wrap_envelope
 from beacon.ingest.misp_client import MispClient
 from beacon.ingest.schema import BusinessContext
 
@@ -336,3 +336,18 @@ class TestSchemaVersion:
     def test_schema_version_not_overrideable_accident(self):
         doc = PIROutputDocument(schema_version="2.0.0", pirs=[])
         assert doc.schema_version == "2.0.0"
+
+
+class TestWrapEnvelope:
+    def test_wraps_bare_list_in_envelope(self):
+        wrapped = wrap_envelope([{"pir_id": "PIR-1"}])
+        assert wrapped == {"schema_version": "2.0.0", "pirs": [{"pir_id": "PIR-1"}]}
+
+    def test_empty_pirs_still_carries_schema_version(self):
+        wrapped = wrap_envelope([])
+        assert wrapped["schema_version"] == "2.0.0"
+        assert wrapped["pirs"] == []
+
+    def test_schema_version_sourced_from_pir_output_document_default(self):
+        wrapped = wrap_envelope([])
+        assert wrapped["schema_version"] == PIROutputDocument.model_fields["schema_version"].default

@@ -351,8 +351,8 @@ class TestExportRoute:
         assert resp.status_code == 200
         assert resp.headers["content-type"].startswith("application/json")
         data = resp.json()
-        assert isinstance(data, list)
-        assert data[0]["pir_id"] == "PIR-2026-001"
+        assert data["schema_version"] == "2.0.0"
+        assert data["pirs"][0]["pir_id"] == "PIR-2026-001"
 
     def test_export_without_session_returns_error(self):
         fresh = TestClient(app, cookies={})
@@ -366,8 +366,8 @@ class TestExportRoute:
         assert resp.status_code == 200
         assert resp.headers["content-type"].startswith("application/json")
         data = resp.json()
-        assert isinstance(data, list)
-        assert data[0]["pir_id"] == "PIR-2026-001"
+        assert data["schema_version"] == "2.0.0"
+        assert data["pirs"][0]["pir_id"] == "PIR-2026-001"
 
 
 class TestSessionSecurity:
@@ -561,8 +561,8 @@ class TestReviewSaveActorRoute:
         export_resp = sc.get("/review/export")
         assert export_resp.status_code == 200
         data = export_resp.json()
-        assert isinstance(data, list)
-        actor = data[0]["prioritized_actors"][1]
+        assert data["schema_version"] == "2.0.0"
+        actor = data["pirs"][0]["prioritized_actors"][1]
         assert actor["excluded_by_analyst"] is True
         assert actor["exclusion_reason"] == "Out of geographic scope"
         assert actor["analyst_rationale_append"] == "Confirmed by IR team 2026-05-23"
@@ -1842,8 +1842,8 @@ class TestPirStoragePersistence:
         assert len(pir_files) >= 1, f"No pir_output_*.json found in {pir_dir}"
 
         content = json.loads(pir_files[0].read_text(encoding="utf-8"))
-        assert isinstance(content, list)
-        assert content[0]["pir_id"] == "PIR-1"
+        assert content["schema_version"] == "2.0.0"
+        assert content["pirs"][0]["pir_id"] == "PIR-1"
 
     def test_api_generate_persists_to_storage(self, monkeypatch, tmp_path):
         """POST /api/generate writes pir_output_*.json to LocalStorage."""

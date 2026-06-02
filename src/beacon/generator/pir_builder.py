@@ -99,6 +99,19 @@ class PIROutputDocument(BaseModel):
     pirs: list[PIROutput]
 
 
+def wrap_envelope(pirs: list[dict]) -> dict:
+    """Wrap already-serialized PIR dicts in the canonical envelope.
+
+    Mirrors ``PIROutputDocument`` but skips pydantic validation so the
+    web layer can persist session-resident dicts without re-validating
+    every field. Downstream consumers (SAGE, TRACE) require this shape.
+    """
+    return {
+        "schema_version": PIROutputDocument.model_fields["schema_version"].default,
+        "pirs": pirs,
+    }
+
+
 def build_pirs(
     elements: ExtractedElements,
     threat: ThreatProfile,

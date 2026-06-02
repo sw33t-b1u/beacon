@@ -18,6 +18,7 @@ from fastapi import Cookie, FastAPI, File, Form, HTTPException, Request, UploadF
 from fastapi.responses import JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from beacon.generator.pir_builder import wrap_envelope
 from beacon.web.session import cleanup_old_sessions, create_session, load_session, save_session
 
 logger = structlog.get_logger(__name__)
@@ -848,7 +849,11 @@ async def pir_generate(
     try:
         storage = create_storage_backend(cfg)
         ts = _dt.datetime.now().strftime("%Y%m%d%H%M")
-        storage.save("pir", f"pir_output_{ts}.json", json.dumps(pirs, ensure_ascii=False, indent=2))
+        storage.save(
+            "pir",
+            f"pir_output_{ts}.json",
+            json.dumps(wrap_envelope(pirs), ensure_ascii=False, indent=2),
+        )
         if collection_plan_md:
             storage.save("pir", f"collection_plan_{ts}.md", collection_plan_md)
     except Exception as exc:  # noqa: BLE001
@@ -1115,7 +1120,7 @@ async def pir_export(beacon_session: str = Cookie(default="")):
         raise HTTPException(status_code=404, detail="Session not found or expired")
 
     pirs = session.get("pirs", [])
-    content = json.dumps(pirs, ensure_ascii=False, indent=2).encode("utf-8")
+    content = json.dumps(wrap_envelope(pirs), ensure_ascii=False, indent=2).encode("utf-8")
     return Response(
         content=content,
         media_type="application/json",
@@ -1996,7 +2001,7 @@ async def review_export(beacon_session: str = Cookie(default="")):
         raise HTTPException(status_code=404, detail="Session not found or expired")
 
     pirs = session.get("pirs", [])
-    content = json.dumps(pirs, ensure_ascii=False, indent=2).encode("utf-8")
+    content = json.dumps(wrap_envelope(pirs), ensure_ascii=False, indent=2).encode("utf-8")
     return Response(
         content=content,
         media_type="application/json",
@@ -2107,7 +2112,11 @@ async def api_generate(
     try:
         storage = create_storage_backend(cfg)
         ts = _dt.datetime.now().strftime("%Y%m%d%H%M")
-        storage.save("pir", f"pir_output_{ts}.json", json.dumps(pirs, ensure_ascii=False, indent=2))
+        storage.save(
+            "pir",
+            f"pir_output_{ts}.json",
+            json.dumps(wrap_envelope(pirs), ensure_ascii=False, indent=2),
+        )
         if collection_plan_md:
             storage.save("pir", f"collection_plan_{ts}.md", collection_plan_md)
     except Exception as exc:  # noqa: BLE001
