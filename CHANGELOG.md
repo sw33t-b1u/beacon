@@ -6,6 +6,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [2.1.1] — 2026-06-03
+
+### Fixed
+- Web pipeline now writes `pir_output.json` with the canonical envelope
+  (`{"schema_version": "2.0.0", "pirs": [...]}`) on all four emit paths:
+  `/pir/generate` storage persist, `/pir/export`, `/review/export`, and
+  `/api/generate`. The CLI (`cmd/generate_pir.py`) already emitted the
+  envelope via `PIROutputDocument`; the web layer wrote a bare list,
+  which SAGE 1.0.0+ `PIRFilter` and TRACE 2.0.0+ `PIRDocument` both
+  reject. Added `wrap_envelope()` in `pir_builder` so the wrap helper
+  shares the schema_version default with `PIROutputDocument`.
+
+
 ## [2.1.0] — 2026-05-28
 
 ### Added
