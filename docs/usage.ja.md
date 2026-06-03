@@ -93,6 +93,24 @@ Web ダッシュボードを起動します。
 beacon web                 # http://localhost:8000
 ```
 
+### `beacon taxonomy-refresh`
+
+`schema/threat_taxonomy.json` は MITRE ATT&CK Enterprise と MISP Galaxy から完全に自動生成されます。
+アップデータを実行してファイル全体を再構築してください:
+
+```bash
+beacon taxonomy-refresh --dry-run   # 変更内容をプレビュー（ファイル書き込みなし）
+beacon taxonomy-refresh             # 実際に更新
+```
+
+オプション:
+
+- `--mitre-url` / `--misp-url` — 上流 URL を上書き（デフォルトは `_metadata.sources` に記録されている GitHub raw エンドポイント）
+- `--mitre-cache` / `--misp-cache` — fetch の代わりにローカルコピーを読む（エアギャップ環境向け）。`_metadata.sources` にはカノニカル URL が引き続き記録される
+
+> JSON への手動編集は次回実行で上書きされます。新しいアクターやタグ語彙が必要な場合は
+> MITRE/MISP 上流へ提出するか、アップデータ本体を拡張してください。JSON を直接編集してはいけません。
+
 ---
 
 ## 主要フラグ
@@ -156,7 +174,7 @@ beacon web                 # http://localhost:8000
 5. **SAGE への読み込み** — `SAGE/` ディレクトリで:
 
    ```bash
-   cd ../SAGE && uv run sage load-assets --file output/assets.json
+   cd ../SAGE && uv run sage load-assets --input output/assets.json
    ```
 
    Spanner に存在しない CVE に対しては SAGE がスタブ `Vulnerability` ノードを

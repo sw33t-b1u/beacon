@@ -96,6 +96,27 @@ Launch the web dashboard.
 beacon web                 # http://localhost:8000
 ```
 
+### `beacon taxonomy-refresh`
+
+`schema/threat_taxonomy.json` is fully auto-generated from MITRE ATT&CK Enterprise
+and MISP Galaxy. Run the updater to rebuild the entire file:
+
+```bash
+beacon taxonomy-refresh --dry-run   # preview changes, no file write
+beacon taxonomy-refresh             # apply
+```
+
+Options:
+
+- `--mitre-url` / `--misp-url` — override upstream URLs (defaults are the GitHub raw
+  endpoints recorded in `_metadata.sources`)
+- `--mitre-cache` / `--misp-cache` — read a local copy instead of fetching
+  (air-gapped environments); `_metadata.sources` still records the canonical URLs
+
+> Manual edits to the JSON are overwritten on the next run. To add new actors or
+> tag vocabulary, submit upstream to MITRE/MISP or extend the updater. Do not
+> hand-edit the JSON.
+
 ---
 
 ## Key Flags
@@ -165,7 +186,7 @@ automatically by SAGE ETL when threat actors are ingested from STIX bundles.
 5. **Load into SAGE** — from the `SAGE/` directory:
 
    ```bash
-   cd ../SAGE && uv run sage load-assets --file output/assets.json
+   cd ../SAGE && uv run sage load-assets --input output/assets.json
    ```
 
    SAGE creates a stub `Vulnerability` node for any CVE that is not yet
