@@ -59,7 +59,7 @@ Edit `.env` and fill in the required values:
 | `BEACON_STORAGE_PREFIX` | No | (empty) | Key prefix within the GCS bucket |
 | `TRACE_ROOT_PATH` | No | — | Absolute path to TRACE repo root (enables Collection tab in dashboard) |
 
-`GCP_PROJECT_ID` is **not required** when using `--no-llm` mode.
+`GCP_PROJECT_ID` is **not required** for JSON-input generation (Option A), which skips LLM calls entirely.
 
 ---
 
@@ -115,7 +115,7 @@ Use when you already have a `business_context.json` and want to avoid LLM costs.
 ```bash
 beacon pir-generate \
   --context tests/fixtures/sample_context_manufacturing.json \
-  --output-dir output/
+  --output output/
 ```
 
 ### Option B: LLM mode — Markdown input (requires GCP)
@@ -124,7 +124,7 @@ beacon pir-generate \
 # Ensure GCP_PROJECT_ID is set and ADC is configured (see Step 4)
 beacon pir-generate \
   --context input/acme.md \
-  --output-dir output/
+  --output output/
 ```
 
 To also save the intermediate `BusinessContext` JSON for inspection or reuse:
@@ -196,7 +196,7 @@ def test_something():
 |---------|-------------------|
 | MISP | Not called — all threat-taxonomy data is loaded from `schema/threat_taxonomy.json` |
 | SAGE | Optional — use `_StubSageClient` to avoid real API calls |
-| Vertex AI / Gemini | Not called — tests use `--no-llm` paths or mock the client |
+| Vertex AI / Gemini | Not called — tests mock the client |
 | GCS | Not called — storage defaults to `local` in tests |
 
 ### Common test patterns
@@ -229,10 +229,10 @@ async def client():
 
 **LLM-disabled pipeline test:**
 
-Pass `use_llm=False` when constructing pipeline objects, or set the env var:
+Pass `use_llm=False` when constructing pipeline objects. To run the test suite without LLM calls:
 
 ```bash
-BEACON_NO_LLM=1 uv run pytest
+uv run pytest
 ```
 
 ### Lint
@@ -259,6 +259,6 @@ Runs `pip-audit` to check for known vulnerabilities in dependencies. Included in
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `GCP_PROJECT_ID not set` error | LLM mode without GCP config | Use `--no-llm` or set `GCP_PROJECT_ID` |
+| `GCP_PROJECT_ID not set` error | LLM mode without GCP config | Use JSON input (Option A) or set `GCP_PROJECT_ID` |
 | `pip-audit` findings | Vulnerable dependency | Update the dependency version in `pyproject.toml` |
 | Hook not running | `make setup` not executed | Run `make setup` in the BEACON directory |

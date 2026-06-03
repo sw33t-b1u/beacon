@@ -60,7 +60,7 @@ cp .env.example .env
 | `BEACON_STORAGE_PREFIX` | 任意 | (空文字) | GCS バケット内のキープレフィックス |
 | `TRACE_ROOT_PATH` | 任意 | — | TRACE リポジトリルートの絶対パス（ダッシュボードの Collection タブ有効化） |
 
-`--no-llm` モード使用時は `GCP_PROJECT_ID` は**不要**。
+JSON 入力による生成（Option A）では LLM 呼び出しをスキップするため `GCP_PROJECT_ID` は**不要**。
 
 ---
 
@@ -116,7 +116,7 @@ make check
 ```bash
 beacon pir-generate \
   --context tests/fixtures/sample_context_manufacturing.json \
-  --output-dir output/
+  --output output/
 ```
 
 ### Option B: LLM モード — Markdown 入力（GCP 必要）
@@ -125,7 +125,7 @@ beacon pir-generate \
 # GCP_PROJECT_ID を設定し、ADC を構成済みであること（Step 4 参照）
 beacon pir-generate \
   --context input/acme.md \
-  --output-dir output/
+  --output output/
 ```
 
 中間生成物 `BusinessContext` JSON を確認・再利用したい場合は `--save-context` を追加:
@@ -150,7 +150,6 @@ beacon assets-generate --context input/context.md
 # JSON から生成（LLM 不要）
 beacon assets-generate \
   --context input/context.json \
-  --no-llm \
   --output output/assets.json
 ```
 
@@ -188,7 +187,6 @@ beacon identity-generate --context input/context.md
 # JSON から生成 (LLM 不要)
 beacon identity-generate \
   --context input/context.json \
-  --no-llm \
   --output output/identity_assets.json
 ```
 
@@ -223,7 +221,6 @@ beacon accounts-generate --context input/context.md
 # JSON から生成 (LLM 不要)
 beacon accounts-generate \
   --context input/context.json \
-  --no-llm \
   --output output/user_accounts.json
 ```
 
@@ -379,7 +376,7 @@ def test_something():
 |---------|--------------|
 | MISP | 呼び出しなし — 脅威タクソノミーデータはすべて `schema/threat_taxonomy.json` から読み込む |
 | SAGE | オプション — 実際の API 呼び出しを避けるには `_StubSageClient` を使用 |
-| Vertex AI / Gemini | 呼び出しなし — `--no-llm` パスを使用するかクライアントをモック |
+| Vertex AI / Gemini | 呼び出しなし — クライアントをモック |
 | GCS | 呼び出しなし — テストではストレージが `local` にデフォルト設定 |
 
 ### よく使うテストパターン
@@ -412,10 +409,10 @@ async def client():
 
 **LLM 無効化パイプラインのテスト:**
 
-パイプラインオブジェクト構築時に `use_llm=False` を渡すか、環境変数を設定します:
+パイプラインオブジェクト構築時に `use_llm=False` を渡します。LLM 呼び出しなしでテストスイートを実行するには:
 
 ```bash
-BEACON_NO_LLM=1 uv run pytest
+uv run pytest
 ```
 
 ### Lint
@@ -442,6 +439,6 @@ make audit
 
 | 症状 | 原因 | 対処 |
 |------|------|------|
-| `GCP_PROJECT_ID not set` エラー | GCP 未設定で LLM モード使用 | `--no-llm` を使うか `GCP_PROJECT_ID` を設定 |
+| `GCP_PROJECT_ID not set` エラー | GCP 未設定で LLM モード使用 | JSON 入力（Option A）を使うか `GCP_PROJECT_ID` を設定 |
 | `pip-audit` で検出あり | 脆弱な依存パッケージ | `pyproject.toml` でバージョンを更新 |
 | フックが動作しない | `make setup` 未実行 | BEACON ディレクトリで `make setup` を実行 |

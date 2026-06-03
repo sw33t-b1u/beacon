@@ -175,7 +175,7 @@ visible surface from 1.0.0:
 
 | Subcommand | Replaces | Purpose |
 |---|---|---|
-| `beacon pir-generate` | `cmd/generate_pir.py` | Generate PIR + collection plan + sources candidate; auto-launches web UI on success |
+| `beacon pir-generate` | `cmd/generate_pir.py` | Generate PIR + collection plan + sources candidate |
 | `beacon assets-generate` | `cmd/generate_assets.py` | Generate asset bundle |
 | `beacon identity-generate` | `cmd/generate_identity_assets.py` | Generate identity (person/org) asset bundle |
 | `beacon accounts-generate` | `cmd/generate_user_accounts.py` | Generate user account bundle |
@@ -185,24 +185,23 @@ visible surface from 1.0.0:
 | `beacon web` | `cmd/web_app.py` | Launch review UI without triggering PIR generation |
 
 **Committed**: subcommand names + each subcommand's main flags (e.g.,
-`pir-generate --output-dir`, `pir-generate --no-sage`,
+`pir-generate --output`, `pir-generate --no-sage`,
 `pir-generate --sources-candidate`).
 
-**Evolving**: optional flag defaults (e.g., `--tlp-max` default), help
+**Evolving**: optional flag defaults (e.g., `--taxonomy` default), help
 text wording, output formatting.
 
 **Removed in 2.1.0**: `python -m cmd.<name>` invocation syntax.
 Standalone `__main__` blocks and `DeprecationWarning` machinery were
 removed. Use `beacon <subcommand>` exclusively.
 
-### 3.8 BEACON web UI (`beacon web` + `beacon pir-generate` auto-launch)
+### 3.8 BEACON web UI (`beacon web`)
 
-After `beacon pir-generate` finishes successfully, BEACON auto-
-launches a local web server in the background and prints the URL.
+Launch the web UI separately with `beacon web` after `beacon pir-generate` completes.
 
 **Committed route paths** (HTML/CSS internals remain Evolving):
 - `/` — landing page listing all generated artifacts in the most
-  recent `--output-dir`: `pir_output.json`, `assets.json`,
+  recent output directory: `pir_output.json`, `assets.json`,
   `identity_assets.json`, `user_accounts.json`,
   `collection_plan.md`, `sources_candidate.yaml`.
 - `/review/pir/{pir_id}` — `prioritized_actors[]` view + edit
@@ -288,7 +287,7 @@ operators reason about the BC guarantee:
   `content_ja.json`.
 - Changing the Likelihood formula from `Intent × Capability ×
   Opportunity` to a non-multiplicative form (changes numerics).
-- Removing `beacon pir-generate` subcommand or its `--output-dir`
+- Removing `beacon pir-generate` subcommand or its `--output`
   flag.
 - Removing `BEACON_IR_LOOKBACK_DAYS` env var.
 - Removing the `/review/pir/{pir_id}` web UI route.

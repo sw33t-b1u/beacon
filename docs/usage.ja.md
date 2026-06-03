@@ -50,9 +50,12 @@ uv run beacon web          # デフォルト: http://localhost:8000
 
 `asset_vulnerabilities` と `actor_targets` はドラフトでは空のままです — STIX ETL 実行後または専用の generate コマンドで補完してください。
 
+LLM 拡充は常に有効です。`description`・`rationale`・`collection_focus` の各フィールドは
+Vertex AI Gemini によって書き換えられ、ビジネスコンテキストから解析された組織の言語コンテキストで
+表現される場合があります。
+
 ```bash
 beacon pir-generate                    # input/context.md を使用、フル LLM モード
-beacon pir-generate --no-llm           # 辞書ベースのみ、Gemini 呼び出しなし
 beacon pir-generate --no-sage          # SAGE アクタートリアージ拡張をスキップ
 beacon pir-generate --use-sage         # SAGE 拡張を明示的に有効化
 beacon pir-generate --save-context     # 構造化 BusinessContext を output/ に保存
@@ -64,7 +67,6 @@ beacon pir-generate --save-context     # 構造化 BusinessContext を output/ �
 
 ```bash
 beacon assets-generate
-beacon assets-generate --no-llm
 ```
 
 ### `beacon identity-generate`
@@ -73,7 +75,6 @@ beacon assets-generate --no-llm
 
 ```bash
 beacon identity-generate
-beacon identity-generate --no-llm
 ```
 
 ### `beacon accounts-generate`
@@ -90,7 +91,6 @@ Web ダッシュボードを起動します。
 
 ```bash
 beacon web                 # http://localhost:8000
-beacon web --no-web        # ドライラン / バリデーションのみ（サーバー起動なし）
 ```
 
 ---
@@ -101,8 +101,6 @@ beacon web --no-web        # ドライラン / バリデーションのみ（サ
 |--------|------|
 | `--use-sage` | SAGE アクタートリアージ API 呼び出しを有効化 |
 | `--no-sage` | SAGE 呼び出しを無効化（SAGE が利用不可の場合に便利） |
-| `--no-llm` | すべての Gemini / Vertex AI 呼び出しをスキップ（辞書のみモード） |
-| `--no-web` | Web サーバー起動をスキップ |
 | `--save-context` | 解析した `BusinessContext` JSON を `output/` に書き出す |
 
 ---
@@ -176,24 +174,22 @@ beacon web --no-web        # ドライラン / バリデーションのみ（サ
 
 ### LLM モデルティアの変更
 
-`.env` で `VERTEX_MODEL` を設定するか、実行前にエクスポートします:
+BEACON は複雑度ティアごとにモデルを選択します。各ティアは対応する環境変数で個別にオーバーライドできます:
 
 ```bash
-VERTEX_MODEL=gemini-2.0-flash beacon pir-generate
+BEACON_LLM_SIMPLE=gemini-2.5-flash-lite \
+BEACON_LLM_MEDIUM=gemini-2.5-flash \
+BEACON_LLM_COMPLEX=gemini-2.5-pro \
+beacon pir-generate --context path/to/context.md
 ```
 
-使用可能な値は Vertex AI プロジェクトのクォータに依存します。
+オーバーライドしたいティアの変数のみ設定してください。未設定のティアはデフォルト値
+（`gemini-2.5-flash-lite` / `gemini-2.5-flash` / `gemini-2.5-pro`）を使用します。
 
 ### 過去の PIR 結果を読み込む
 
 PIR タブには StorageBackend から取得した過去の実行一覧が表示されます。
 ドロップダウンから実行を選択すると、再生成せずにレビュービューへ読み込めます。
-
-パスを直接指定することもできます:
-
-```bash
-beacon pir-generate --input output/pir_202506011430.json --review-only
-```
 
 ### GCS ストレージへの切り替え
 
@@ -292,7 +288,7 @@ mkdir -p /var/log/beacon
 ### 前提条件
 
 - SAGE が稼働しており、Spanner スキーマが初期化済み（SAGE/ で `make init-schema` 実行済み）
-- SAGE の環境に `GCP_PROJECT_ID` および `SPANNER_INSTANCE_ID` が設定済み
+- SAGE の環境に `GCP_PROJECT_ID` および `SPANNER_INSTANCE` が設定済み
 - Spanner インスタンスへの書き込み権限がある
 - BEACON で `pir_output.json` が生成済み（`beacon pir-generate` で生成）
 
@@ -391,7 +387,7 @@ cd ../SAGE && uv run sage visualize-graph
 
 ```bash
 gcloud spanner databases execute-sql sage-db \
-  --instance=$SPANNER_INSTANCE_ID \
+  --instance=$SPANNER_INSTANCE \
   --sql="SELECT id, name, criticality, pir_adjusted_criticality, tags
          FROM Asset
          ORDER BY pir_adjusted_criticality DESC
@@ -425,7 +421,7 @@ pir_adjusted_criticality = min(base × max_multiplier × 1.5, 10.0)
 
 ```bash
 gcloud spanner databases execute-sql sage-db \
-  --instance=$SPANNER_INSTANCE_ID \
+  --instance=$SPANNER_INSTANCE \
   --sql="SELECT actor_stix_id, asset_id, confidence, source
          FROM Targets
          WHERE source = 'pir_auto'

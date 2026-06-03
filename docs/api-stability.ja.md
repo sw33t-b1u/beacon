@@ -137,7 +137,7 @@ Initiative H フェーズ 6 は `beacon` を click `Group` エントリポイン
 
 | サブコマンド | 置き換え対象 | 目的 |
 |---|---|---|
-| `beacon pir-generate` | `cmd/generate_pir.py` | PIR + 収集計画 + ソース候補を生成; 成功時に Web UI を自動起動 |
+| `beacon pir-generate` | `cmd/generate_pir.py` | PIR + 収集計画 + ソース候補を生成 |
 | `beacon assets-generate` | `cmd/generate_assets.py` | アセットバンドルを生成 |
 | `beacon identity-generate` | `cmd/generate_identity_assets.py` | ID（人物/組織）アセットバンドルを生成 |
 | `beacon accounts-generate` | `cmd/generate_user_accounts.py` | ユーザーアカウントバンドルを生成 |
@@ -146,19 +146,18 @@ Initiative H フェーズ 6 は `beacon` を click `Group` エントリポイン
 | `beacon misp-cache-refresh` | `cmd/refresh_misp_cache.py` | MISP タクソノミーキャッシュを更新 |
 | `beacon web` | `cmd/web_app.py` | PIR 生成をトリガーせずにレビュー UI を起動 |
 
-**Committed**: サブコマンド名 + 各サブコマンドの主要フラグ（例: `pir-generate --output-dir`、`pir-generate --no-sage`、`pir-generate --sources-candidate`）。
+**Committed**: サブコマンド名 + 各サブコマンドの主要フラグ（例: `pir-generate --output`、`pir-generate --no-sage`、`pir-generate --sources-candidate`）。
 
-**Evolving**: オプションフラグのデフォルト値（例: `--tlp-max` のデフォルト）、ヘルプテキストの文言、出力フォーマット。
+**Evolving**: オプションフラグのデフォルト値（例: `--taxonomy` のデフォルト）、ヘルプテキストの文言、出力フォーマット。
 
 **2.1.0 で削除**: `python -m cmd.<name>` の呼び出し構文。スタンドアロンの `__main__` ブロックおよび `DeprecationWarning` の仕組みは削除された。`beacon <subcommand>` のみを使用すること。
 
-### 3.8 BEACON Web UI（`beacon web` + `beacon pir-generate` による自動起動）
+### 3.8 BEACON Web UI（`beacon web`）
 
-`beacon pir-generate` が正常に完了すると、BEACON はバックグラウンドでローカル
-Web サーバーを自動起動し、URL を出力する。
+`beacon pir-generate` 完了後は `beacon web` コマンドで Web UI を個別に起動する。
 
 **Committed ルートパス**（HTML/CSS の内部実装は Evolving のまま）:
-- `/` — 直近の `--output-dir` 内のすべての生成アーティファクトを一覧するランディングページ: `pir_output.json`、`assets.json`、`identity_assets.json`、`user_accounts.json`、`collection_plan.md`、`sources_candidate.yaml`。
+- `/` — 直近の出力ディレクトリ内のすべての生成アーティファクトを一覧するランディングページ: `pir_output.json`、`assets.json`、`identity_assets.json`、`user_accounts.json`、`collection_plan.md`、`sources_candidate.yaml`。
 - `/review/pir/{pir_id}` — `prioritized_actors[]` のビュー + 編集（exclude / manual_likelihood_override / rationale_append）。編集はセッション内のみ保持（SAGE への書き戻しなし）; 下流のオペレーターワークフロー向けに JSON エクスポート可能。
 - `/review/artifacts/{filename}` — その他のアーティファクトファイルの読み取り専用ビューアー。
 
@@ -218,7 +217,7 @@ BEACON の Committed サーフェスは以下に依存する:
 - `pir_output.json` から `schema_version` フィールドを削除。
 - `content_ja.json` で `intelligence_requirements` を `requirements` に改名。
 - Likelihood 計算式を `Intent × Capability × Opportunity` から非乗算形式に変更（数値が変わる）。
-- `beacon pir-generate` サブコマンドまたはその `--output-dir` フラグを削除。
+- `beacon pir-generate` サブコマンドまたはその `--output` フラグを削除。
 - `BEACON_IR_LOOKBACK_DAYS` 環境変数を削除。
 - `/review/pir/{pir_id}` Web UI ルートを削除。
 
