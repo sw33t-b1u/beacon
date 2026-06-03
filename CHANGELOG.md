@@ -6,6 +6,21 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [2.1.2] — 2026-06-03
+
+### Changed
+
+- Promote `google-cloud-storage` from optional `[gcs]` extra to main
+  `dependencies`. GCS is the de facto deploy target (Cloud Run +
+  `BEACON_STORAGE=gcs`), and `uv run` implicit resync was dropping
+  the extra and producing `ModuleNotFoundError: google.cloud` at
+  container startup. Mirrors the TRACE 2.1.1 structural fix.
+  The `[gcs]` extras section has been removed; existing
+  `uv sync --extra gcs` invocations should drop the `--extra gcs`
+  flag.
+
+---
+
 ## [2.1.1] — 2026-06-03
 
 ### Fixed

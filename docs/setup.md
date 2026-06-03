@@ -69,9 +69,6 @@ By default, artifacts are written to `output/` (local backend). To use Google Cl
 Storage instead:
 
 ```bash
-# Install the optional GCS dependency
-uv sync --extra gcs
-
 # Set env vars (or configure via the Settings tab in the web dashboard)
 export BEACON_STORAGE=gcs
 export BEACON_GCS_BUCKET=my-beacon-artifacts

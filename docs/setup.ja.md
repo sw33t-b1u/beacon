@@ -70,9 +70,6 @@ cp .env.example .env
 Google Cloud Storage を使用する場合は以下を設定してください:
 
 ```bash
-# オプション依存パッケージをインストール
-uv sync --extra gcs
-
 # 環境変数を設定（または Web ダッシュボードの Settings タブから設定可）
 export BEACON_STORAGE=gcs
 export BEACON_GCS_BUCKET=my-beacon-artifacts

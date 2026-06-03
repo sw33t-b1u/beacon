@@ -16,6 +16,7 @@
 | `uvicorn[standard]` | `>=0.30.0` | FastAPI 用 ASGI サーバー（`cmd/web_app.py`）。`[standard]` extras に WebSocket・HTTP/2 サポートを含む | BSD-3-Clause |
 | `python-multipart` | `>=0.0.27` | FastAPI でのファイルアップロード（`POST /generate`）における multipart/form-data 解析。CVE-2026-42561 修正のため `>=0.0.27` に引き上げ。 | Apache-2.0 |
 | `jinja2` | `>=3.1.0` | Web UI 向け HTML テンプレートレンダリング（`src/beacon/web/templates/`） | BSD-3-Clause |
+| `google-cloud-storage` | `>=2.18.0` | StorageBackend の GCS 実装（`src/beacon/storage/gcs.py`）。`BEACON_STORAGE=gcs` で使用; 2.1.2 以降は main dep として無条件にインストールされる。 | Apache-2.0 |
 
 ---
 
@@ -23,7 +24,6 @@
 
 | パッケージ | バージョン制約 | 目的 | ライセンス |
 |-----------|-------------|------|---------|
-| `google-cloud-storage` | `>=2.18.0` | StorageBackend の GCS 実装（`src/beacon/storage/gcs.py`）。`uv sync --extra gcs` でインストール。`BEACON_STORAGE=gcs` の場合のみ必要。 | Apache-2.0 |
 | `pymisp` | `>=2.4` | `src/beacon/ingest/misp_client.py` における MISP Galaxy のライブ取得（オプション）。`pip install 'beacon[misp]'` でインストール。オフライン／キャッシュベース運用では不要。 | BSD-2-Clause |
 
 ---

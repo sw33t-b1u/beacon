@@ -15,12 +15,12 @@
 | `cryptography` | `>=46.0.7` | Transitive dependency of `google-genai` / `uvicorn`. Pinned to `>=46.0.7` to resolve CVE-2026-39892 in 46.0.6. No direct usage in BEACON code. | Apache-2.0 / BSD |
 | `python-dotenv` | `>=1.0` | Loads `.env` file into `os.environ` at startup, keeping secrets out of source code | BSD-3-Clause |
 | `click` | `>=8.1.0` | Backs the unified `beacon` CLI entry point (`src/beacon/cli/`) introduced in Initiative H Phase 6. Click's `Group` + `command` decorators give us composable subcommands, automatic `--help`, and a testable `CliRunner`. | BSD-3-Clause |
+| `google-cloud-storage` | `>=2.18.0` | GCS backend for StorageBackend (`src/beacon/storage/gcs.py`). Required for `BEACON_STORAGE=gcs`; installed unconditionally as a main dep since 2.1.2. | Apache-2.0 |
 
 ## Optional Dependencies
 
 | Package | Version | Purpose | License |
 |---------|---------|---------|---------|
-| `google-cloud-storage` | `>=2.18.0` | GCS backend for StorageBackend (`src/beacon/storage/gcs.py`). Install with `uv sync --extra gcs`. Required only when `BEACON_STORAGE=gcs`. | Apache-2.0 |
 | `pymisp` | `>=2.4` | Optional live MISP Galaxy fetch in `src/beacon/ingest/misp_client.py`. Install with `pip install 'beacon[misp]'`. Not required for offline / cache-based operation. | BSD-2-Clause |
 
 ## Development Dependencies

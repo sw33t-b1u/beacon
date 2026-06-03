@@ -1,6 +1,6 @@
 [project]
 name = "beacon"
-version = "2.1.1"
+version = "2.1.2"
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.0",
@@ -16,6 +16,7 @@ dependencies = [
     "idna>=3.15",  # CVE-2026-45409 fix; transitive via anyio/httpx
     "starlette>=1.0.1",  # PYSEC-2026-161 fix; transitive via fastapi
     "click>=8.1.0",  # Unified CLI entry (Initiative H Phase 6)
+    "google-cloud-storage>=2.18.0",  # GCS StorageBackend (was optional [gcs] until BEACON 2.1.2)
 ]
 
 [project.scripts]
@@ -29,9 +30,6 @@ dev = [
     "pip-audit>=2.7.0",
     "pip>=26.1",  # CVE-2026-6357 fix; transitive via pip-audit -> pip-api
     "jsonschema>=4.23.0",
-]
-gcs = [
-    "google-cloud-storage>=2.18.0",
 ]
 misp = [
     "pymisp>=2.4",
