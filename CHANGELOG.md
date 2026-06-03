@@ -6,6 +6,58 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [3.0.0] — 2026-06-03
+
+### Changed (BREAKING)
+
+- Renamed environment variables for naming-convention alignment across
+  the BEACON / TRACE / SAGE pipeline. No backward compatibility:
+  - `BEACON_GCS_BUCKET` → `BEACON_STORAGE_BUCKET`
+  - `BEACON_GCS_PREFIX` → `BEACON_STORAGE_PREFIX`
+- Internal `Config` field renames (`src/beacon/config.py`,
+  `src/beacon/settings.py`, web form + template):
+  - `gcs_bucket` → `storage_bucket`
+  - `gcs_prefix` → `storage_prefix`
+- `docs/deploy.md` restructured to common Day-0 / Day-1 / Day-N / Access /
+  Out-of-scope sections. Removed `--set-secrets` example (no
+  secret-worthy values today) and the "Production: IAP / Internal Load
+  Balancer" section (L2 IAM binding with `roles/run.invoker` is the
+  production-recommended path for small Workspace user counts). Day-N
+  section codifies the workflow used for the BEACON 2.1.2 release
+  (`gcloud builds submit` + `gcloud run services update --image`,
+  decoupled from git push state).
+- `docs/pipeline-guide.md` env-var reference table updated to match the
+  Phase 2/3 SAGE/TRACE renames (`SAGE_STORAGE_BUCKET`,
+  `TRACE_STORAGE_BUCKET`, etc.).
+
+### Migration
+
+1. Update `.env`:
+   ```diff
+   - BEACON_GCS_BUCKET=your-bucket
+   + BEACON_STORAGE_BUCKET=your-bucket
+   - BEACON_GCS_PREFIX=prod/
+   + BEACON_STORAGE_PREFIX=prod/
+   ```
+2. Cloud Run: update env-vars on the existing `beacon-web` revision
+   (use `--update-env-vars` + `--remove-env-vars` to avoid the
+   destructive `--set-env-vars` whole-set replacement):
+   ```sh
+   gcloud run services update beacon-web \
+     --update-env-vars=BEACON_STORAGE_BUCKET=${BEACON_STORAGE_BUCKET},BEACON_STORAGE_PREFIX=${BEACON_STORAGE_PREFIX} \
+     --remove-env-vars=BEACON_GCS_BUCKET,BEACON_GCS_PREFIX \
+     --region=${REGION} --project=${GCP_PROJECT_ID}
+   ```
+3. Rebuild and redeploy image:
+   ```sh
+   gcloud builds submit --tag $IMAGE --project=${GCP_PROJECT_ID}
+   gcloud run services update beacon-web --image=$IMAGE --region=${REGION} --project=${GCP_PROJECT_ID}
+   ```
+
+Shipped together with TRACE 3.0.0 and SAGE 3.0.0 (Initiative M).
+
+---
+
 ## [2.1.2] — 2026-06-03
 
 ### Changed
