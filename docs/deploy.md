@@ -2,16 +2,72 @@
 
 Japanese translation: [`docs/deploy.ja.md`](deploy.ja.md)
 
-Before deploying, complete the environment setup described in [docs/setup.md](setup.md). The SAGE Analysis API (`sage-api`) should be deployed first if you intend to use the Threats tab — see [SAGE deploy.md](../../sage/docs/deploy.md) Step 10.
+Before deploying, complete [docs/setup.md](setup.md). Ensure `make check` passes before deploying.
 
 ---
 
-## Step 1 — Deploy BEACON Web Dashboard to Cloud Run
+## Day-0 Prerequisites
 
-Build and deploy the BEACON web UI as a Cloud Run Service.
+### Enable APIs
 
 ```sh
-# Load .env if not already sourced
+source .env
+export REGION=${VERTEX_LOCATION:-us-central1}
+
+gcloud services enable \
+  run.googleapis.com \
+  artifactregistry.googleapis.com \
+  cloudbuild.googleapis.com \
+  aiplatform.googleapis.com \
+  --project=${GCP_PROJECT_ID}
+```
+
+### Create Artifact Registry repository
+
+```sh
+gcloud artifacts repositories create cloud-run \
+  --repository-format=docker \
+  --location=${REGION} \
+  --project=${GCP_PROJECT_ID}
+```
+
+### Create service account and grant IAM roles
+
+Create the `beacon-sa` service account and bind the required roles before running any deploy commands that reference it.
+
+```sh
+gcloud iam service-accounts create beacon-sa \
+  --display-name="BEACON Web Service" \
+  --project=${GCP_PROJECT_ID}
+
+for ROLE in roles/aiplatform.user roles/storage.objectAdmin roles/run.invoker; do
+  gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+    --member="serviceAccount:beacon-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+    --role="${ROLE}"
+done
+```
+
+> **IAM roles explained:**
+> - `roles/aiplatform.user` — Vertex AI Gemini access for LLM-driven analysis
+> - `roles/storage.objectAdmin` — read/write GCS artifacts (BEACON_STORAGE_BUCKET)
+> - `roles/run.invoker` — allows BEACON to call SAGE Analysis API (`sage-api`) via OIDC
+
+### Create GCS bucket (if not already existing)
+
+```sh
+# Storage backend bucket (only when BEACON_STORAGE=gcs)
+gcloud storage buckets create gs://${BEACON_STORAGE_BUCKET} \
+  --location=${REGION} \
+  --project=${GCP_PROJECT_ID}
+```
+
+---
+
+## Day-1 Initial Deploy
+
+### beacon-web (Cloud Run Service)
+
+```sh
 source .env
 export REGION=${VERTEX_LOCATION:-us-central1}
 
@@ -19,15 +75,9 @@ export REGION=${VERTEX_LOCATION:-us-central1}
 export SAGE_API_URL=$(gcloud run services describe sage-api \
   --region=${REGION} --format='value(status.url)' --project=${GCP_PROJECT_ID} 2>/dev/null || echo "")
 
-# Create Artifact Registry repository (first time only)
-gcloud artifacts repositories create cloud-run \
-  --repository-format=docker \
-  --location=${REGION} \
-  --project=${GCP_PROJECT_ID}
-
 export IMAGE=${REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/cloud-run/beacon-web
 
-# Build and push container image
+# Build and push container image via Cloud Build
 gcloud builds submit --tag ${IMAGE} --project=${GCP_PROJECT_ID}
 
 # Deploy as Cloud Run Service
@@ -37,56 +87,103 @@ gcloud run deploy beacon-web \
   --no-allow-unauthenticated \
   --port=8000 \
   --service-account="beacon-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
-  --set-env-vars="GCP_PROJECT_ID=${GCP_PROJECT_ID},VERTEX_LOCATION=${REGION},BEACON_STORAGE=gcs,BEACON_GCS_BUCKET=${BEACON_GCS_BUCKET},BEACON_GCS_PREFIX=prod/${SAGE_API_URL:+,SAGE_API_URL=${SAGE_API_URL}}" \
+  --set-env-vars="GCP_PROJECT_ID=${GCP_PROJECT_ID},VERTEX_LOCATION=${REGION},BEACON_STORAGE=gcs,BEACON_STORAGE_BUCKET=${BEACON_STORAGE_BUCKET},BEACON_STORAGE_PREFIX=${BEACON_STORAGE_PREFIX:-prod/}${SAGE_API_URL:+,SAGE_API_URL=${SAGE_API_URL}}" \
   --project=${GCP_PROJECT_ID}
 ```
 
-> **`--set-env-vars` vs `--update-env-vars`:** Subsequent invocations of `gcloud run services update --set-env-vars=...` **replace** the entire env-var set, silently dropping any keys not re-listed. To merge, use `--update-env-vars=KEY=VAL` instead. Verify with `gcloud run services describe beacon-web --format="value(spec.template.spec.containers[0].env[].name)"` after every update.
+> **`--set-env-vars` vs `--update-env-vars`:** The initial deploy uses `--set-env-vars` to set the full env-var set in one shot. Subsequent changes must use `--update-env-vars` (see Day-N). Using `--set-env-vars` on an existing service **replaces the entire env-var set**, silently dropping any key not re-listed.
 
-> **Service account:** Create a dedicated `beacon-sa` service account and grant `roles/aiplatform.user` (Vertex AI Gemini), `roles/storage.objectAdmin` (GCS artifacts), and `roles/run.invoker` (so Cloud Scheduler or BEACON-to-SAGE auth works) before deploying.
->
-> ```sh
-> gcloud iam service-accounts create beacon-sa \
->   --display-name="BEACON Web Service" \
->   --project=${GCP_PROJECT_ID}
->
-> for ROLE in roles/aiplatform.user roles/storage.objectAdmin roles/run.invoker; do
->   gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
->     --member="serviceAccount:beacon-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
->     --role="${ROLE}"
-> done
-> ```
-
-> **Secret Manager (optional):** For production, store sensitive values such as `BEACON_GCS_PREFIX` in Secret Manager and reference with `--set-secrets="BEACON_GCS_PREFIX=beacon-gcs-prefix:latest"` instead of `--set-env-vars`. The example above uses env-var directly for PoC simplicity.
-
-> **Connecting to SAGE Analysis API:** If `sage-api` was not yet deployed when BEACON was first deployed, set `SAGE_API_URL` later using the merge-form update:
-> ```sh
-> gcloud run services update beacon-web \
->   --region=${REGION} \
->   --update-env-vars="SAGE_API_URL=$(gcloud run services describe sage-api --region=${REGION} --format='value(status.url)' --project=${GCP_PROJECT_ID})" \
->   --project=${GCP_PROJECT_ID}
-> ```
+> **`SAGE_API_URL` (optional):** If `sage-api` was not yet deployed when BEACON was first deployed, add it later using `--update-env-vars` (see Day-N Redeploy below).
 
 ---
 
-## Step 2 — Grant access & verify
+## Day-N Redeploy
 
-The service is deployed with `--no-allow-unauthenticated`, so initial access requires an IAM binding.
+### Code-only changes
 
-### PoC: grant your user account direct invoke
+Use this flow when only the container image changes (no env-var additions or removals).
 
 ```sh
+export IMAGE=${REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/cloud-run/beacon-web
+
+# Rebuild and push the new image
+gcloud builds submit --tag ${IMAGE} --project=${GCP_PROJECT_ID}
+
+# Update the Cloud Run Service
+gcloud run services update beacon-web \
+  --image=${IMAGE} \
+  --region=${REGION} \
+  --project=${GCP_PROJECT_ID}
+```
+
+### Env-var changes on an existing revision
+
+Use `--update-env-vars` and `--remove-env-vars` — **not** `--set-env-vars`, which replaces the entire env-var set and silently drops any key not re-listed.
+
+```sh
+# Add or update a single variable without touching others
+gcloud run services update beacon-web \
+  --update-env-vars=NEW_VAR=value \
+  --region=${REGION} \
+  --project=${GCP_PROJECT_ID}
+
+# Remove an old variable at the same time
+gcloud run services update beacon-web \
+  --update-env-vars=NEW_VAR=value \
+  --remove-env-vars=OLD_VAR \
+  --region=${REGION} \
+  --project=${GCP_PROJECT_ID}
+
+# Add SAGE_API_URL after sage-api is deployed
+gcloud run services update beacon-web \
+  --update-env-vars="SAGE_API_URL=$(gcloud run services describe sage-api --region=${REGION} --format='value(status.url)' --project=${GCP_PROJECT_ID})" \
+  --region=${REGION} \
+  --project=${GCP_PROJECT_ID}
+```
+
+> **Verify:** `gcloud run services describe beacon-web --region=${REGION} --format="value(spec.template.spec.containers[0].env[].name)" --project=${GCP_PROJECT_ID}`
+
+---
+
+## Access (Production = L2)
+
+`--no-allow-unauthenticated` is already set during deploy. Grant `roles/run.invoker` to the identities that need access.
+
+### Grant invoke permission
+
+```sh
+# Single user
 gcloud run services add-iam-policy-binding beacon-web \
   --region=${REGION} \
-  --member="user:YOUR-EMAIL@example.com" \
+  --member="user:alice@example.com" \
+  --role=roles/run.invoker \
+  --project=${GCP_PROJECT_ID}
+
+# Google Group (recommended for teams)
+gcloud run services add-iam-policy-binding beacon-web \
+  --region=${REGION} \
+  --member="group:beacon-users@example.com" \
   --role=roles/run.invoker \
   --project=${GCP_PROJECT_ID}
 ```
 
-### Verify via curl (OIDC token)
+### Browser access
 
 ```sh
-URL=$(gcloud run services describe beacon-web --region=${REGION} --format='value(status.url)' --project=${GCP_PROJECT_ID})
+gcloud run services proxy beacon-web --region=${REGION} --project=${GCP_PROJECT_ID}
+# Open http://localhost:8080/dashboard
+```
+
+The proxy automatically injects the developer's identity token. No bearer token management needed.
+
+### Verify via curl
+
+```sh
+URL=$(gcloud run services describe beacon-web \
+  --region=${REGION} \
+  --format='value(status.url)' \
+  --project=${GCP_PROJECT_ID})
+
 curl -sL -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
   -w "\nHTTP=%{http_code}\n" \
   ${URL}/dashboard | head -10
@@ -94,14 +191,22 @@ curl -sL -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
 
 Expected: `HTTP=200` and HTML containing `<title>BEACON — Dashboard</title>`.
 
-### Browser access (PoC quick path)
+### SAGE integration (cross-repo)
+
+BEACON's service account (`beacon-sa`) must have `roles/run.invoker` on `sage-api` to call the SAGE Analysis API. Grant this from the SAGE side:
 
 ```sh
-gcloud run services proxy beacon-web --region=${REGION} --project=${GCP_PROJECT_ID}
+gcloud run services add-iam-policy-binding sage-api \
+  --region=${REGION} \
+  --member="serviceAccount:beacon-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+  --role=roles/run.invoker \
+  --project=${GCP_PROJECT_ID}
 ```
 
-Then open `http://localhost:8080/dashboard` in a browser. The proxy injects the developer's identity token automatically.
+See [SAGE deploy.md](../../sage/docs/deploy.md) for the full SAGE deploy procedure.
 
-### Production: IAP / Internal Load Balancer
+---
 
-For production, place the Service behind an Internal Load Balancer and enable Cloud IAP so the endpoint is restricted to org users without exposing a public URL. This requires VPC and IAP configuration outside Cloud Run; see [GCP IAP documentation](https://cloud.google.com/iap/docs).
+## Out of scope
+
+IAP / Internal Load Balancer / VPC Service Controls are not configured by this guide. For small Google Workspace user counts (a few users), the L2 IAM binding above is sufficient. If you need context-aware access or custom network topology, see https://cloud.google.com/iap/docs.

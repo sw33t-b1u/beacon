@@ -1,33 +1,83 @@
-# BEACON — Cloud Run デプロイ
+# BEACON — Cloud Run デプロイガイド
 
 英語版（正本）: [`docs/deploy.md`](deploy.md)
 
-デプロイ前に [docs/setup.ja.md](setup.ja.md) の環境構築を完了させること。Threats タブを利用する場合は、先に SAGE Analysis API (`sage-api`) をデプロイすること — [SAGE deploy.md](../../sage/docs/deploy.md) Step 10 を参照。
+デプロイ前に [docs/setup.ja.md](setup.ja.md) の手順を完了すること。デプロイ前に `make check` がパスすることを確認すること。
 
 ---
 
-## Step 1 — BEACON Web ダッシュボードを Cloud Run にデプロイ
+## Day-0 前提条件
 
-BEACON の Web UI をコンテナイメージとしてビルドし、Cloud Run Service としてデプロイする。
+### API の有効化
 
 ```sh
-# .env が未読み込みの場合はロード
 source .env
 export REGION=${VERTEX_LOCATION:-us-central1}
 
-# (任意) sage-api がすでにデプロイされている場合は URL を取得
-export SAGE_API_URL=$(gcloud run services describe sage-api \
-  --region=${REGION} --format='value(status.url)' --project=${GCP_PROJECT_ID} 2>/dev/null || echo "")
+gcloud services enable \
+  run.googleapis.com \
+  artifactregistry.googleapis.com \
+  cloudbuild.googleapis.com \
+  aiplatform.googleapis.com \
+  --project=${GCP_PROJECT_ID}
+```
 
-# Artifact Registry リポジトリを作成（初回のみ）
+### Artifact Registry リポジトリの作成
+
+```sh
 gcloud artifacts repositories create cloud-run \
   --repository-format=docker \
   --location=${REGION} \
   --project=${GCP_PROJECT_ID}
+```
+
+### サービスアカウントの作成と IAM ロールの付与
+
+デプロイコマンドでサービスアカウントを参照する前に、`beacon-sa` サービスアカウントを作成して必要なロールを付与しておく。
+
+```sh
+gcloud iam service-accounts create beacon-sa \
+  --display-name="BEACON Web Service" \
+  --project=${GCP_PROJECT_ID}
+
+for ROLE in roles/aiplatform.user roles/storage.objectAdmin roles/run.invoker; do
+  gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+    --member="serviceAccount:beacon-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+    --role="${ROLE}"
+done
+```
+
+> **IAM ロール説明:**
+> - `roles/aiplatform.user` — LLM 分析用 Vertex AI Gemini アクセス
+> - `roles/storage.objectAdmin` — GCS 成果物（BEACON_STORAGE_BUCKET）の読み書き
+> - `roles/run.invoker` — BEACON が OIDC 経由で SAGE Analysis API（`sage-api`）を呼び出すために必要
+
+### GCS バケットの作成（未作成の場合）
+
+```sh
+# ストレージバックエンドバケット（BEACON_STORAGE=gcs の場合のみ）
+gcloud storage buckets create gs://${BEACON_STORAGE_BUCKET} \
+  --location=${REGION} \
+  --project=${GCP_PROJECT_ID}
+```
+
+---
+
+## Day-1 初回デプロイ
+
+### beacon-web（Cloud Run Service）
+
+```sh
+source .env
+export REGION=${VERTEX_LOCATION:-us-central1}
+
+# （任意）sage-api がすでにデプロイされている場合は URL を取得
+export SAGE_API_URL=$(gcloud run services describe sage-api \
+  --region=${REGION} --format='value(status.url)' --project=${GCP_PROJECT_ID} 2>/dev/null || echo "")
 
 export IMAGE=${REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/cloud-run/beacon-web
 
-# コンテナイメージをビルドしてプッシュ
+# Cloud Build でコンテナイメージをビルドしてプッシュ
 gcloud builds submit --tag ${IMAGE} --project=${GCP_PROJECT_ID}
 
 # Cloud Run Service としてデプロイ
@@ -37,56 +87,103 @@ gcloud run deploy beacon-web \
   --no-allow-unauthenticated \
   --port=8000 \
   --service-account="beacon-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
-  --set-env-vars="GCP_PROJECT_ID=${GCP_PROJECT_ID},VERTEX_LOCATION=${REGION},BEACON_STORAGE=gcs,BEACON_GCS_BUCKET=${BEACON_GCS_BUCKET},BEACON_GCS_PREFIX=prod/${SAGE_API_URL:+,SAGE_API_URL=${SAGE_API_URL}}" \
+  --set-env-vars="GCP_PROJECT_ID=${GCP_PROJECT_ID},VERTEX_LOCATION=${REGION},BEACON_STORAGE=gcs,BEACON_STORAGE_BUCKET=${BEACON_STORAGE_BUCKET},BEACON_STORAGE_PREFIX=${BEACON_STORAGE_PREFIX:-prod/}${SAGE_API_URL:+,SAGE_API_URL=${SAGE_API_URL}}" \
   --project=${GCP_PROJECT_ID}
 ```
 
-> **`--set-env-vars` vs `--update-env-vars`:** `gcloud run services update --set-env-vars=...` を後から実行すると、env-var セット全体が**置き換え**られ、再指定しなかったキーは無音で削除される。マージするには `--update-env-vars=KEY=VAL` を使うこと。毎回の更新後に `gcloud run services describe beacon-web --format="value(spec.template.spec.containers[0].env[].name)"` で確認すること。
+> **`--set-env-vars` vs `--update-env-vars`:** 初回デプロイでは `--set-env-vars` を使って env-var セット全体を一括設定する。以降の変更は `--update-env-vars` を使うこと（Day-N 参照）。既存サービスに `--set-env-vars` を使うと **env-var セット全体が置き換わり**、再指定しなかったキーが無音で削除される。
 
-> **サービスアカウント:** デプロイ前に専用の `beacon-sa` サービスアカウントを作成し、`roles/aiplatform.user`（Vertex AI Gemini）、`roles/storage.objectAdmin`（GCS 成果物）、`roles/run.invoker`（Cloud Scheduler または BEACON-to-SAGE 認証用）を付与すること。
->
-> ```sh
-> gcloud iam service-accounts create beacon-sa \
->   --display-name="BEACON Web Service" \
->   --project=${GCP_PROJECT_ID}
->
-> for ROLE in roles/aiplatform.user roles/storage.objectAdmin roles/run.invoker; do
->   gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
->     --member="serviceAccount:beacon-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
->     --role="${ROLE}"
-> done
-> ```
-
-> **Secret Manager（任意）:** 本番環境では `BEACON_GCS_PREFIX` などの機密値を Secret Manager に格納し、`--set-env-vars` の代わりに `--set-secrets="BEACON_GCS_PREFIX=beacon-gcs-prefix:latest"` で参照することを推奨する。上記の例は PoC の簡略化として env-var を直接使用している。
-
-> **SAGE Analysis API への接続:** BEACON の初回デプロイ時に `sage-api` がまだデプロイされていない場合は、後からマージ形式の update で `SAGE_API_URL` を追加する:
-> ```sh
-> gcloud run services update beacon-web \
->   --region=${REGION} \
->   --update-env-vars="SAGE_API_URL=$(gcloud run services describe sage-api --region=${REGION} --format='value(status.url)' --project=${GCP_PROJECT_ID})" \
->   --project=${GCP_PROJECT_ID}
-> ```
+> **`SAGE_API_URL`（任意）:** BEACON の初回デプロイ時に `sage-api` がまだデプロイされていない場合は、後から `--update-env-vars` で追加する（後述の Day-N 再デプロイを参照）。
 
 ---
 
-## Step 2 — アクセス付与と動作確認
+## Day-N 再デプロイ
 
-サービスは `--no-allow-unauthenticated` でデプロイされるため、初回アクセスには IAM バインディングが必要である。
+### コード変更のみの場合
 
-### PoC: ユーザーアカウントに invoker を直接付与
+env-var の追加・削除がなく、コンテナイメージのみ変更する場合はこのフローを使う。
 
 ```sh
+export IMAGE=${REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/cloud-run/beacon-web
+
+# 新しいイメージをビルドしてプッシュ
+gcloud builds submit --tag ${IMAGE} --project=${GCP_PROJECT_ID}
+
+# Cloud Run Service を更新
+gcloud run services update beacon-web \
+  --image=${IMAGE} \
+  --region=${REGION} \
+  --project=${GCP_PROJECT_ID}
+```
+
+### 既存リビジョンの env-var 変更
+
+`--update-env-vars` と `--remove-env-vars` を使うこと — **`--set-env-vars` は使わない**。`--set-env-vars` は env-var セット全体を置き換えるため、再指定しなかったキーが無音で削除される。
+
+```sh
+# 他の変数に影響せず 1 つの変数を追加・更新する
+gcloud run services update beacon-web \
+  --update-env-vars=NEW_VAR=value \
+  --region=${REGION} \
+  --project=${GCP_PROJECT_ID}
+
+# 古い変数を削除しながら新しい変数を追加する
+gcloud run services update beacon-web \
+  --update-env-vars=NEW_VAR=value \
+  --remove-env-vars=OLD_VAR \
+  --region=${REGION} \
+  --project=${GCP_PROJECT_ID}
+
+# sage-api デプロイ後に SAGE_API_URL を追加する
+gcloud run services update beacon-web \
+  --update-env-vars="SAGE_API_URL=$(gcloud run services describe sage-api --region=${REGION} --format='value(status.url)' --project=${GCP_PROJECT_ID})" \
+  --region=${REGION} \
+  --project=${GCP_PROJECT_ID}
+```
+
+> **確認:** `gcloud run services describe beacon-web --region=${REGION} --format="value(spec.template.spec.containers[0].env[].name)" --project=${GCP_PROJECT_ID}`
+
+---
+
+## アクセス（本番推奨 = L2）
+
+デプロイ時に `--no-allow-unauthenticated` が既に設定されている。アクセスが必要なアイデンティティに `roles/run.invoker` を付与する。
+
+### 呼び出し権限の付与
+
+```sh
+# 個人ユーザー
 gcloud run services add-iam-policy-binding beacon-web \
   --region=${REGION} \
-  --member="user:YOUR-EMAIL@example.com" \
+  --member="user:alice@example.com" \
+  --role=roles/run.invoker \
+  --project=${GCP_PROJECT_ID}
+
+# Google グループ（チーム利用に推奨）
+gcloud run services add-iam-policy-binding beacon-web \
+  --region=${REGION} \
+  --member="group:beacon-users@example.com" \
   --role=roles/run.invoker \
   --project=${GCP_PROJECT_ID}
 ```
 
-### curl による動作確認（OIDC トークン使用）
+### ブラウザアクセス
 
 ```sh
-URL=$(gcloud run services describe beacon-web --region=${REGION} --format='value(status.url)' --project=${GCP_PROJECT_ID})
+gcloud run services proxy beacon-web --region=${REGION} --project=${GCP_PROJECT_ID}
+# http://localhost:8080/dashboard を開く
+```
+
+proxy が開発者の identity token を自動注入するため、bearer token の管理は不要。
+
+### curl による動作確認
+
+```sh
+URL=$(gcloud run services describe beacon-web \
+  --region=${REGION} \
+  --format='value(status.url)' \
+  --project=${GCP_PROJECT_ID})
+
 curl -sL -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
   -w "\nHTTP=%{http_code}\n" \
   ${URL}/dashboard | head -10
@@ -94,14 +191,22 @@ curl -sL -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
 
 期待結果: `HTTP=200` かつ `<title>BEACON — Dashboard</title>` を含む HTML。
 
-### ブラウザアクセス（PoC 簡易確認）
+### SAGE 連携（クロスリポジトリ）
+
+BEACON のサービスアカウント（`beacon-sa`）が SAGE Analysis API を呼び出すには、`sage-api` に対して `roles/run.invoker` が必要である。SAGE 側から付与する:
 
 ```sh
-gcloud run services proxy beacon-web --region=${REGION} --project=${GCP_PROJECT_ID}
+gcloud run services add-iam-policy-binding sage-api \
+  --region=${REGION} \
+  --member="serviceAccount:beacon-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+  --role=roles/run.invoker \
+  --project=${GCP_PROJECT_ID}
 ```
 
-ブラウザで `http://localhost:8080/dashboard` を開く。proxy が開発者の identity token を自動注入する。
+SAGE の完全なデプロイ手順は [SAGE deploy.md](../../sage/docs/deploy.md) を参照すること。
 
-### 本番環境: IAP / 内部ロードバランサ
+---
 
-本番環境では、Service を内部ロードバランサの背後に配置し Cloud IAP を有効にすることで、パブリック URL を公開せずに組織ユーザーのみにアクセスを制限する。これには Cloud Run 外部の VPC および IAP 設定が必要である。詳細は [GCP IAP ドキュメント](https://cloud.google.com/iap/docs) を参照。
+## 対象外
+
+IAP / 内部ロードバランサ / VPC Service Controls はこのガイドでは設定しない。少数の Google Workspace ユーザー運用（数名程度）では、上記の L2 IAM バインディングで十分である。コンテキストアウェアアクセスやカスタムネットワーク構成が必要な場合は https://cloud.google.com/iap/docs を参照すること。
