@@ -19,8 +19,8 @@ def _isolate_beacon_env(monkeypatch):
     for key in (
         "BEACON_STORAGE",
         "BEACON_STORAGE_BASE_DIR",
-        "BEACON_GCS_BUCKET",
-        "BEACON_GCS_PREFIX",
+        "BEACON_STORAGE_BUCKET",
+        "BEACON_STORAGE_PREFIX",
         "TRACE_ROOT_PATH",
     ):
         monkeypatch.delenv(key, raising=False)
@@ -45,13 +45,13 @@ class TestSettingsManagerLoad:
 
         settings_file = tmp_path / ".beacon_settings.json"
         settings_file.write_text(
-            json.dumps({"storage_backend": "gcs", "gcs_bucket": "my-bucket"}),
+            json.dumps({"storage_backend": "gcs", "storage_bucket": "my-bucket"}),
             encoding="utf-8",
         )
         mgr = SettingsManager(str(settings_file))
         loaded = mgr.load()
         assert loaded["storage_backend"] == "gcs"
-        assert loaded["gcs_bucket"] == "my-bucket"
+        assert loaded["storage_bucket"] == "my-bucket"
         # Non-overridden defaults remain
         assert loaded["storage_base_dir"] == "output"
 
@@ -60,16 +60,16 @@ class TestSettingsManagerLoad:
 
         settings_file = tmp_path / ".beacon_settings.json"
         settings_file.write_text(
-            json.dumps({"storage_backend": "gcs", "gcs_bucket": "file-bucket"}),
+            json.dumps({"storage_backend": "gcs", "storage_bucket": "file-bucket"}),
             encoding="utf-8",
         )
-        monkeypatch.setenv("BEACON_GCS_BUCKET", "env-bucket")
+        monkeypatch.setenv("BEACON_STORAGE_BUCKET", "env-bucket")
         monkeypatch.setenv("BEACON_STORAGE", "local")
 
         mgr = SettingsManager(str(settings_file))
         loaded = mgr.load()
         # env > file
-        assert loaded["gcs_bucket"] == "env-bucket"
+        assert loaded["storage_bucket"] == "env-bucket"
         assert loaded["storage_backend"] == "local"
 
     def test_env_vars_override_defaults_when_no_file(self, tmp_path, monkeypatch):
@@ -114,12 +114,12 @@ class TestSettingsManagerSave:
 
         settings_file = tmp_path / ".beacon_settings.json"
         mgr = SettingsManager(str(settings_file))
-        mgr.save({"storage_backend": "gcs", "gcs_bucket": "my-bucket"})
+        mgr.save({"storage_backend": "gcs", "storage_bucket": "my-bucket"})
 
         assert settings_file.exists()
         data = json.loads(settings_file.read_text(encoding="utf-8"))
         assert data["storage_backend"] == "gcs"
-        assert data["gcs_bucket"] == "my-bucket"
+        assert data["storage_bucket"] == "my-bucket"
         # All known keys must be present
         for k in _SETTING_KEYS:
             assert k in data
@@ -143,8 +143,8 @@ class TestSettingsManagerSave:
         original = {
             "storage_backend": "gcs",
             "storage_base_dir": "artifacts",
-            "gcs_bucket": "my-bucket",
-            "gcs_prefix": "beacon/",
+            "storage_bucket": "my-bucket",
+            "storage_prefix": "beacon/",
             "sage_api_url": "http://sage:8001",
             "trace_root_path": "/opt/trace",
         }
@@ -244,8 +244,8 @@ class TestSettingsSave:
             data={
                 "storage_backend": "local",
                 "storage_base_dir": "output",
-                "gcs_bucket": "",
-                "gcs_prefix": "",
+                "storage_bucket": "",
+                "storage_prefix": "",
                 "sage_api_url": "",
                 "trace_root_path": "",
                 "csrf_token": csrf,
@@ -265,8 +265,8 @@ class TestSettingsSave:
             data={
                 "storage_backend": "gcs",
                 "storage_base_dir": "output",
-                "gcs_bucket": "my-test-bucket",
-                "gcs_prefix": "beacon/",
+                "storage_bucket": "my-test-bucket",
+                "storage_prefix": "beacon/",
                 "sage_api_url": "http://sage:8001",
                 "trace_root_path": "/opt/trace",
                 "csrf_token": csrf,
@@ -278,7 +278,7 @@ class TestSettingsSave:
         assert settings_file.exists()
         data = json.loads(settings_file.read_text(encoding="utf-8"))
         assert data["storage_backend"] == "gcs"
-        assert data["gcs_bucket"] == "my-test-bucket"
+        assert data["storage_bucket"] == "my-test-bucket"
         assert data["sage_api_url"] == "http://sage:8001"
 
     def test_csrf_mismatch_returns_403(self):

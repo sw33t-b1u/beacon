@@ -53,15 +53,15 @@
     <div id="gcs-fields"
          style="{% if settings.storage_backend != 'gcs' %}display:none;{% endif %}">
       <div style="margin-bottom:0.75rem;">
-        <label for="gcs_bucket">GCS bucket name</label>
-        <input type="text" id="gcs_bucket" name="gcs_bucket"
-               value="{{ settings.gcs_bucket | e }}"
+        <label for="storage_bucket">GCS bucket name</label>
+        <input type="text" id="storage_bucket" name="storage_bucket"
+               value="{{ settings.storage_bucket | e }}"
                placeholder="my-beacon-bucket">
       </div>
       <div style="margin-bottom:0.75rem;">
-        <label for="gcs_prefix">GCS key prefix <span style="font-weight:400; color:#777;">(optional)</span></label>
-        <input type="text" id="gcs_prefix" name="gcs_prefix"
-               value="{{ settings.gcs_prefix | e }}"
+        <label for="storage_prefix">GCS key prefix <span style="font-weight:400; color:#777;">(optional)</span></label>
+        <input type="text" id="storage_prefix" name="storage_prefix"
+               value="{{ settings.storage_prefix | e }}"
                placeholder="beacon/">
       </div>
     </div>

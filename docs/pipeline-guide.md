@@ -91,8 +91,8 @@ improving PIR accuracy as the system accumulates operational history.
 | `BEACON_IR_LOOKBACK_DAYS` | `365` | IR-boost lookback window in days |
 | `BEACON_STORAGE` | `local` | Storage backend: `local` or `gcs` |
 | `BEACON_STORAGE_BASE_DIR` | `output/` | Base directory for `local` backend |
-| `BEACON_GCS_BUCKET` | (none) | GCS bucket name (required for `gcs` backend) |
-| `BEACON_GCS_PREFIX` | (empty) | Key prefix within the GCS bucket |
+| `BEACON_STORAGE_BUCKET` | (none) | GCS bucket name (required for `gcs` backend) |
+| `BEACON_STORAGE_PREFIX` | (empty) | Key prefix within the GCS bucket |
 | `TRACE_ROOT_PATH` | (none) | Absolute path to the TRACE repo root (enables Collection tab) |
 
 ### TRACE
@@ -107,8 +107,8 @@ improving PIR accuracy as the system accumulates operational history.
 | `TRACE_FEED_MAX_ENTRIES` | `50` | Max RSS feed entries per source |
 | `TRACE_STORAGE` | `local` | Storage backend: `local` or `gcs` |
 | `TRACE_STORAGE_BASE_DIR` | `output/` | Base directory for `local` backend |
-| `TRACE_GCS_BUCKET` | (none) | GCS bucket name (required for `gcs` backend) |
-| `TRACE_GCS_PREFIX` | (empty) | Key prefix within the GCS bucket |
+| `TRACE_STORAGE_BUCKET` | (none) | GCS bucket name (required for `gcs` backend) |
+| `TRACE_STORAGE_PREFIX` | (empty) | Key prefix within the GCS bucket |
 
 ### SAGE
 
@@ -121,8 +121,8 @@ improving PIR accuracy as the system accumulates operational history.
 | `PIR_FILE_PATH` | `/config/pir.json` | Path to BEACON pir_output.json (used by ETL for relevance filtering) |
 | `SAGE_STORAGE` | `local` | Storage backend: `local` or `gcs` |
 | `SAGE_STORAGE_BASE_DIR` | `output` | Base directory for local storage (shared with TRACE/BEACON) |
-| `SAGE_GCS_BUCKET` | (none) | GCS bucket name (required when `SAGE_STORAGE=gcs`) |
-| `SAGE_GCS_PREFIX` | (none) | GCS object key prefix (optional) |
+| `SAGE_STORAGE_BUCKET` | (none) | GCS bucket name (required when `SAGE_STORAGE=gcs`) |
+| `SAGE_STORAGE_PREFIX` | (none) | GCS object key prefix (optional) |
 
 ---
 

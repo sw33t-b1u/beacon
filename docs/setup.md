@@ -55,8 +55,8 @@ Edit `.env` and fill in the required values:
 | `SAGE_API_URL` | SAGE mode | — | SAGE Analysis API URL (also configurable via Settings tab) |
 | `BEACON_STORAGE` | No | `local` | Storage backend: `local` or `gcs` |
 | `BEACON_STORAGE_BASE_DIR` | No | `output/` | Base directory for `local` backend |
-| `BEACON_GCS_BUCKET` | GCS mode | — | GCS bucket name (required when `BEACON_STORAGE=gcs`) |
-| `BEACON_GCS_PREFIX` | No | (empty) | Key prefix within the GCS bucket |
+| `BEACON_STORAGE_BUCKET` | GCS mode | — | GCS bucket name (required when `BEACON_STORAGE=gcs`) |
+| `BEACON_STORAGE_PREFIX` | No | (empty) | Key prefix within the GCS bucket |
 | `TRACE_ROOT_PATH` | No | — | Absolute path to TRACE repo root (enables Collection tab in dashboard) |
 
 `GCP_PROJECT_ID` is **not required** when using `--no-llm` mode.
@@ -71,8 +71,8 @@ Storage instead:
 ```bash
 # Set env vars (or configure via the Settings tab in the web dashboard)
 export BEACON_STORAGE=gcs
-export BEACON_GCS_BUCKET=my-beacon-artifacts
-export BEACON_GCS_PREFIX=prod/   # optional; defaults to empty string
+export BEACON_STORAGE_BUCKET=my-beacon-artifacts
+export BEACON_STORAGE_PREFIX=prod/   # optional; defaults to empty string
 ```
 
 Artifacts are stored with the filename pattern `<category>_<YYYYMMDDHHmm>.json`.

@@ -56,8 +56,8 @@ cp .env.example .env
 | `SAGE_API_URL` | SAGE モード | — | SAGE Analysis API の URL（Settings タブからも設定可） |
 | `BEACON_STORAGE` | 任意 | `local` | ストレージバックエンド: `local` または `gcs` |
 | `BEACON_STORAGE_BASE_DIR` | 任意 | `output/` | `local` バックエンドのベースディレクトリ |
-| `BEACON_GCS_BUCKET` | GCS モード | — | GCS バケット名（`BEACON_STORAGE=gcs` 時必須） |
-| `BEACON_GCS_PREFIX` | 任意 | (空文字) | GCS バケット内のキープレフィックス |
+| `BEACON_STORAGE_BUCKET` | GCS モード | — | GCS バケット名（`BEACON_STORAGE=gcs` 時必須） |
+| `BEACON_STORAGE_PREFIX` | 任意 | (空文字) | GCS バケット内のキープレフィックス |
 | `TRACE_ROOT_PATH` | 任意 | — | TRACE リポジトリルートの絶対パス（ダッシュボードの Collection タブ有効化） |
 
 `--no-llm` モード使用時は `GCP_PROJECT_ID` は**不要**。
@@ -72,8 +72,8 @@ Google Cloud Storage を使用する場合は以下を設定してください:
 ```bash
 # 環境変数を設定（または Web ダッシュボードの Settings タブから設定可）
 export BEACON_STORAGE=gcs
-export BEACON_GCS_BUCKET=my-beacon-artifacts
-export BEACON_GCS_PREFIX=prod/   # 任意; デフォルトは空文字
+export BEACON_STORAGE_BUCKET=my-beacon-artifacts
+export BEACON_STORAGE_PREFIX=prod/   # 任意; デフォルトは空文字
 ```
 
 成果物のファイル名は `<category>_<YYYYMMDDHHmm>.json` 形式です。

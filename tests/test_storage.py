@@ -362,8 +362,8 @@ class TestCreateStorageBackend:
         class _Cfg:
             storage_backend = "local"
             storage_base_dir = str(tmp_path)
-            gcs_bucket = ""
-            gcs_prefix = ""
+            storage_bucket = ""
+            storage_prefix = ""
 
         backend = create_storage_backend(_Cfg())
         from beacon.storage.local import LocalStorage
@@ -376,8 +376,8 @@ class TestCreateStorageBackend:
         class _Cfg:
             storage_backend = "local"
             storage_base_dir = str(tmp_path)
-            gcs_bucket = ""
-            gcs_prefix = ""
+            storage_bucket = ""
+            storage_prefix = ""
 
         backend = create_storage_backend(_Cfg())
         backend.save("pir", "test.json", "{}")
@@ -396,8 +396,8 @@ class TestCreateStorageBackend:
             class _Cfg:
                 storage_backend = "gcs"
                 storage_base_dir = "output"
-                gcs_bucket = "my-bucket"
-                gcs_prefix = "beacon"
+                storage_bucket = "my-bucket"
+                storage_prefix = "beacon"
 
             backend = storage_pkg.create_storage_backend(_Cfg())
             assert isinstance(backend, gcs_mod.GCSStorage)
@@ -408,10 +408,10 @@ class TestCreateStorageBackend:
         class _Cfg:
             storage_backend = "gcs"
             storage_base_dir = "output"
-            gcs_bucket = ""
-            gcs_prefix = ""
+            storage_bucket = ""
+            storage_prefix = ""
 
-        with pytest.raises(ValueError, match="BEACON_GCS_BUCKET"):
+        with pytest.raises(ValueError, match="BEACON_STORAGE_BUCKET"):
             create_storage_backend(_Cfg())
 
     def test_unknown_backend_raises_value_error(self):
@@ -420,8 +420,8 @@ class TestCreateStorageBackend:
         class _Cfg:
             storage_backend = "s3"
             storage_base_dir = "output"
-            gcs_bucket = ""
-            gcs_prefix = ""
+            storage_bucket = ""
+            storage_prefix = ""
 
         with pytest.raises(ValueError, match="s3"):
             create_storage_backend(_Cfg())
@@ -473,22 +473,22 @@ class TestConfigStorageFields:
         cfg = cfg_mod.load_config()
         assert cfg.storage_base_dir == "/tmp/beacon_out"
 
-    def test_env_overrides_gcs_bucket(self, monkeypatch):
-        monkeypatch.setenv("BEACON_GCS_BUCKET", "my-test-bucket")
+    def test_env_overrides_storage_bucket(self, monkeypatch):
+        monkeypatch.setenv("BEACON_STORAGE_BUCKET", "my-test-bucket")
         from importlib import reload
 
         import beacon.config as cfg_mod
 
         reload(cfg_mod)
         cfg = cfg_mod.load_config()
-        assert cfg.gcs_bucket == "my-test-bucket"
+        assert cfg.storage_bucket == "my-test-bucket"
 
-    def test_env_overrides_gcs_prefix(self, monkeypatch):
-        monkeypatch.setenv("BEACON_GCS_PREFIX", "prod/beacon")
+    def test_env_overrides_storage_prefix(self, monkeypatch):
+        monkeypatch.setenv("BEACON_STORAGE_PREFIX", "prod/beacon")
         from importlib import reload
 
         import beacon.config as cfg_mod
 
         reload(cfg_mod)
         cfg = cfg_mod.load_config()
-        assert cfg.gcs_prefix == "prod/beacon"
+        assert cfg.storage_prefix == "prod/beacon"

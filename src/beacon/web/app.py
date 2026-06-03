@@ -704,8 +704,8 @@ async def settings_save(
     request: Request,
     storage_backend: str = Form(default="local"),
     storage_base_dir: str = Form(default="output"),
-    gcs_bucket: str = Form(default=""),
-    gcs_prefix: str = Form(default=""),
+    storage_bucket: str = Form(default=""),
+    storage_prefix: str = Form(default=""),
     sage_api_url: str = Form(default=""),
     trace_root_path: str = Form(default=""),
     csrf_token: str = Form(default=""),
@@ -720,8 +720,8 @@ async def settings_save(
     new_settings = {
         "storage_backend": storage_backend.strip() or "local",
         "storage_base_dir": storage_base_dir.strip() or "output",
-        "gcs_bucket": gcs_bucket.strip(),
-        "gcs_prefix": gcs_prefix.strip(),
+        "storage_bucket": storage_bucket.strip(),
+        "storage_prefix": storage_prefix.strip(),
         "sage_api_url": sage_api_url.strip(),
         "trace_root_path": trace_root_path.strip(),
     }

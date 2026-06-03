@@ -12,8 +12,8 @@ SETTINGS_FILE = ".beacon_settings.json"
 _SETTING_KEYS: tuple[str, ...] = (
     "storage_backend",
     "storage_base_dir",
-    "gcs_bucket",
-    "gcs_prefix",
+    "storage_bucket",
+    "storage_prefix",
     "sage_api_url",
     "trace_root_path",
 )
@@ -21,8 +21,8 @@ _SETTING_KEYS: tuple[str, ...] = (
 _DEFAULTS: dict[str, str] = {
     "storage_backend": "local",
     "storage_base_dir": "output",
-    "gcs_bucket": "",
-    "gcs_prefix": "",
+    "storage_bucket": "",
+    "storage_prefix": "",
     "sage_api_url": "",
     "trace_root_path": "",
 }
@@ -31,8 +31,8 @@ _DEFAULTS: dict[str, str] = {
 _ENV_MAP: dict[str, str] = {
     "BEACON_STORAGE": "storage_backend",
     "BEACON_STORAGE_BASE_DIR": "storage_base_dir",
-    "BEACON_GCS_BUCKET": "gcs_bucket",
-    "BEACON_GCS_PREFIX": "gcs_prefix",
+    "BEACON_STORAGE_BUCKET": "storage_bucket",
+    "BEACON_STORAGE_PREFIX": "storage_prefix",
     "SAGE_API_URL": "sage_api_url",
     "TRACE_ROOT_PATH": "trace_root_path",
 }

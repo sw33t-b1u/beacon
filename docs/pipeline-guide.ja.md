@@ -91,8 +91,8 @@ FollowedBy 遷移 weight を計算し、PIR ベースの criticality 調整を�
 | `BEACON_IR_LOOKBACK_DAYS` | `365` | IR boost ルックバックウィンドウ（日数） |
 | `BEACON_STORAGE` | `local` | ストレージバックエンド: `local` または `gcs` |
 | `BEACON_STORAGE_BASE_DIR` | `output/` | `local` バックエンドのベースディレクトリ |
-| `BEACON_GCS_BUCKET` | (なし) | GCS バケット名（`gcs` バックエンドで必須） |
-| `BEACON_GCS_PREFIX` | (空) | GCS バケット内のキープレフィックス |
+| `BEACON_STORAGE_BUCKET` | (なし) | GCS バケット名（`gcs` バックエンドで必須） |
+| `BEACON_STORAGE_PREFIX` | (空) | GCS バケット内のキープレフィックス |
 | `TRACE_ROOT_PATH` | (なし) | TRACE リポジトリルートの絶対パス（Collection タブ有効化） |
 
 ### TRACE
@@ -107,8 +107,8 @@ FollowedBy 遷移 weight を計算し、PIR ベースの criticality 調整を�
 | `TRACE_FEED_MAX_ENTRIES` | `50` | RSS フィードあたりの最大エントリ数 |
 | `TRACE_STORAGE` | `local` | ストレージバックエンド: `local` または `gcs` |
 | `TRACE_STORAGE_BASE_DIR` | `output/` | `local` バックエンドのベースディレクトリ |
-| `TRACE_GCS_BUCKET` | (なし) | GCS バケット名（`gcs` バックエンドで必須） |
-| `TRACE_GCS_PREFIX` | (空) | GCS バケット内のキープレフィックス |
+| `TRACE_STORAGE_BUCKET` | (なし) | GCS バケット名（`gcs` バックエンドで必須） |
+| `TRACE_STORAGE_PREFIX` | (空) | GCS バケット内のキープレフィックス |
 
 ### SAGE
 
@@ -121,8 +121,8 @@ FollowedBy 遷移 weight を計算し、PIR ベースの criticality 調整を�
 | `PIR_FILE_PATH` | `/config/pir.json` | BEACON の pir_output.json へのパス（ETL の relevance filtering に使用） |
 | `SAGE_STORAGE` | `local` | ストレージバックエンド: `local` または `gcs` |
 | `SAGE_STORAGE_BASE_DIR` | `output` | ローカルストレージのベースディレクトリ（TRACE/BEACON と共有） |
-| `SAGE_GCS_BUCKET` | (なし) | GCS バケット名（`SAGE_STORAGE=gcs` 時に必須） |
-| `SAGE_GCS_PREFIX` | (なし) | GCS オブジェクトキーのプレフィックス（任意） |
+| `SAGE_STORAGE_BUCKET` | (なし) | GCS バケット名（`SAGE_STORAGE=gcs` 時に必須） |
+| `SAGE_STORAGE_PREFIX` | (なし) | GCS オブジェクトキーのプレフィックス（任意） |
 
 ---
 

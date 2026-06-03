@@ -199,7 +199,7 @@ beacon pir-generate --input output/pir_202506011430.json --review-only
 
 ```bash
 export BEACON_STORAGE=gcs
-export BEACON_GCS_BUCKET=my-beacon-bucket
+export BEACON_STORAGE_BUCKET=my-beacon-bucket
 beacon pir-generate
 ```
 

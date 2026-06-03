@@ -72,10 +72,10 @@ class Config:
     storage_base_dir: str = field(
         default_factory=lambda: os.environ.get("BEACON_STORAGE_BASE_DIR", "output")
     )
-    # BEACON_GCS_BUCKET: GCS bucket name (required when BEACON_STORAGE=gcs).
-    gcs_bucket: str = field(default_factory=lambda: os.environ.get("BEACON_GCS_BUCKET", ""))
-    # BEACON_GCS_PREFIX: optional key prefix for all GCS objects.
-    gcs_prefix: str = field(default_factory=lambda: os.environ.get("BEACON_GCS_PREFIX", ""))
+    # BEACON_STORAGE_BUCKET: GCS bucket name (required when BEACON_STORAGE=gcs).
+    storage_bucket: str = field(default_factory=lambda: os.environ.get("BEACON_STORAGE_BUCKET", ""))
+    # BEACON_STORAGE_PREFIX: optional key prefix for all GCS objects.
+    storage_prefix: str = field(default_factory=lambda: os.environ.get("BEACON_STORAGE_PREFIX", ""))
 
     # TRACE integration (Initiative I Phase 4).
     # TRACE_ROOT_PATH: absolute path to the TRACE repository root.
