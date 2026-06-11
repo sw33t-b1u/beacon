@@ -11,7 +11,7 @@ All URL values are '<TODO: fill from candidate>' pending operator review.
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -74,7 +74,7 @@ def build_sources_candidate_yaml(
     Returns:
         YAML string for sources_candidate.yaml.
     """
-    ts = (generated_at or datetime.utcnow()).strftime("%Y-%m-%dT%H:%M:%SZ")
+    ts = (generated_at or datetime.now(UTC)).strftime("%Y-%m-%dT%H:%M:%SZ")
     cpath = content_path or _CONTENT_PATH
     content = json.loads(cpath.read_text(encoding="utf-8"))
     all_sources: list[dict[str, Any]] = content.get("sources", [])
