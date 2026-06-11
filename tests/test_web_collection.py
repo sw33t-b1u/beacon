@@ -122,13 +122,13 @@ class TestCollectionCrawlSingle:
             mock_proc.stderr = ""
             mock_run.return_value = mock_proc
 
-            resp = client.post(
+            session_client = TestClient(app, cookies={"beacon_csrf": csrf})
+            resp = session_client.post(
                 "/collection/crawl-single",
                 data={
                     "url": "https://example.com/report",
                     "csrf_token": csrf,
                 },
-                cookies={"beacon_csrf": csrf},
             )
 
         assert resp.status_code == 200
@@ -145,13 +145,13 @@ class TestCollectionCrawlSingle:
             mock_proc.stderr = "something went wrong"
             mock_run.return_value = mock_proc
 
-            resp = client.post(
+            session_client = TestClient(app, cookies={"beacon_csrf": csrf})
+            resp = session_client.post(
                 "/collection/crawl-single",
                 data={
                     "url": "https://example.com/report",
                     "csrf_token": csrf,
                 },
-                cookies={"beacon_csrf": csrf},
             )
 
         assert resp.status_code == 200
@@ -163,13 +163,13 @@ class TestCollectionCrawlSingle:
 
         # subprocess should NOT be called for invalid URLs
         with patch("beacon.trace.runner.subprocess.run") as mock_run:
-            resp = client.post(
+            session_client = TestClient(app, cookies={"beacon_csrf": csrf})
+            resp = session_client.post(
                 "/collection/crawl-single",
                 data={
                     "url": "ftp://malicious.example.com",
                     "csrf_token": csrf,
                 },
-                cookies={"beacon_csrf": csrf},
             )
             mock_run.assert_not_called()
 
@@ -178,13 +178,13 @@ class TestCollectionCrawlSingle:
 
     def test_csrf_mismatch_returns_403(self, monkeypatch, tmp_path):
         monkeypatch.setenv("TRACE_ROOT_PATH", str(tmp_path))
-        resp = client.post(
+        session_client = TestClient(app, cookies={"beacon_csrf": "cookie-token"})
+        resp = session_client.post(
             "/collection/crawl-single",
             data={
                 "url": "https://example.com",
                 "csrf_token": "wrong-token",
             },
-            cookies={"beacon_csrf": "cookie-token"},
         )
         assert resp.status_code == 403
 
@@ -194,13 +194,13 @@ class TestCollectionCrawlSingle:
         resp_get = client.get("/collection")
         csrf = resp_get.cookies.get("beacon_csrf", "fallback")
 
-        resp = client.post(
+        session_client = TestClient(app, cookies={"beacon_csrf": csrf})
+        resp = session_client.post(
             "/collection/crawl-single",
             data={
                 "url": "https://example.com/report",
                 "csrf_token": csrf,
             },
-            cookies={"beacon_csrf": csrf},
         )
         assert resp.status_code == 200
         assert "TRACE パスが設定されていません" in resp.text
@@ -232,11 +232,11 @@ class TestCollectionCrawlBatch:
             mock_proc.stderr = ""
             mock_run.return_value = mock_proc
 
-            resp = client.post(
+            session_client = TestClient(app, cookies={"beacon_csrf": csrf})
+            resp = session_client.post(
                 "/collection/crawl-batch",
                 data={"csrf_token": csrf},
                 files={"sources_file": self._yaml_file()},
-                cookies={"beacon_csrf": csrf},
             )
 
         assert resp.status_code == 200
@@ -253,11 +253,11 @@ class TestCollectionCrawlBatch:
             mock_proc.stderr = "batch error"
             mock_run.return_value = mock_proc
 
-            resp = client.post(
+            session_client = TestClient(app, cookies={"beacon_csrf": csrf})
+            resp = session_client.post(
                 "/collection/crawl-batch",
                 data={"csrf_token": csrf},
                 files={"sources_file": self._yaml_file()},
-                cookies={"beacon_csrf": csrf},
             )
 
         assert resp.status_code == 200
@@ -265,11 +265,11 @@ class TestCollectionCrawlBatch:
 
     def test_csrf_mismatch_returns_403(self, monkeypatch, tmp_path):
         monkeypatch.setenv("TRACE_ROOT_PATH", str(tmp_path))
-        resp = client.post(
+        session_client = TestClient(app, cookies={"beacon_csrf": "other"})
+        resp = session_client.post(
             "/collection/crawl-batch",
             data={"csrf_token": "bad"},
             files={"sources_file": self._yaml_file()},
-            cookies={"beacon_csrf": "other"},
         )
         assert resp.status_code == 403
 
@@ -279,11 +279,11 @@ class TestCollectionCrawlBatch:
         csrf = resp_get.cookies.get("beacon_csrf", "fallback")
 
         yaml_file = ("sources.yaml", io.BytesIO(b"sources: []"), "application/octet-stream")
-        resp = client.post(
+        session_client = TestClient(app, cookies={"beacon_csrf": csrf})
+        resp = session_client.post(
             "/collection/crawl-batch",
             data={"csrf_token": csrf},
             files={"sources_file": yaml_file},
-            cookies={"beacon_csrf": csrf},
         )
         assert resp.status_code == 200
         assert "TRACE パスが設定されていません" in resp.text

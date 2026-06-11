@@ -239,7 +239,8 @@ class TestSettingsSave:
         """POST /settings/save should redirect to /settings?saved=1."""
         monkeypatch.chdir(tmp_path)
         csrf = self._csrf_token()
-        resp = client.post(
+        session_client = TestClient(app, cookies={"beacon_csrf": csrf})
+        resp = session_client.post(
             "/settings/save",
             data={
                 "storage_backend": "local",
@@ -250,7 +251,6 @@ class TestSettingsSave:
                 "trace_root_path": "",
                 "csrf_token": csrf,
             },
-            cookies={"beacon_csrf": csrf},
             follow_redirects=False,
         )
         assert resp.status_code == 303
@@ -260,7 +260,8 @@ class TestSettingsSave:
         """Saved settings appear in .beacon_settings.json."""
         monkeypatch.chdir(tmp_path)
         csrf = self._csrf_token()
-        client.post(
+        session_client = TestClient(app, cookies={"beacon_csrf": csrf})
+        session_client.post(
             "/settings/save",
             data={
                 "storage_backend": "gcs",
@@ -271,7 +272,6 @@ class TestSettingsSave:
                 "trace_root_path": "/opt/trace",
                 "csrf_token": csrf,
             },
-            cookies={"beacon_csrf": csrf},
             follow_redirects=False,
         )
         settings_file = tmp_path / ".beacon_settings.json"
@@ -282,21 +282,21 @@ class TestSettingsSave:
         assert data["sage_api_url"] == "http://sage:8001"
 
     def test_csrf_mismatch_returns_403(self):
-        resp = client.post(
+        session_client = TestClient(app, cookies={"beacon_csrf": "cookie-token"})
+        resp = session_client.post(
             "/settings/save",
             data={
                 "storage_backend": "local",
                 "csrf_token": "wrong-token",
             },
-            cookies={"beacon_csrf": "cookie-token"},
         )
         assert resp.status_code == 403
 
     def test_missing_csrf_returns_403(self):
-        resp = client.post(
+        session_client = TestClient(app, cookies={})
+        resp = session_client.post(
             "/settings/save",
             data={"storage_backend": "local"},
-            cookies={},
         )
         assert resp.status_code == 403
 
