@@ -21,7 +21,7 @@ test-integration:
 	uv run python -m pytest tests/ -v -m integration
 
 audit:
-	PIPAPI_PYTHON_LOCATION=.venv/bin/python3 uv run pip-audit
+	PIPAPI_PYTHON_LOCATION=.venv/bin/python3 uv run pip-audit --skip-editable
 
 generate:
 	uv run python cmd/generate_pir.py $(ARGS)
