@@ -51,14 +51,9 @@ BEACON provides four output pipelines, all driven from the same context document
 ```
 
 > **CTI report ingestion (PDF / URL → STIX 2.1) is handled by the sibling
-> project [TRACE](../TRACE/).** Use `TRACE/cmd/crawl_single.py` for PDF/URL → STIX extraction.
+> project [TRACE](../trace/).** Use `uv run trace crawl-single` for PDF/URL → STIX extraction.
 
-**Modes:**
-
-| Mode | Input | LLM | Use case |
-|------|-------|-----|----------|
-| `--no-llm` | JSON only | None | Air-gapped / cost-constrained |
-| Default | JSON or Markdown | Gemini (Vertex AI) | Full quality PIR + assets |
+All pipelines run through Gemini via Vertex AI and accept either JSON or Markdown context input.
 
 ## Documentation
 

@@ -51,14 +51,9 @@ BEACON は同一のコンテキストドキュメントから 4 つの出力パ�
 ```
 
 > **CTI レポート取り込み（PDF / URL → STIX 2.1）は姉妹プロジェクト
-> [TRACE](../TRACE/) で処理する。** PDF/URL → STIX 抽出には `TRACE/cmd/crawl_single.py` を使うこと。
+> [TRACE](../trace/) で処理する。** PDF/URL → STIX 抽出には `uv run trace crawl-single` を使うこと。
 
-**モード:**
-
-| モード | 入力 | LLM | ユースケース |
-|--------|------|-----|------------|
-| `--no-llm` | JSON のみ | なし | エアギャップ環境 / コスト制限 |
-| デフォルト | JSON または Markdown | Gemini（Vertex AI） | フル品質 PIR + アセット |
+すべてのパイプラインは Vertex AI 経由の Gemini を使用し、JSON またはマークダウン形式のコンテキスト入力を受け付けます。
 
 ## ドキュメント
 
