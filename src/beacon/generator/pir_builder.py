@@ -124,12 +124,19 @@ def build_pirs(
     use_llm: bool = False,
     config=None,
     prioritized_actors: list[PrioritizedActor] | None = None,
+    available_asset_tags: set[str] | None = None,
 ) -> list[PIROutput]:
     """Build a list of narrow, per-decision-point PIRs.
 
     One PIR is emitted per cluster from `pir_clusterer.build_clusters`. Each
     PIR has its own scoped `threat_actor_tags` and `asset_weight_rules`
     (intersection with the cluster's family focus) — never the full profile.
+
+    When `available_asset_tags` is a non-empty set (the union of per-asset tags
+    from the assets generated in the same run), each cluster's asset focus — and
+    thus `asset_weight_rules` — is further constrained to that union so SAGE can
+    always match the rules against real asset tags. None/empty preserves the
+    legacy behavior.
 
     Only P1 (composite ≥ 20) and P2 (composite ≥ 12) runs emit PIRs; below
     that threshold the run is tracked only in the collection plan.
@@ -150,7 +157,9 @@ def build_pirs(
     )
 
     _actors = prioritized_actors or []
-    clusters = build_clusters(elements, threat, asset_tags)
+    clusters = build_clusters(
+        elements, threat, asset_tags, available_asset_tags=available_asset_tags
+    )
     pirs: list[PIROutput] = []
 
     for idx, cluster in enumerate(clusters, start=1):

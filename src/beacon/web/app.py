@@ -2175,8 +2175,24 @@ def _run_pipeline(context_path: Path, *, config=None) -> tuple[list[dict], str]:
     asset_tag_list = map_asset_tags(elements, asset_tags_dict)
     threat = map_threats(elements, taxonomy)
     risk = score(elements, threat, use_llm=True, config=config)
+
+    # Generate the assets draft up front so the per-asset tag union can constrain
+    # asset_weight_rules (SAGE matches those rules against per-asset tags, never
+    # the org-level union). Reused for the companion-artifact write below.
+    _assets_data = generate_assets_json(ctx)
+    available_asset_tags = {
+        tag for asset in _assets_data.get("assets", []) for tag in asset.get("tags", [])
+    }
+
     pirs = build_pirs(
-        elements, threat, risk, asset_tag_list, asset_tags_dict, use_llm=True, config=config
+        elements,
+        threat,
+        risk,
+        asset_tag_list,
+        asset_tags_dict,
+        use_llm=True,
+        config=config,
+        available_asset_tags=available_asset_tags,
     )
 
     plan = build_collection_plan(elements, threat, risk, pirs)
@@ -2199,7 +2215,7 @@ def _run_pipeline(context_path: Path, *, config=None) -> tuple[list[dict], str]:
         _storage = create_storage_backend(_cfg)
         _ts = _dt.datetime.now().strftime("%Y%m%d%H%M")
 
-        _assets_data = generate_assets_json(ctx)
+        # _assets_data was already generated above (used for available_asset_tags).
         _storage.save(
             "assets",
             f"assets_{_ts}.json",

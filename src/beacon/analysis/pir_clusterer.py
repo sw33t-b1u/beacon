@@ -96,6 +96,7 @@ def build_clusters(
     elements: ExtractedElements,
     threat: ThreatProfile,
     asset_tag_list: list[str],
+    available_asset_tags: set[str] | None = None,
 ) -> list[PIRCluster]:
     """Split a ThreatProfile into up to ~5 narrow clusters, one per
     (threat family × asset focus) pair.
@@ -103,10 +104,20 @@ def build_clusters(
     Returns at least one cluster unless the profile is empty. When no family
     matches, emits a single fallback cluster using the full profile so
     downstream behavior degrades gracefully (matches legacy single-PIR output).
+
+    ``available_asset_tags`` is the union of per-asset tags from the assets
+    generated in the same run. When a NON-EMPTY set is provided, each cluster's
+    ``asset_tag_focus`` is additionally intersected with it so that
+    asset_weight_rules never reference tags that no real asset carries
+    (org-level-only tags, e.g. from project_data_types). When it is ``None`` or
+    an empty set, the asset scope is left unconstrained (legacy behavior) — this
+    guards against wiping all rules when the union happens to be empty. Only the
+    asset side is constrained; threat_actor_tags scoping is never affected.
     """
     profile_tags = set(threat.threat_actor_tags)
     profile_groups = set(threat.notable_groups)
     asset_tags = set(asset_tag_list)
+    constrain_assets = bool(available_asset_tags)
 
     # Extract which families are "declared" in matched_categories (strong signal).
     declared_families: set[str] = set()
@@ -131,7 +142,10 @@ def build_clusters(
         if not matched_tags and family not in declared_families:
             continue
 
-        scoped_asset_tags = sorted(asset_tags & _FAMILY_ASSET_TAGS[family])
+        family_asset_scope = asset_tags & _FAMILY_ASSET_TAGS[family]
+        if constrain_assets:
+            family_asset_scope &= available_asset_tags
+        scoped_asset_tags = sorted(family_asset_scope)
         scoped_tags = sorted(matched_tags)
 
         # Skip if the family produces an empty scope (no actor tags AND no
@@ -158,6 +172,7 @@ def build_clusters(
     # Fallback: if no family matched, emit one cluster covering everything so
     # the run still produces a PIR (legacy-compatible behavior).
     if not clusters:
+        fallback_asset_scope = asset_tags & available_asset_tags if constrain_assets else asset_tags
         clusters.append(
             PIRCluster(
                 cluster_id="general",
@@ -165,7 +180,7 @@ def build_clusters(
                 decision_point=_FAMILY_LABELS["cybercriminal"],
                 threat_actor_tags=sorted(profile_tags),
                 notable_groups=sorted(profile_groups),
-                asset_tag_focus=sorted(asset_tags),
+                asset_tag_focus=sorted(fallback_asset_scope),
                 source_element_ids=list(elements.source_element_ids),
             )
         )

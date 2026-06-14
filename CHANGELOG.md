@@ -6,6 +6,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [3.0.1] — 2026-06-14
+
+### Fixed
+
+- PIR `asset_weight_rules` are now constrained to tags that actually appear
+  on generated assets; previously org-level-only tags (e.g. from
+  `project_data_types`) could emit orphan rules that no asset carried, which
+  prevented SAGE from deriving actor→asset attack paths.
+
+---
+
 ## [3.0.0] — 2026-06-03
 
 ### Changed (BREAKING)

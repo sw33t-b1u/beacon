@@ -197,6 +197,16 @@ def main(argv: list[str] | None = None) -> int:
         sage_client=sage_client,
         top_actor_likelihood=_top_likelihood,
     )
+    # Generate the assets draft up front so the per-asset tag union can constrain
+    # asset_weight_rules (SAGE matches those rules against per-asset tags, never
+    # the org-level union). Reused for the later assets.json write — generated once.
+    from beacon.analysis.assets_generator import generate_assets_json  # noqa: PLC0415
+
+    assets_data = generate_assets_json(ctx)
+    available_asset_tags = {
+        tag for asset in assets_data.get("assets", []) for tag in asset.get("tags", [])
+    }
+
     pirs = build_pirs(
         elements,
         threat,
@@ -205,6 +215,7 @@ def main(argv: list[str] | None = None) -> int:
         asset_tags_dict,
         use_llm=use_llm,
         prioritized_actors=_actors,
+        available_asset_tags=available_asset_tags,
     )
 
     # Determine whether to use StorageBackend or direct file I/O.
@@ -260,7 +271,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Sources candidate → {args.sources_candidate}")
 
     # --- Emit companion artifacts from the same parsed context ---
-    from beacon.analysis.assets_generator import generate_assets_json  # noqa: PLC0415
+    # assets_data was already generated above (and used for available_asset_tags).
     from beacon.analysis.identity_assets_generator import (  # noqa: PLC0415
         generate_identity_assets_json,
     )
@@ -268,7 +279,6 @@ def main(argv: list[str] | None = None) -> int:
         generate_user_accounts_json,
     )
 
-    assets_data = generate_assets_json(ctx)
     identity_data = generate_identity_assets_json(ctx)
     accounts_data = generate_user_accounts_json(ctx)
 
