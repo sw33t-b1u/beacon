@@ -1,6 +1,6 @@
 [project]
 name = "beacon"
-version = "3.0.1"
+version = "3.0.2"
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.0",
@@ -17,6 +17,7 @@ dependencies = [
     "starlette>=1.0.1",  # PYSEC-2026-161 fix; transitive via fastapi
     "click>=8.1.0",  # Unified CLI entry (Initiative H Phase 6)
     "google-cloud-storage>=2.18.0",  # GCS StorageBackend (was optional [gcs] until BEACON 2.1.2)
+    "google-auth>=2.0.0",  # Cloud Run service-to-service OIDC ID tokens for SAGE (BEACON 3.0.2; was transitive via google-cloud-storage)
 ]
 
 [project.scripts]

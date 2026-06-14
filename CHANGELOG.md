@@ -6,6 +6,36 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [3.0.2] — 2026-06-14
+
+### Fixed
+
+- `SageAPIClient` now mints and sends a Google OIDC identity token
+  (audience = the SAGE API URL) on every SAGE call, enabling
+  service-to-service auth against a `--no-allow-unauthenticated`
+  Cloud Run `sage-api`. Previously BEACON sent only the SAGE app-layer
+  static token, so Cloud Run's ingress IAM rejected the requests with
+  **403 Forbidden** and the Threats tab / SAGE-backed calls silently
+  fell to empty results (`sage_search_actors_error 403`). The
+  `--no-allow-unauthenticated` L2 IAM defense on `sage-api` is kept.
+
+### Changed
+
+- A static `SAGE_API_AUTH_TOKEN` (or constructor `bearer_token`) is
+  still honored and takes precedence over OIDC, preserving local /
+  test / app-token behavior. When no static token is set and OIDC
+  cannot be minted (no metadata server locally, or any google-auth
+  error), the client sends no `Authorization` header and follows the
+  existing fail-soft / fail-open / fail-loud policies per endpoint.
+- A Bearer token is only ever attached over an HTTPS `base_url`; a
+  plaintext `http://` endpoint never receives a token. OIDC tokens are
+  cached in memory only (keyed by audience, `exp`-based expiry with a
+  60s safety margin) and are never logged or persisted.
+- Promote `google-auth` to a direct dependency (`>=2.0.0`); it was
+  previously resolved transitively via `google-cloud-storage`.
+
+---
+
 ## [3.0.1] — 2026-06-14
 
 ### Fixed

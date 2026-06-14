@@ -2,9 +2,28 @@
 
 from __future__ import annotations
 
+import base64
+import json
+import time
 from unittest.mock import MagicMock, patch
 
 from beacon.sage.client import SageAPIClient
+
+
+def _fake_jwt(exp: float) -> str:
+    """Build a dummy JWT whose middle segment encodes ``{"exp": exp}``.
+
+    The signature segment is a non-verifying placeholder — the client only
+    base64url-decodes the payload segment to schedule cache expiry.
+    """
+
+    def _seg(obj: dict) -> str:
+        raw = json.dumps(obj).encode()
+        return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
+
+    header = _seg({"alg": "RS256", "typ": "JWT"})
+    payload = _seg({"exp": exp})
+    return f"{header}.{payload}.dummysignature"
 
 
 class TestSageAPIClientObservationCount:
@@ -205,3 +224,113 @@ class TestRiskScorerUseSage:
         result = score(self._make_elements(), threat, use_sage=True, sage_client=mock_client)
 
         assert result.likelihood <= 5
+
+
+class TestSageAPIClientAuthHeaders:
+    """OIDC / static-token behavior of `_auth_headers()` (BEACON 3.0.2)."""
+
+    HTTPS_URL = "https://sage-api-256710017041.us-central1.run.app"
+    HTTP_URL = "http://localhost:8000"
+
+    def _future_token(self) -> str:
+        return _fake_jwt(time.time() + 3600)
+
+    # (a) static token wins and OIDC is never consulted ------------------
+
+    def test_static_constructor_token_is_sent_and_oidc_not_called(self):
+        client = SageAPIClient(self.HTTPS_URL, bearer_token="static-abc")
+        with patch("google.oauth2.id_token.fetch_id_token") as mock_fetch:
+            headers = client._auth_headers()
+
+        assert headers == {"Authorization": "Bearer static-abc"}
+        mock_fetch.assert_not_called()
+
+    def test_static_env_token_is_sent_and_oidc_not_called(self, monkeypatch):
+        monkeypatch.setenv("SAGE_API_AUTH_TOKEN", "env-token-xyz")
+        client = SageAPIClient(self.HTTPS_URL)
+        with patch("google.oauth2.id_token.fetch_id_token") as mock_fetch:
+            headers = client._auth_headers()
+
+        assert headers == {"Authorization": "Bearer env-token-xyz"}
+        mock_fetch.assert_not_called()
+
+    # (b) no static token + OIDC succeeds -------------------------------
+
+    def test_oidc_token_attached_when_no_static_token(self, monkeypatch):
+        monkeypatch.delenv("SAGE_API_AUTH_TOKEN", raising=False)
+        client = SageAPIClient(self.HTTPS_URL)
+        token = self._future_token()
+        with patch("google.oauth2.id_token.fetch_id_token", return_value=token) as mock_fetch:
+            headers = client._auth_headers()
+
+        assert headers == {"Authorization": f"Bearer {token}"}
+        mock_fetch.assert_called_once()
+        # audience must be the configured base_url.
+        _request_arg, audience_arg = mock_fetch.call_args.args
+        assert audience_arg == self.HTTPS_URL
+
+    # (c) OIDC fetch raises → no header, fail-soft funnel ---------------
+
+    def test_oidc_failure_returns_no_header(self, monkeypatch):
+        monkeypatch.delenv("SAGE_API_AUTH_TOKEN", raising=False)
+        client = SageAPIClient(self.HTTPS_URL)
+        with patch(
+            "google.oauth2.id_token.fetch_id_token",
+            side_effect=RuntimeError("no metadata server"),
+        ):
+            headers = client._auth_headers()
+
+        assert headers == {}
+
+    def test_oidc_failure_search_actors_fails_soft(self, monkeypatch):
+        import httpx  # noqa: PLC0415
+
+        monkeypatch.delenv("SAGE_API_AUTH_TOKEN", raising=False)
+        client = SageAPIClient(self.HTTPS_URL)
+        with (
+            patch(
+                "google.oauth2.id_token.fetch_id_token",
+                side_effect=RuntimeError("no metadata server"),
+            ),
+            patch("beacon.sage.client.httpx") as mock_httpx,
+        ):
+            mock_httpx.TimeoutException = httpx.TimeoutException
+            mock_httpx.HTTPError = httpx.HTTPError
+            mock_httpx.get.side_effect = httpx.HTTPStatusError(
+                "403", request=MagicMock(), response=MagicMock()
+            )
+            result = client.search_actors("Salt Typhoon")
+
+        # header-less request → server 403 → fail-soft empty list.
+        assert result == []
+        _, kwargs = mock_httpx.get.call_args
+        assert kwargs["headers"] == {}
+
+    # (d) caching: fetch happens exactly once --------------------------
+
+    def test_oidc_token_cached_across_calls(self, monkeypatch):
+        monkeypatch.delenv("SAGE_API_AUTH_TOKEN", raising=False)
+        client = SageAPIClient(self.HTTPS_URL)
+        token = self._future_token()
+        with patch("google.oauth2.id_token.fetch_id_token", return_value=token) as mock_fetch:
+            first = client._auth_headers()
+            second = client._auth_headers()
+
+        assert first == second == {"Authorization": f"Bearer {token}"}
+        mock_fetch.assert_called_once()
+
+    # HTTPS-only: plaintext base_url never gets a token -----------------
+
+    def test_http_base_url_never_attaches_oidc(self, monkeypatch):
+        monkeypatch.delenv("SAGE_API_AUTH_TOKEN", raising=False)
+        client = SageAPIClient(self.HTTP_URL)
+        token = self._future_token()
+        with patch("google.oauth2.id_token.fetch_id_token", return_value=token) as mock_fetch:
+            headers = client._auth_headers()
+
+        assert headers == {}
+        mock_fetch.assert_not_called()
+
+    def test_http_base_url_never_attaches_static_token(self):
+        client = SageAPIClient(self.HTTP_URL, bearer_token="static-abc")
+        assert client._auth_headers() == {}

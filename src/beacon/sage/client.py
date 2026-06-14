@@ -20,13 +20,21 @@ PIR's data_quality block so analysts know when the IR-boost was skipped.
 
 from __future__ import annotations
 
+import base64
+import binascii
+import json
 import os
+import time
 from datetime import date
 
 import httpx
 import structlog
 
 logger = structlog.get_logger(__name__)
+
+# Re-fetch an OIDC token this many seconds before its `exp` to avoid
+# sending a token that expires mid-flight (BEACON 3.0.2).
+_OIDC_EXPIRY_MARGIN_SECONDS = 60
 
 
 class SageAPIClient:
@@ -41,14 +49,87 @@ class SageAPIClient:
     def __init__(self, base_url: str, *, bearer_token: str | None = None) -> None:
         self._base_url = base_url.rstrip("/")
         # Bearer token may be passed explicitly (tests) or sourced from env.
-        # SAGE Phase 1 (Decision 10) makes GET routes permissive when token is
-        # unset on the server side; BEACON sends the header only when it has one.
+        # When a static token is set, it is sent verbatim (preserves
+        # local/test/app-token behavior). When unset, the client mints a
+        # Google OIDC ID token for Cloud Run service-to-service auth
+        # (BEACON 3.0.2).
         self._bearer_token = (
             bearer_token if bearer_token is not None else os.environ.get("SAGE_API_AUTH_TOKEN", "")
         )
+        # In-memory only OIDC token cache, keyed by audience. Never persisted
+        # to disk. Value is (token, expiry_epoch_seconds).
+        self._oidc_cache: dict[str, tuple[str, float]] = {}
 
     def _auth_headers(self) -> dict[str, str]:
-        return {"Authorization": f"Bearer {self._bearer_token}"} if self._bearer_token else {}
+        """Build the Authorization header for a SAGE call.
+
+        Priority:
+        (a) static token (constructor arg / SAGE_API_AUTH_TOKEN) — sent verbatim.
+        (b) else a Google OIDC ID token minted for audience=self._base_url.
+        (c) on any OIDC failure — no header (fail-soft; the server enforces auth).
+
+        A Bearer header is only ever attached over HTTPS so a token can never
+        leak over a plaintext connection.
+        """
+        if not self._base_url.startswith("https://"):
+            return {}
+
+        if self._bearer_token:
+            return {"Authorization": f"Bearer {self._bearer_token}"}
+
+        oidc = self._fetch_oidc_token()
+        if oidc:
+            return {"Authorization": f"Bearer {oidc}"}
+        return {}
+
+    def _fetch_oidc_token(self) -> str:
+        """Return a cached or freshly minted Google OIDC ID token.
+
+        Caches the token in memory keyed by audience until ~60s before its
+        `exp` claim. Returns an empty string on any failure (no metadata
+        server locally/in tests, or any google-auth error) so the caller
+        falls back to header-less requests. Token values are never logged.
+        """
+        audience = self._base_url
+        cached = self._oidc_cache.get(audience)
+        if cached is not None:
+            token, expiry = cached
+            if time.time() < expiry - _OIDC_EXPIRY_MARGIN_SECONDS:
+                return token
+
+        try:
+            import google.auth.transport.requests
+            import google.oauth2.id_token
+
+            request = google.auth.transport.requests.Request()
+            token = google.oauth2.id_token.fetch_id_token(request, audience)
+        except Exception as exc:  # noqa: BLE001
+            # No metadata server (local/test) or any google-auth error.
+            # Do not include token material in the log.
+            logger.warning("sage_oidc_fetch_failed", url=audience, error=str(exc))
+            return ""
+
+        expiry = self._decode_token_exp(token)
+        if expiry is not None:
+            self._oidc_cache[audience] = (token, expiry)
+        return token
+
+    @staticmethod
+    def _decode_token_exp(token: str) -> float | None:
+        """Read the `exp` claim from a JWT without verifying its signature.
+
+        Used only to schedule cache expiry; no signature verification is
+        performed and no verification dependency is introduced. Returns
+        None if the claim cannot be read.
+        """
+        try:
+            payload_b64 = token.split(".")[1]
+            padding = "=" * (-len(payload_b64) % 4)
+            payload = json.loads(base64.urlsafe_b64decode(payload_b64 + padding))
+            exp = payload.get("exp")
+            return float(exp) if exp is not None else None
+        except (IndexError, ValueError, binascii.Error, TypeError):
+            return None
 
     def get_actor_observation_count(self, threat_actor_tags: list[str]) -> int:
         """Call GET /asset-exposure and count actors whose tags overlap with threat_actor_tags.
@@ -60,7 +141,7 @@ class SageAPIClient:
 
         url = f"{self._base_url}/asset-exposure"
         try:
-            resp = httpx.get(url, timeout=5)
+            resp = httpx.get(url, headers=self._auth_headers(), timeout=5)
             resp.raise_for_status()
             data = resp.json()
         except httpx.TimeoutException as exc:

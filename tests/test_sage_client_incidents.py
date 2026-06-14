@@ -93,7 +93,8 @@ class TestGetRecentIncidentsAuth:
         assert "Authorization" not in headers
 
     def test_bearer_header_sent_when_token_set(self):
-        client = SageAPIClient("http://localhost:8000", bearer_token="abc123")
+        # HTTPS required: tokens are only attached over https:// (BEACON 3.0.2).
+        client = SageAPIClient("https://localhost:8000", bearer_token="abc123")
         with patch("beacon.sage.client.httpx") as mock_httpx:
             mock_httpx.get.return_value = _ok_response({"incidents": []})
             client.get_recent_incidents(date(2026, 1, 1), date(2026, 5, 24))
@@ -102,7 +103,8 @@ class TestGetRecentIncidentsAuth:
 
     def test_bearer_sourced_from_env(self, monkeypatch):
         monkeypatch.setenv("SAGE_API_AUTH_TOKEN", "env-token")
-        client = SageAPIClient("http://localhost:8000")
+        # HTTPS required: tokens are only attached over https:// (BEACON 3.0.2).
+        client = SageAPIClient("https://localhost:8000")
         with patch("beacon.sage.client.httpx") as mock_httpx:
             mock_httpx.get.return_value = _ok_response({"incidents": []})
             client.get_recent_incidents(date(2026, 1, 1), date(2026, 5, 24))
