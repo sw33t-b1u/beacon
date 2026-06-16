@@ -6,6 +6,33 @@
 
 ---
 
+## クロスリポジトリのデプロイ順序
+
+BEACON・SAGE・TRACE はデプロイ時に循環依存を形成する: BEACON は
+`SAGE_API_URL`（sage-api の URL）を必要とし、SAGE の ETL は BEACON が生成する
+検証済み `pir.json` を必要とする。この順序で循環を解く — 未解決の依存は後から
+`--update-env-vars` で配線するため、BEACON はまだ存在しない `sage-api` の URL を
+待ってブロックすることはない。この順序は [SAGE deploy.ja.md](../../sage/docs/deploy.ja.md)
+と一致しており、両リポジトリで矛盾しない。
+
+1. **SAGE — まず `sage-api` をデプロイ**（その GCS バケットも）。API は DB が
+   無くても起動するため、BEACON が必要とする前に URL が存在する。
+2. **BEACON — `beacon-web` をデプロイ。** ステップ 1 の sage-api URL を
+   `SAGE_API_URL` に配線し、SAGE 側で BEACON のサービスアカウント（`beacon-sa`）に
+   `sage-api` の `roles/run.invoker` を付与する（[SAGE 連携](#sage-連携クロスリポジトリ)参照）。
+3. **BEACON — PIR/assets を生成。** ビジネスコンテキストから `pir_output.json` と
+   asset 成果物を生成する。
+4. **TRACE — validate。** assets・PIR・STIX バンドルを TRACE（すべての SAGE 入力に
+   対する単一の検証ゲート）に通す。コマンドは [TRACE リポジトリ](https://github.com/sw33t-b1u/trace)
+   を参照（ここでは重複させない）。
+5. **SAGE — 配置して ETL 実行。** 検証済み成果物を GCS に配置し `sage-etl` を実行する。
+
+BEACON のデプロイ時に `sage-api` が未デプロイの場合は、`SAGE_API_URL` なしで
+`beacon-web` をデプロイし、後から `--update-env-vars` で追加する（[`SAGE_API_URL`（任意）](#day-1-初回デプロイ)
+および Day-N 再デプロイ参照）。
+
+---
+
 ## Day-0 前提条件
 
 ### API の有効化
@@ -93,7 +120,7 @@ gcloud run deploy beacon-web \
 
 > **`--set-env-vars` vs `--update-env-vars`:** 初回デプロイでは `--set-env-vars` を使って env-var セット全体を一括設定する。以降の変更は `--update-env-vars` を使うこと（Day-N 参照）。既存サービスに `--set-env-vars` を使うと **env-var セット全体が置き換わり**、再指定しなかったキーが無音で削除される。
 
-> **`SAGE_API_URL`（任意）:** BEACON の初回デプロイ時に `sage-api` がまだデプロイされていない場合は、後から `--update-env-vars` で追加する（後述の Day-N 再デプロイを参照）。
+> **`SAGE_API_URL`（任意）:** BEACON の初回デプロイ時に `sage-api` がまだデプロイされていない場合は、後から `--update-env-vars` で追加する（後述の Day-N 再デプロイを参照）。これは[クロスリポジトリのデプロイ順序](#クロスリポジトリのデプロイ順序)の「後から配線する」分岐である — 可能なら先に `sage-api` をデプロイし、できない場合は後から `SAGE_API_URL` を配線する。
 
 ---
 

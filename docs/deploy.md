@@ -6,6 +6,35 @@ Before deploying, complete [docs/setup.md](setup.md). Ensure `make check` passes
 
 ---
 
+## Cross-repo deploy order
+
+BEACON, SAGE, and TRACE form a cycle at deploy time: BEACON needs
+`SAGE_API_URL` (the sage-api URL) and SAGE's ETL needs the validated
+`pir.json` BEACON produces. Break the cycle in this order — an unmet
+dependency is wired in afterward with `--update-env-vars`, so BEACON does
+not block on a `sage-api` URL that does not exist yet. This sequence
+matches [SAGE deploy.md](../../sage/docs/deploy.md); the two repos agree.
+
+1. **SAGE — deploy `sage-api` first** (plus its GCS bucket). The API starts
+   even with no database, so its URL exists before BEACON needs it.
+2. **BEACON — deploy `beacon-web`.** Wire `SAGE_API_URL` to the sage-api URL
+   from step 1, and have SAGE grant BEACON's service account (`beacon-sa`)
+   `roles/run.invoker` on `sage-api` (see [SAGE integration](#sage-integration-cross-repo)).
+3. **BEACON — generate PIR / assets.** Produce `pir_output.json` and the
+   asset artifacts from business context.
+4. **TRACE — validate.** Pass the assets, PIR, and any STIX bundles through
+   TRACE, the single validation gate for all SAGE inputs. See the
+   [TRACE repo](https://github.com/sw33t-b1u/trace) for the commands (not
+   duplicated here).
+5. **SAGE — load and run ETL.** Place the validated artifacts in GCS, then
+   run `sage-etl`.
+
+If `sage-api` is not yet deployed when BEACON goes out, deploy `beacon-web`
+without `SAGE_API_URL` and add it later via `--update-env-vars` (see
+[`SAGE_API_URL` (optional)](#day-1-initial-deploy) and Day-N Redeploy).
+
+---
+
 ## Day-0 Prerequisites
 
 ### Enable APIs
@@ -93,7 +122,7 @@ gcloud run deploy beacon-web \
 
 > **`--set-env-vars` vs `--update-env-vars`:** The initial deploy uses `--set-env-vars` to set the full env-var set in one shot. Subsequent changes must use `--update-env-vars` (see Day-N). Using `--set-env-vars` on an existing service **replaces the entire env-var set**, silently dropping any key not re-listed.
 
-> **`SAGE_API_URL` (optional):** If `sage-api` was not yet deployed when BEACON was first deployed, add it later using `--update-env-vars` (see Day-N Redeploy below).
+> **`SAGE_API_URL` (optional):** If `sage-api` was not yet deployed when BEACON was first deployed, add it later using `--update-env-vars` (see Day-N Redeploy below). This is the "wire it later" branch of the [Cross-repo deploy order](#cross-repo-deploy-order) — deploy `sage-api` first when you can, otherwise wire `SAGE_API_URL` afterward.
 
 ---
 

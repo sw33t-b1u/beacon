@@ -61,6 +61,12 @@ Edit `.env` and fill in the required values:
 
 `GCP_PROJECT_ID` is **not required** for JSON-input generation (Option A), which skips LLM calls entirely.
 
+> **`VERTEX_LOCATION` is reused at deploy time.** `docs/deploy.md` derives the
+> gcloud Cloud Run `REGION` from this value (`REGION=${VERTEX_LOCATION:-us-central1}`),
+> so the region is set once here and flows to both Vertex AI and the deploy
+> commands. `REGION` itself is a deploy-time shell variable only (**Shell only**) —
+> it is not read by BEACON's Python code.
+
 ---
 
 ## Step 3b: Configure StorageBackend (optional)
@@ -135,6 +141,33 @@ beacon pir-generate \
   --save-context output/business_context.json
 # Writes: output/pir_output.json, output/collection_plan.md, output/business_context.json
 ```
+
+### Operating modes — why each exists
+
+BEACON has several independent "reduced-dependency" modes. They are
+distinct controls; do not conflate them. The table below names each one,
+how it is selected, and the reason it exists.
+
+| Mode | How selected | What it does | Why it exists |
+|------|--------------|--------------|---------------|
+| **No-LLM mode** (Option A) | `--context <business_context.json>` (a JSON input rather than Markdown) | Skips all LLM/Vertex AI calls; consumes the pre-structured context directly | Avoid LLM/GCP cost and run fully offline when you already have a `business_context.json` |
+| **`--no-sage`** | `--no-sage` flag on `beacon pir-generate` | Skips the actor-triage IR-boost SAGE call and sets `data_quality.ir_boost_skipped` | Produce a SAGE-independent run when `sage-api` is unavailable or you want determinism without SAGE |
+| **`sage_offline`** (dashboard) | Automatic — not a user toggle | The web dashboard's degraded state shown when the SAGE Analysis API is unreachable | Let the dashboard stay usable when `SAGE_API_URL` is unset or `sage-api` is down |
+| **MISP cache** | Default — refreshed via `beacon misp-cache-refresh` | Threat-taxonomy / galaxy data is loaded from a local cache file, not a live MISP server | The normal, air-gapped / sandbox / cost-free path; no network dependency at generation time |
+
+Terminology, kept separate on purpose:
+
+- **No-LLM** is about the *LLM* (Vertex AI): the JSON-input path that skips
+  Gemini calls. It says nothing about SAGE or MISP.
+- **`--no-sage`** is about the *SAGE actor-triage call* only. LLM and MISP
+  are unaffected.
+- **`sage_offline`** is a *dashboard display state*, an automatic fallback —
+  not a generation flag.
+- **MISP cache** is about *where threat-taxonomy data comes from*. BEACON is
+  **currently cache-based**: the pipeline reads MISP galaxy data from the
+  local cache (refreshed with `beacon misp-cache-refresh`), and the
+  live-MISP path is not used in the pipeline at present. This is the current
+  state, not a deprecation — nothing here is removed or retired.
 
 ---
 

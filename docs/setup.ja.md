@@ -62,6 +62,12 @@ cp .env.example .env
 
 JSON 入力による生成（Option A）では LLM 呼び出しをスキップするため `GCP_PROJECT_ID` は**不要**。
 
+> **`VERTEX_LOCATION` はデプロイ時に再利用される。** `docs/deploy.ja.md` はこの値から
+> gcloud Cloud Run の `REGION` を導出する（`REGION=${VERTEX_LOCATION:-us-central1}`）。
+> そのためリージョンはここで一度設定すれば Vertex AI とデプロイコマンドの両方に流れる。
+> `REGION` 自体はデプロイ時のシェル変数のみ（**シェルのみ**）であり、BEACON の Python
+> コードからは読み込まれない。
+
 ---
 
 ## Step 3b: StorageBackend の設定（オプション）
@@ -136,6 +142,32 @@ beacon pir-generate \
   --save-context output/business_context.json
 # 出力: output/pir_output.json, output/collection_plan.md, output/business_context.json
 ```
+
+### 動作モード — それぞれの存在理由
+
+BEACON には複数の独立した「依存を減らす」モードがある。これらは別々の制御で
+あり、混同しないこと。下表は各モードの名称・選択方法・存在理由を示す。
+
+| モード | 選択方法 | 動作 | 存在理由 |
+|--------|----------|------|----------|
+| **LLM なしモード**（Option A） | `--context <business_context.json>`（Markdown ではなく JSON 入力を指定） | すべての LLM/Vertex AI 呼び出しをスキップし、構造化済みコンテキストを直接消費 | すでに `business_context.json` がある場合に LLM/GCP コストを回避し完全にオフラインで実行 |
+| **`--no-sage`** | `beacon pir-generate` の `--no-sage` フラグ | actor-triage の IR-boost SAGE 呼び出しをスキップし `data_quality.ir_boost_skipped` を設定 | `sage-api` が利用不可、または SAGE なしで決定的な実行をしたい場合に SAGE 非依存で生成 |
+| **`sage_offline`**（ダッシュボード） | 自動 — ユーザートグルではない | SAGE Analysis API に到達できないときにダッシュボードが示す degraded（縮退）状態 | `SAGE_API_URL` 未設定または `sage-api` 停止時にもダッシュボードを使用可能に保つ |
+| **MISP キャッシュ** | デフォルト — `beacon misp-cache-refresh` で更新 | 脅威タクソノミー/ギャラクシーデータをライブ MISP サーバではなくローカルキャッシュファイルから読み込む | 通常の air-gapped/sandbox/コスト無料の経路。生成時にネットワーク依存がない |
+
+用語は意図的に区別する:
+
+- **LLM なし** は *LLM*（Vertex AI）に関する制御: Gemini 呼び出しをスキップする
+  JSON 入力経路。SAGE や MISP については何も言わない。
+- **`--no-sage`** は *SAGE actor-triage 呼び出し* のみに関する制御。LLM と MISP
+  には影響しない。
+- **`sage_offline`** は *ダッシュボードの表示状態* であり、自動フォールバック —
+  生成フラグではない。
+- **MISP キャッシュ** は *脅威タクソノミーデータの取得元* に関する制御。BEACON は
+  **現状はキャッシュベース**である: パイプラインは MISP ギャラクシーデータを
+  ローカルキャッシュ（`beacon misp-cache-refresh` で更新）から読み込み、ライブ MISP
+  経路は現状パイプラインで使用していない。これは現状であって deprecation ではない —
+  ここでは何も削除・退役していない。
 
 ---
 
