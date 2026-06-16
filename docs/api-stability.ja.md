@@ -44,6 +44,7 @@ Committed サーフェス項目を削除するには:
 | `source_attack_groups.derived.json` | ✗ | n/a | 自動導出; `scripts/derive_source_groups.py` で再生成 |
 | `beacon` CLI エントリ + サブコマンド | ✓ | 1.0.0 | サブコマンド名 + 主要フラグは固定 |
 | レガシー `python -m cmd.<name>` | （削除済み）| n/a | 2.1.0 で削除（1.0.0 で非推奨化）|
+| `[misp]` オプション extra + ライブ MISP（PyMISP）取り込み | （削除済み）| n/a | 4.0.0 で削除; MISP データはキャッシュ専用（`beacon misp-cache-refresh`）|
 | BEACON Web UI ルートパス + マルチアーティファクトビュー | ✓ | 1.0.0 | HTML/CSS の内部実装は Evolving のまま |
 | 環境変数（§5）| ✓ | 1.0.0 | 名前 + 意味 + デフォルト値を固定 |
 | その他の環境変数（LLM モデル選択、GHE_* など）| （内部）| n/a | デプロイメント固有; 変更される可能性あり |
@@ -151,6 +152,8 @@ Initiative H フェーズ 6 は `beacon` を click `Group` エントリポイン
 **Evolving**: オプションフラグのデフォルト値（例: `--taxonomy` のデフォルト）、ヘルプテキストの文言、出力フォーマット。
 
 **2.1.0 で削除**: `python -m cmd.<name>` の呼び出し構文。スタンドアロンの `__main__` ブロックおよび `DeprecationWarning` の仕組みは削除された。`beacon <subcommand>` のみを使用すること。
+
+**4.0.0 で削除**: `[misp]` オプション依存 extra とライブ MISP（PyMISP）取り込み経路。MISP ギャラクシーデータはローカルキャッシュからのみ読み込まれ、`beacon misp-cache-refresh` で更新する。`beacon[misp]` extra は存在しなくなり、`pymisp` は依存ではなくなった。`beacon misp-cache-refresh` 自体は変更なし。
 
 ### 3.8 BEACON Web UI（`beacon web`）
 

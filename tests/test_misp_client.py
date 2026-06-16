@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import pytest
@@ -111,29 +110,14 @@ class TestMalformedCache:
 
 
 # ---------------------------------------------------------------------------
-# (e) PyMISP not installed / no server_url
+# (e) No cache configured → degraded
 # ---------------------------------------------------------------------------
 
 
-class TestPyMISPGraceDegradation:
-    def test_cache_works_without_pymisp_import(self, monkeypatch):
-        """Cache-based lookup succeeds regardless of whether pymisp is importable."""
-        monkeypatch.setitem(sys.modules, "pymisp", None)
-        client = MispClient(cache_path=MINIMAL_FIXTURE)
-        result = client.get_actor("APT28")
-        assert result is not None
-        assert result.source == "misp_cache"
-
-    def test_live_path_returns_none_when_pymisp_unavailable(self, monkeypatch):
-        """Server configured but pymisp not importable → returns None, no crash."""
-        monkeypatch.setitem(sys.modules, "pymisp", None)
-        client = MispClient(server_url="http://fake.misp.local", api_key="secret")
-        result = client.get_actor("APT28")
-        assert result is None
-
+class TestNoCacheConfigured:
     def test_no_source_configured_returns_none(self):
-        """Neither cache_path nor server_url → degraded, get_actor always None."""
-        client = MispClient(cache_path=None, server_url=None)
+        """No cache_path → degraded, get_actor always None."""
+        client = MispClient(cache_path=None)
         assert client.get_actor("APT28") is None
 
 

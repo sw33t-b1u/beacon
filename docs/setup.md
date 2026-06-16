@@ -153,7 +153,7 @@ how it is selected, and the reason it exists.
 | **No-LLM mode** (Option A) | `--context <business_context.json>` (a JSON input rather than Markdown) | Skips all LLM/Vertex AI calls; consumes the pre-structured context directly | Avoid LLM/GCP cost and run fully offline when you already have a `business_context.json` |
 | **`--no-sage`** | `--no-sage` flag on `beacon pir-generate` | Skips the actor-triage IR-boost SAGE call and sets `data_quality.ir_boost_skipped` | Produce a SAGE-independent run when `sage-api` is unavailable or you want determinism without SAGE |
 | **`sage_offline`** (dashboard) | Automatic — not a user toggle | The web dashboard's degraded state shown when the SAGE Analysis API is unreachable | Let the dashboard stay usable when `SAGE_API_URL` is unset or `sage-api` is down |
-| **MISP cache** | Default — refreshed via `beacon misp-cache-refresh` | Threat-taxonomy / galaxy data is loaded from a local cache file, not a live MISP server | The normal, air-gapped / sandbox / cost-free path; no network dependency at generation time |
+| **MISP cache** | Only mode — refreshed via `beacon misp-cache-refresh` | Threat-taxonomy / galaxy data is loaded from a local cache file; the live-MISP ingestion path was removed in BEACON 4.0.0 | The normal, air-gapped / sandbox / cost-free path; no network dependency at generation time |
 
 Terminology, kept separate on purpose:
 
@@ -164,10 +164,10 @@ Terminology, kept separate on purpose:
 - **`sage_offline`** is a *dashboard display state*, an automatic fallback —
   not a generation flag.
 - **MISP cache** is about *where threat-taxonomy data comes from*. BEACON is
-  **currently cache-based**: the pipeline reads MISP galaxy data from the
-  local cache (refreshed with `beacon misp-cache-refresh`), and the
-  live-MISP path is not used in the pipeline at present. This is the current
-  state, not a deprecation — nothing here is removed or retired.
+  **cache-only**: the pipeline reads MISP galaxy data exclusively from the
+  local cache (refreshed with `beacon misp-cache-refresh`). The live-MISP
+  ingestion path and the `pymisp` / `beacon[misp]` optional extra were
+  **removed in BEACON 4.0.0**; there is no live-MISP mode to select.
 
 ---
 

@@ -17,12 +17,6 @@
 | `click` | `>=8.1.0` | Backs the unified `beacon` CLI entry point (`src/beacon/cli/`) introduced in Initiative H Phase 6. Click's `Group` + `command` decorators give us composable subcommands, automatic `--help`, and a testable `CliRunner`. | BSD-3-Clause |
 | `google-cloud-storage` | `>=2.18.0` | GCS backend for StorageBackend (`src/beacon/storage/gcs.py`). Required for `BEACON_STORAGE=gcs`; installed unconditionally as a main dep since 2.1.2. | Apache-2.0 |
 
-## Optional Dependencies
-
-| Package | Version | Purpose | License |
-|---------|---------|---------|---------|
-| `pymisp` | `>=2.4` | Optional live MISP Galaxy fetch in `src/beacon/ingest/misp_client.py`. Install with `pip install 'beacon[misp]'`. Not required for offline / cache-based operation. | BSD-2-Clause |
-
 ## Development Dependencies
 
 | Package | Version | Purpose | License |
@@ -49,3 +43,8 @@
 > **Removed in 0.9.0:** `markitdown[pdf]` was used only by `cmd/stix_from_report.py`,
 > which has moved to TRACE. The dependency now lives in
 > `TRACE/pyproject.toml`; see `TRACE/docs/dependencies.md` for its rationale.
+
+> **Removed in 4.0.0:** the `pymisp` optional dependency and the `beacon[misp]`
+> extra. The live MISP ingestion path in `src/beacon/ingest/misp_client.py` was
+> removed; MISP galaxy data is now loaded exclusively from the local cache
+> (refreshed via `beacon misp-cache-refresh`).

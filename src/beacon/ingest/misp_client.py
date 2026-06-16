@@ -6,9 +6,8 @@ import it directly from this module; a split is deferred until actor_triage need
 import ActorAttributes without pulling in MispClient.
 
 Data flow:
-  cache_path provided → load from local JSON (offline / sandbox mode)
-  server_url + api_key provided → fetch via PyMISP (optional dep; graceful on ImportError)
-  neither → degraded mode; get_actor() always returns None
+  cache_path provided → load from local JSON cache
+  no cache_path → degraded mode; get_actor() always returns None
 """
 
 from __future__ import annotations
@@ -69,11 +68,11 @@ class ActorAttributes(BaseModel):
     aliases: list[str] = []
     active: bool | None = None
     degraded: bool = False
-    source: Literal["misp_cache", "misp_live", "none"] = "none"
+    source: Literal["misp_cache", "none"] = "none"
     # MISP cluster UUID — used by actor_triage IR-boost to construct the STIX
     # intrusion-set id sent to SAGE (`intrusion-set--{actor_uuid}`). Optional
     # because the field is only populated when the underlying MISP entry
-    # carried a uuid; live-mode entries may omit it.
+    # carried a uuid.
     actor_uuid: str | None = None
 
 
@@ -100,29 +99,24 @@ def _validate_ov(value: str | None, vocab: frozenset[str], field: str) -> str | 
 class MispClient:
     """Loads MISP Galaxy threat-actor data and resolves actors by name or UUID.
 
-    Priority order:
-      1. Local cache file (cache_path) — used in offline / sandbox environments.
-      2. Live MISP server (server_url + api_key) via PyMISP optional dependency.
-      3. Degraded — no source configured; get_actor() returns None.
+    Data source:
+      1. Local cache file (cache_path) — JSON exported from MISP Galaxy.
+      2. Degraded — no cache_path configured; get_actor() returns None.
     """
 
     def __init__(
         self,
         cache_path: Path | str | None = None,
-        server_url: str | None = None,
-        api_key: str | None = None,
     ) -> None:
         self._actors: list[dict] = []
         self._loaded = False
-        self._source: Literal["misp_cache", "misp_live", "none"] = "none"
+        self._source: Literal["misp_cache", "none"] = "none"
 
         if cache_path is not None:
             self._load_from_cache(Path(cache_path))
-        elif server_url and api_key:
-            self._load_from_live(server_url, api_key)
 
     # ------------------------------------------------------------------
-    # Internal loaders
+    # Internal loader
     # ------------------------------------------------------------------
 
     def _load_from_cache(self, path: Path) -> None:
@@ -135,31 +129,6 @@ class MispClient:
             _log.warning("misp_cache_not_found", path=str(path))
         except (json.JSONDecodeError, KeyError, TypeError) as exc:
             _log.warning("misp_cache_malformed", error=str(exc))
-
-    def _load_from_live(self, server_url: str, api_key: str) -> None:
-        try:
-            import pymisp  # optional dep — graceful on ImportError
-
-            misp = pymisp.PyMISP(server_url, api_key, ssl=False)
-            galaxy = misp.search_galaxy_clusters(
-                galaxy_uuid="698774c7-8022-42c4-917f-8d6e4f06ada3",  # MISP threat-actor galaxy
-                pythonify=True,
-            )
-            self._actors = [
-                {
-                    "uuid": c.uuid,
-                    "value": c.value,
-                    "description": getattr(c, "description", ""),
-                    "meta": getattr(c, "meta", {}),
-                }
-                for c in (galaxy if isinstance(galaxy, list) else [])
-            ]
-            self._loaded = True
-            self._source = "misp_live"
-        except ImportError:
-            _log.warning("pymisp_not_installed", hint="pip install pymisp>=2.4")
-        except Exception as exc:
-            _log.warning("misp_live_fetch_failed", error=str(exc))
 
     # ------------------------------------------------------------------
     # Public API

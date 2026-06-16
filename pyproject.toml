@@ -1,6 +1,6 @@
 [project]
 name = "beacon"
-version = "3.0.3"
+version = "4.0.0"
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.0",
@@ -31,9 +31,6 @@ dev = [
     "pip-audit>=2.7.0",
     "pip>=26.1.2",  # PYSEC-2026-196 + CVE-2026-6357 fix; transitive via pip-audit -> pip-api
     "jsonschema>=4.23.0",
-]
-misp = [
-    "pymisp>=2.4",
 ]
 
 [tool.ruff]

@@ -20,14 +20,6 @@
 
 ---
 
-## オプション依存
-
-| パッケージ | バージョン制約 | 目的 | ライセンス |
-|-----------|-------------|------|---------|
-| `pymisp` | `>=2.4` | `src/beacon/ingest/misp_client.py` における MISP Galaxy のライブ取得（オプション）。`pip install 'beacon[misp]'` でインストール。オフライン／キャッシュベース運用では不要。 | BSD-2-Clause |
-
----
-
 ## 開発専用依存
 
 | パッケージ | バージョン制約 | 目的 | ライセンス |
@@ -53,3 +45,8 @@
 > **0.9.0 で削除:** `markitdown[pdf]` は `cmd/stix_from_report.py` 専用だったが、
 > 当該機能は TRACE に移管された。同依存は `TRACE/pyproject.toml` に存在する。
 > 採用理由は `TRACE/docs/dependencies.ja.md` を参照。
+
+> **4.0.0 で削除:** `pymisp` オプション依存と `beacon[misp]` extra。
+> `src/beacon/ingest/misp_client.py` のライブ MISP 取り込み経路は削除され、
+> MISP ギャラクシーデータはローカルキャッシュ（`beacon misp-cache-refresh` で更新）
+> からのみ読み込まれる。

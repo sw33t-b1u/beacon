@@ -153,7 +153,7 @@ BEACON には複数の独立した「依存を減らす」モードがある。�
 | **LLM なしモード**（Option A） | `--context <business_context.json>`（Markdown ではなく JSON 入力を指定） | すべての LLM/Vertex AI 呼び出しをスキップし、構造化済みコンテキストを直接消費 | すでに `business_context.json` がある場合に LLM/GCP コストを回避し完全にオフラインで実行 |
 | **`--no-sage`** | `beacon pir-generate` の `--no-sage` フラグ | actor-triage の IR-boost SAGE 呼び出しをスキップし `data_quality.ir_boost_skipped` を設定 | `sage-api` が利用不可、または SAGE なしで決定的な実行をしたい場合に SAGE 非依存で生成 |
 | **`sage_offline`**（ダッシュボード） | 自動 — ユーザートグルではない | SAGE Analysis API に到達できないときにダッシュボードが示す degraded（縮退）状態 | `SAGE_API_URL` 未設定または `sage-api` 停止時にもダッシュボードを使用可能に保つ |
-| **MISP キャッシュ** | デフォルト — `beacon misp-cache-refresh` で更新 | 脅威タクソノミー/ギャラクシーデータをライブ MISP サーバではなくローカルキャッシュファイルから読み込む | 通常の air-gapped/sandbox/コスト無料の経路。生成時にネットワーク依存がない |
+| **MISP キャッシュ** | 唯一のモード — `beacon misp-cache-refresh` で更新 | 脅威タクソノミー/ギャラクシーデータをローカルキャッシュファイルから読み込む。ライブ MISP 取り込み経路は BEACON 4.0.0 で削除された | 通常の air-gapped/sandbox/コスト無料の経路。生成時にネットワーク依存がない |
 
 用語は意図的に区別する:
 
@@ -164,10 +164,10 @@ BEACON には複数の独立した「依存を減らす」モードがある。�
 - **`sage_offline`** は *ダッシュボードの表示状態* であり、自動フォールバック —
   生成フラグではない。
 - **MISP キャッシュ** は *脅威タクソノミーデータの取得元* に関する制御。BEACON は
-  **現状はキャッシュベース**である: パイプラインは MISP ギャラクシーデータを
-  ローカルキャッシュ（`beacon misp-cache-refresh` で更新）から読み込み、ライブ MISP
-  経路は現状パイプラインで使用していない。これは現状であって deprecation ではない —
-  ここでは何も削除・退役していない。
+  **キャッシュ専用**である: パイプラインは MISP ギャラクシーデータをローカルキャッシュ
+  （`beacon misp-cache-refresh` で更新）からのみ読み込む。ライブ MISP 取り込み経路と
+  `pymisp` / `beacon[misp]` オプション extra は **BEACON 4.0.0 で削除された** —
+  選択できるライブ MISP モードは存在しない。
 
 ---
 

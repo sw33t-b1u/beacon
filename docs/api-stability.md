@@ -51,6 +51,7 @@ one) ship as minors in step 1.
 | `source_attack_groups.derived.json` | ✗ | n/a | Auto-derived; regenerated via `scripts/derive_source_groups.py` |
 | `beacon` CLI entry + subcommands | ✓ | 1.0.0 | Subcommand names + main flags frozen |
 | Legacy `python -m cmd.<name>` | (removed) | n/a | Removed in 2.1.0 (deprecated in 1.0.0) |
+| `[misp]` optional extra + live MISP (PyMISP) ingestion | (removed) | n/a | Removed in 4.0.0; MISP data is cache-only (`beacon misp-cache-refresh`) |
 | BEACON web UI route paths + multi-artifact view | ✓ | 1.0.0 | HTML/CSS internals stay Evolving |
 | Env vars (§5) | ✓ | 1.0.0 | Name + meaning + default frozen |
 | Other env vars (LLM model selection, GHE_*) | (internal) | n/a | Deployment-specific; may change |
@@ -194,6 +195,13 @@ text wording, output formatting.
 **Removed in 2.1.0**: `python -m cmd.<name>` invocation syntax.
 Standalone `__main__` blocks and `DeprecationWarning` machinery were
 removed. Use `beacon <subcommand>` exclusively.
+
+**Removed in 4.0.0**: the `[misp]` optional dependency extra and the
+live MISP (PyMISP) ingestion path. MISP galaxy data is now loaded
+exclusively from the local cache, refreshed via
+`beacon misp-cache-refresh`. The `beacon[misp]` extra no longer exists,
+and `pymisp` is no longer a dependency. `beacon misp-cache-refresh`
+itself is unchanged.
 
 ### 3.8 BEACON web UI (`beacon web`)
 

@@ -6,6 +6,22 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [4.0.0] — 2026-06-16
+
+### Removed
+
+- Removed the live MISP (PyMISP) ingestion path from `MispClient`: the
+  `server_url` / `api_key` constructor parameters and the
+  `_load_from_live` method are gone. `MispClient` now loads MISP galaxy
+  data exclusively from the local cache (`cache_path`).
+- Removed the `pymisp` dependency and the `[misp]` optional extra.
+  Installing `beacon[misp]` is no longer possible. MISP data is now
+  exclusively cache-based, refreshed via `beacon misp-cache-refresh`.
+- **Breaking:** the public `[misp]` extra no longer exists, hence the
+  major version bump to 4.0.0.
+
+---
+
 ## [3.0.3] — 2026-06-16
 
 ### Security
