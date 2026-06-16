@@ -505,6 +505,7 @@ def prioritize_actors(
     sage_client: SageAPIClient | None = None,
     ir_lookback_days: int = 365,
     ir_boost_skipped: bool = False,
+    reference: datetime | None = None,
 ) -> list[PrioritizedActor]:
     """Score and rank threat actors using the I × C × O likelihood triad.
 
@@ -520,6 +521,10 @@ def prioritize_actors(
          Intent == 0.0 triggers the hard gate: likelihood stays 0.0 and
          rationale records "Intent gate failed".
     Returns list sorted by likelihood descending.
+
+    `reference` overrides the "now" used for recency / IR-lookback windows
+    (defaults to datetime.now(UTC)); supplied only by tests for deterministic
+    behaviour, mirroring recency_active_campaigns.
     """
     # Lazy import to avoid a runtime dependency on httpx when sage_client is None.
     import httpx  # noqa: PLC0415
@@ -539,7 +544,7 @@ def prioritize_actors(
         for entry in entries
     }
 
-    _now = datetime.now(UTC)
+    _now = reference or datetime.now(UTC)
     _today: date = _now.date()
     _ir_since: date = _today - timedelta(days=ir_lookback_days)
 

@@ -908,7 +908,10 @@ class TestActivityWindowDaysConfig:
         assert cfg.activity_window_days == 180
 
     def test_prioritize_actors_uses_window_days_param(self):
-        # Synthetic one-actor taxonomy: campaign_last_seen 158 days before a reference date.
+        # Synthetic one-actor taxonomy: campaign_last_seen 158 days before the
+        # fixed reference (_REF_DATE = 2026-05-23). A pinned reference keeps this
+        # deterministic — without it the wall clock drifts the gap past 180 days
+        # and both windows collapse to the same recency bucket.
         # window=90 → recency=0.5; window=180 → recency=1.0 → capability differs.
         misp = MispClient(cache_path=_TRIAGE_MISP_FIXTURE)
         taxonomy = _make_mini_taxonomy(
@@ -931,8 +934,12 @@ class TestActivityWindowDaysConfig:
         surface_map = _make_empty_surface_map()
         bctx = _finance_context()
 
-        results90 = prioritize_actors(bctx, taxonomy, surface_map, misp, window_days=90)
-        results180 = prioritize_actors(bctx, taxonomy, surface_map, misp, window_days=180)
+        results90 = prioritize_actors(
+            bctx, taxonomy, surface_map, misp, window_days=90, reference=_REF_DATE
+        )
+        results180 = prioritize_actors(
+            bctx, taxonomy, surface_map, misp, window_days=180, reference=_REF_DATE
+        )
 
         assert len(results90) == 1
         assert len(results180) == 1

@@ -6,6 +6,30 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [3.0.3] — 2026-06-16
+
+### Security
+
+- Bump `starlette` floor `1.0.1` → `1.3.1`, closing
+  CVE-2026-48817, CVE-2026-48818, CVE-2026-54282, and CVE-2026-54283
+  (transitive via FastAPI).
+- Bump `python-multipart` floor `0.0.27` → `0.0.31`, closing
+  CVE-2026-53538, CVE-2026-53539, and CVE-2026-53540 (multipart form
+  upload).
+- Bump `cryptography` floor `46.0.7` → `48.0.1`, closing
+  GHSA-537c-gmf6-5ccf (transitive via google-genai / uvicorn).
+- These resolve the pip-audit findings against BEACON's web surface
+  (the FastAPI/Starlette dashboard and the multipart upload path).
+
+### Fixed
+
+- `prioritize_actors()` gained an optional `reference` parameter so the
+  activity-window unit test pins a deterministic clock instead of the
+  wall clock, removing a time-dependent test failure. The change is
+  backward-compatible (default = `datetime.now(UTC)`).
+
+---
+
 ## [3.0.2] — 2026-06-14
 
 ### Fixed
