@@ -6,6 +6,34 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [4.1.0] — 2026-06-18
+
+### Changed
+
+- Migrated the HTTP client from `httpx` to `httpx2` (`httpx2>=2.4.0`) across
+  production code, `cmd/` scripts, and the test suite. This silences the
+  `starlette.testclient` deprecation warning ("install httpx2 instead") and
+  keeps BEACON on a maintained HTTP stack. The `idna` floor moves `3.15` →
+  `3.18` (httpx2 requirement; still includes the CVE-2026-45409 fix).
+
+### Fixed
+
+- `load_config()` now honors web Settings UI values persisted to
+  `.beacon_settings.json` via `SettingsManager`, applying a unified
+  `defaults < file < env` precedence. Choosing the `gcs` storage backend in the
+  dashboard Settings tab is now respected by every data path (PIR/asset
+  load/save); previously it was ignored unless `BEACON_STORAGE=gcs` was also
+  set in the environment.
+
+### Documentation
+
+- Normalized CLI examples in `docs/` to the `uv run beacon …` form and
+  corrected the `usage.md` entry-point note. Added an analyst operational
+  workflow (overview first, then consolidated commands) to `docs/deploy.md`
+  and `docs/deploy.ja.md`.
+
+---
+
 ## [4.0.0] — 2026-06-16
 
 ### Removed

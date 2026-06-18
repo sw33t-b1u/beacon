@@ -23,7 +23,7 @@ BEACON はビジネスコンテキストドキュメントを PIR（優先情報
 - `beacon assets-generate` — SAGE 互換の assets.json を生成
 - `beacon identity-generate` — identity_assets.json を生成
 - `beacon accounts-generate` — user_accounts.json を生成
-- `beacon web` — 5 タブダッシュボード (http://localhost:8000)
+- `beacon web` — 8 タブダッシュボード (http://localhost:8000)
 
 → 詳細: [BEACON docs/usage.ja.md](usage.ja.md)
 

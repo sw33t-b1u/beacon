@@ -34,7 +34,8 @@ uv run beacon web          # デフォルト: http://localhost:8000
 
 ## CLI コマンド
 
-すべてのコマンドは `uv sync` でインストールされる `beacon` エントリポイントから実行します。
+すべてのコマンドは `uv run beacon <subcommand>` で実行します（または `source .venv/bin/activate`
+で venv を有効化したうえで `beacon <subcommand>` として実行します）。
 
 ### `beacon pir-generate`
 
@@ -55,10 +56,10 @@ Vertex AI Gemini によって書き換えられ、ビジネスコンテキスト
 表現される場合があります。
 
 ```bash
-beacon pir-generate                    # input/context.md を使用、フル LLM モード
-beacon pir-generate --no-sage          # SAGE アクタートリアージ拡張をスキップ
-beacon pir-generate --use-sage         # SAGE 拡張を明示的に有効化
-beacon pir-generate --save-context     # 構造化 BusinessContext を output/ に保存
+uv run beacon pir-generate                    # input/context.md を使用、フル LLM モード
+uv run beacon pir-generate --no-sage          # SAGE アクタートリアージ拡張をスキップ
+uv run beacon pir-generate --use-sage         # SAGE 拡張を明示的に有効化
+uv run beacon pir-generate --save-context     # 構造化 BusinessContext を output/ に保存
 ```
 
 ### `beacon assets-generate`
@@ -66,7 +67,7 @@ beacon pir-generate --save-context     # 構造化 BusinessContext を output/ �
 ビジネスコンテキストから `assets.json` を生成します。
 
 ```bash
-beacon assets-generate
+uv run beacon assets-generate
 ```
 
 ### `beacon identity-generate`
@@ -74,7 +75,7 @@ beacon assets-generate
 `identity_assets.json`（Identity ノード + `has_access` エッジ）を生成します。
 
 ```bash
-beacon identity-generate
+uv run beacon identity-generate
 ```
 
 ### `beacon accounts-generate`
@@ -82,7 +83,7 @@ beacon identity-generate
 `user_accounts.json`（UserAccount ノード + `account_on_asset` エッジ）を生成します。
 
 ```bash
-beacon accounts-generate
+uv run beacon accounts-generate
 ```
 
 ### `beacon web`
@@ -90,7 +91,7 @@ beacon accounts-generate
 Web ダッシュボードを起動します。
 
 ```bash
-beacon web                 # http://localhost:8000
+uv run beacon web                 # http://localhost:8000
 ```
 
 ### `beacon taxonomy-refresh`
@@ -99,8 +100,8 @@ beacon web                 # http://localhost:8000
 アップデータを実行してファイル全体を再構築してください:
 
 ```bash
-beacon taxonomy-refresh --dry-run   # 変更内容をプレビュー（ファイル書き込みなし）
-beacon taxonomy-refresh             # 実際に更新
+uv run beacon taxonomy-refresh --dry-run   # 変更内容をプレビュー（ファイル書き込みなし）
+uv run beacon taxonomy-refresh             # 実際に更新
 ```
 
 オプション:
@@ -198,7 +199,7 @@ BEACON は複雑度ティアごとにモデルを選択します。各ティア�
 BEACON_LLM_SIMPLE=gemini-2.5-flash-lite \
 BEACON_LLM_MEDIUM=gemini-2.5-flash \
 BEACON_LLM_COMPLEX=gemini-2.5-pro \
-beacon pir-generate --context path/to/context.md
+uv run beacon pir-generate --context path/to/context.md
 ```
 
 オーバーライドしたいティアの変数のみ設定してください。未設定のティアはデフォルト値
@@ -214,7 +215,7 @@ PIR タブには StorageBackend から取得した過去の実行一覧が表示
 ```bash
 export BEACON_STORAGE=gcs
 export BEACON_STORAGE_BUCKET=my-beacon-bucket
-beacon pir-generate
+uv run beacon pir-generate
 ```
 
 ストレージ環境変数の完全な一覧は [docs/setup.ja.md](setup.ja.md) を参照。
@@ -237,16 +238,16 @@ BEACON は [MISP Galaxy](https://github.com/MISP/misp-galaxy) の
 
 ```bash
 # デフォルト: cache/misp-threat-actor.json に書き込む
-beacon misp-cache-refresh
+uv run beacon misp-cache-refresh
 
 # カスタム出力パスを指定
-beacon misp-cache-refresh --output /path/to/misp-threat-actor.json
+uv run beacon misp-cache-refresh --output /path/to/misp-threat-actor.json
 
 # ディスクに書き込まずにダウンロードを検証
-beacon misp-cache-refresh --dry-run
+uv run beacon misp-cache-refresh --dry-run
 
 # すべてのオプション
-beacon misp-cache-refresh --help
+uv run beacon misp-cache-refresh --help
 ```
 
 ### 推奨 cron エントリ（毎日 03:00 ローカル時間）
@@ -316,7 +317,7 @@ mkdir -p /var/log/beacon
 
 ```bash
 cd BEACON/
-beacon pir-generate \
+uv run beacon pir-generate \
   --context path/to/business_context.json \
   --output-dir output/
 ```

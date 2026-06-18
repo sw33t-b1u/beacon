@@ -97,7 +97,7 @@ class TestSageUrlSetButFailsFailsSoft:
     """When SAGE_API_URL is set but the call raises, fail-soft sets degraded=True."""
 
     def test_sage_unreachable_sets_degraded(self, _run_pir, monkeypatch):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         monkeypatch.setenv("SAGE_API_URL", "http://invalid.localhost:9999")
         # Patch SageAPIClient to raise on get_recent_incidents.

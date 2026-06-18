@@ -174,6 +174,127 @@ gcloud run services update beacon-web \
 
 ---
 
+## Operating BEACON (analyst workflow)
+
+The Day-0/1/N sections above stand up the infrastructure. This section
+explains what a CTI analyst actually *does* with a GCS-backed BEACON
+deployment, and in what order. Read the **Overview** first to grasp the whole
+pipeline; the **Detailed commands** block at the end walks the same steps with
+real commands.
+
+### Overview — what you accomplish
+
+Following this flow takes a fresh business-context document all the way to
+queryable attack paths. Each step exists for a reason:
+
+- **Author business context** — describe the organization (industry, geography,
+  crown jewels, regulatory context) in `input/context.md`. This is the single
+  input that drives every downstream score; without it BEACON has nothing to
+  prioritize against.
+- **Generate PIR + assets** — BEACON converts that context into Priority
+  Intelligence Requirements plus three asset drafts (`assets`,
+  `identity_assets`, `user_accounts`). This turns prose into the structured,
+  scored artifacts SAGE and TRACE consume.
+- **Artifacts persist to GCS** — when the storage backend is `gcs`, every
+  generated and saved artifact lands in the configured bucket/prefix instead of
+  the local `output/` directory. This is what lets a Cloud Run revision (which
+  has no durable local disk) share state across requests and with the rest of
+  the pipeline.
+- **Review / edit in the web dashboard** — open the dashboard and complete the
+  org-known fields that no LLM can know (asset owners, security controls, CVE
+  mappings, identity/account flags), then re-save. This is the human-in-the-loop
+  gate before anything reaches the graph.
+- **TRACE validates** — every SAGE input passes through TRACE, the single
+  validation gate. This catches schema and referential errors (taxonomy gaps,
+  asset-tag mismatches, expired validity windows) before they corrupt the graph.
+- **SAGE ingests into the graph** — SAGE loads the validated assets and runs the
+  STIX ETL, filtering threat actors by your PIR tags and computing
+  `pir_adjusted_criticality`. This is where external CTI and internal context
+  finally meet.
+- **Query attack paths** — with the graph populated, query SAGE (Analysis API,
+  visualizer, or the dashboard **Threats** tab) for actor coverage, TTPs, and
+  the assets most at risk. This is the payoff: prioritized attack-path insight
+  for Red/Blue/IR teams.
+
+From that overview alone an analyst can see what is possible — author context,
+produce scored artifacts, persist them to GCS, refine them in the browser,
+validate, ingest, and finally query — without reading a single command.
+
+### Storage backend selection (GCS vs local)
+
+Where artifacts persist is decided by the storage backend, which is resolved
+from two sources with this precedence:
+
+**`defaults < .beacon_settings.json (Settings UI) < environment variables`** —
+environment variables always win.
+
+- **Environment variables** — set `BEACON_STORAGE=gcs`,
+  `BEACON_STORAGE_BUCKET=<bucket>`, and `BEACON_STORAGE_PREFIX=<prefix>` on the
+  Cloud Run revision (the Day-1 deploy already does this). This is the
+  recommended production path.
+- **Web Settings tab** — choosing storage mode `gcs` (with bucket/prefix) in the
+  dashboard **Settings** tab persists those values to `.beacon_settings.json`.
+  As of BEACON 4.1.0 this choice is honored by **all** data paths — PIR and
+  asset load/save now respect the Settings-UI selection even when no
+  `BEACON_STORAGE` environment variable is set. (Earlier releases ignored the
+  Settings value for data load unless the env var was also present.)
+
+Because env vars sit at the top of the precedence chain, a `BEACON_STORAGE` set
+on the Cloud Run revision overrides whatever the Settings UI saved. On a Cloud
+Run deployment the recommendation is therefore to let the revision's env vars be
+authoritative and use the Settings tab mainly for local/standalone runs.
+
+> **GCS access requirements:** the runtime service account
+> (`beacon-sa`) needs `roles/storage.objectAdmin` on the bucket (granted in
+> Day-0), the bucket must exist (Day-0), and the `gcs` extra
+> (`google-cloud-storage`) must be installed in the image. With those in place,
+> no analyst-side credential handling is needed — Cloud Run injects the service
+> account identity.
+
+### Detailed commands
+
+The same flow with actual commands. CLI invocations use `uv run`; cross-repo
+steps assume sibling `../TRACE` and `../SAGE` checkouts.
+
+```bash
+# 1. Author business context (edit the input document)
+#    input/context.md  — industry, geography, crown jewels, regulatory context
+
+# 2. Generate PIR + the three asset drafts (single pass)
+uv run beacon pir-generate                    # uses input/context.md
+#    Emits pir_output.json plus assets_<ts>.json, identity_assets_<ts>.json,
+#    user_accounts_<ts>.json. With BEACON_STORAGE=gcs these land in the bucket.
+
+# 3. Review / edit in the dashboard (org-known fields the LLM cannot fill)
+uv run beacon web                             # http://localhost:8000
+#    PIR tab      — review scores, approve PIRs
+#    Assets tab   — owner, security_control_ids, security_controls,
+#                   asset_vulnerabilities (CVE → asset_id)
+#    Identity tab — identity descriptions, roles, impersonation flags
+#    Accounts tab — account type, privilege flags, account_on_asset edges
+#    Settings tab — storage mode / bucket / prefix, SAGE URL, TRACE path
+#    Re-save each tab to write a fresh <type>_<ts>.json to the backend.
+
+# 4. Validate every SAGE input through TRACE (the single validation gate)
+cd ../TRACE && uv run trace validate-pir --pir pir_output.json
+cd ../TRACE && uv run trace validate-pir --pir pir_output.json --assets assets.json
+
+# 5. Ingest into the SAGE graph
+cd ../SAGE && uv run sage load-assets --input output/assets.json
+cd ../SAGE && uv run sage run-etl
+
+# 6. Query attack paths
+cd ../SAGE && uv run sage visualize-graph     # interactive HTML
+#    Or use the dashboard Threats tab (SAGE API proxy: actor search,
+#    TTP lookup, threat-summary).
+```
+
+For the full per-step detail (PIR fields, asset-tab editing, ETL verification,
+troubleshooting), see [docs/usage.md](usage.md) and
+[docs/pipeline-guide.md](pipeline-guide.md).
+
+---
+
 ## Access (Production = L2)
 
 `--no-allow-unauthenticated` is already set during deploy. Grant `roles/run.invoker` to the identities that need access.

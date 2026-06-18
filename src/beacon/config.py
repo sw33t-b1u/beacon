@@ -84,4 +84,31 @@ class Config:
 
 
 def load_config() -> Config:
-    return Config()
+    """Build a Config honoring the unified `defaults < file < env` precedence.
+
+    BEACON has two config surfaces that must agree: the web Settings UI
+    persists six keys to `.beacon_settings.json` via SettingsManager, while
+    every storage/data code path reads its Config from here. If load_config()
+    only consulted environment variables, a backend chosen in the web UI (e.g.
+    "gcs") would be silently ignored unless the matching env var was also set,
+    so PIR/assets persisted to GCS would never be loaded.
+
+    To keep both surfaces unified, the six settings-managed fields
+    (storage_backend, storage_base_dir, storage_bucket, storage_prefix,
+    sage_api_url, trace_root_path) are sourced from SettingsManager().load(),
+    which already applies the `defaults < file < env` priority. All other
+    Config fields (gcp/llm/ghe/etc.) keep their existing env-based defaults via
+    their default_factory. SettingsManager imports only stdlib, so the local
+    import below is cycle-free.
+    """
+    from beacon.settings import SettingsManager  # local import, cycle-safe
+
+    s = SettingsManager().load()
+    return Config(
+        storage_backend=s["storage_backend"],
+        storage_base_dir=s["storage_base_dir"],
+        storage_bucket=s["storage_bucket"],
+        storage_prefix=s["storage_prefix"],
+        sage_api_url=s["sage_api_url"],
+        trace_root_path=s["trace_root_path"],
+    )

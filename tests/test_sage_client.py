@@ -85,7 +85,7 @@ class TestSageAPIClientObservationCount:
         assert count == 0
 
     def test_timeout_returns_zero_with_warning(self, caplog):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client = self._make_client()
         with patch("beacon.sage.client.httpx") as mock_httpx:
@@ -98,7 +98,7 @@ class TestSageAPIClientObservationCount:
         assert count == 0
 
     def test_http_error_returns_zero(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client = self._make_client()
         with patch("beacon.sage.client.httpx") as mock_httpx:
@@ -283,7 +283,7 @@ class TestSageAPIClientAuthHeaders:
         assert headers == {}
 
     def test_oidc_failure_search_actors_fails_soft(self, monkeypatch):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         monkeypatch.delenv("SAGE_API_AUTH_TOKEN", raising=False)
         client = SageAPIClient(self.HTTPS_URL)

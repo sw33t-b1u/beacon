@@ -119,7 +119,7 @@ Place your strategy document in `input/` (see [`schema/context_template.md`](../
 Use when you already have a `business_context.json` and want to avoid LLM costs.
 
 ```bash
-beacon pir-generate \
+uv run beacon pir-generate \
   --context tests/fixtures/sample_context_manufacturing.json \
   --output output/
 ```
@@ -128,7 +128,7 @@ beacon pir-generate \
 
 ```bash
 # Ensure GCP_PROJECT_ID is set and ADC is configured (see Step 4)
-beacon pir-generate \
+uv run beacon pir-generate \
   --context input/acme.md \
   --output output/
 ```
@@ -136,7 +136,7 @@ beacon pir-generate \
 To also save the intermediate `BusinessContext` JSON for inspection or reuse:
 
 ```bash
-beacon pir-generate \
+uv run beacon pir-generate \
   --context input/acme.md \
   --save-context output/business_context.json
 # Writes: output/pir_output.json, output/collection_plan.md, output/business_context.json

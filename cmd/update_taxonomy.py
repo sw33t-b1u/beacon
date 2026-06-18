@@ -29,7 +29,7 @@ import json
 import sys
 from pathlib import Path
 
-import httpx
+import httpx2 as httpx
 import structlog
 
 logger = structlog.get_logger(__name__)

@@ -331,7 +331,7 @@ class TestSettingsTestSage:
         mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client.get = mock_get
 
-        with patch("httpx.AsyncClient", return_value=mock_client):
+        with patch("httpx2.AsyncClient", return_value=mock_client):
             resp = client.get("/settings/test-sage?sage_url=http://localhost:8001")
 
         assert resp.status_code == 200
@@ -350,7 +350,7 @@ class TestSettingsTestSage:
         mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client.get = mock_get
 
-        with patch("httpx.AsyncClient", return_value=mock_client):
+        with patch("httpx2.AsyncClient", return_value=mock_client):
             resp = client.get("/settings/test-sage?sage_url=http://localhost:8001")
 
         assert resp.status_code == 200
@@ -359,14 +359,14 @@ class TestSettingsTestSage:
         assert "500" in data["detail"]
 
     def test_connection_error_returns_error_status(self):
-        import httpx as _httpx
+        import httpx2 as _httpx
 
         mock_client = AsyncMock()
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
         mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client.get = AsyncMock(side_effect=_httpx.ConnectError("Connection refused"))
 
-        with patch("httpx.AsyncClient", return_value=mock_client):
+        with patch("httpx2.AsyncClient", return_value=mock_client):
             resp = client.get("/settings/test-sage?sage_url=http://nonexistent:9999")
 
         assert resp.status_code == 200
@@ -387,7 +387,7 @@ class TestSettingsTestSage:
         mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client.get = mock_get
 
-        with patch("httpx.AsyncClient", return_value=mock_client):
+        with patch("httpx2.AsyncClient", return_value=mock_client):
             resp = client.get("/settings/test-sage?sage_url=http://localhost:8001")
 
         assert resp.status_code == 200

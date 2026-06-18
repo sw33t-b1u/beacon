@@ -172,6 +172,117 @@ gcloud run services update beacon-web \
 
 ---
 
+## BEACON の運用（アナリストワークフロー）
+
+上記の Day-0/1/N セクションはインフラを立ち上げる手順である。本セクションでは、
+GCS バックエンドの BEACON デプロイを使って CTI アナリストが実際に *何をするか*、
+どの順序で行うかを説明する。まず **概要** を読んでパイプライン全体を把握すること。
+末尾の **詳細コマンド** ブロックは同じ手順を実コマンドでなぞる。
+
+### 概要 — 何ができるか
+
+このフローをたどると、新しいビジネスコンテキスト文書を、クエリ可能な攻撃経路まで
+一気通貫で到達させられる。各ステップには存在理由がある:
+
+- **ビジネスコンテキストの作成** — 組織（業種・地理・クラウンジュエル・規制要件）を
+  `input/context.md` に記述する。これがすべての下流スコアを駆動する唯一の入力であり、
+  これが無ければ BEACON は優先順位付けの基準を持たない。
+- **PIR + assets の生成** — そのコンテキストを Priority Intelligence Requirements と
+  3 つの asset ドラフト（`assets` / `identity_assets` / `user_accounts`）に変換する。
+  散文を、SAGE と TRACE が消費する構造化・スコア済みの成果物へ変える。
+- **成果物の GCS への永続化** — ストレージバックエンドが `gcs` の場合、生成・保存される
+  すべての成果物はローカルの `output/` ではなく設定されたバケット/プレフィックスに格納
+  される。これにより（永続的なローカルディスクを持たない）Cloud Run リビジョンが
+  リクエスト間およびパイプラインの他コンポーネントと状態を共有できる。
+- **Web ダッシュボードでの閲覧・編集** — ダッシュボードを開き、LLM が知り得ない
+  組織既知のフィールド（asset の owner、セキュリティコントロール、CVE マッピング、
+  identity/account フラグ）を補完してから再保存する。グラフへ到達する前の
+  human-in-the-loop ゲートである。
+- **TRACE による検証** — すべての SAGE 入力は単一の検証ゲートである TRACE を通過する。
+  これによりスキーマ・参照整合性のエラー（taxonomy の欠落、asset タグの不一致、有効期間
+  切れ）がグラフを汚染する前に捕捉される。
+- **SAGE によるグラフ取込** — SAGE は検証済み assets をロードし STIX ETL を実行する。
+  PIR タグで脅威アクターをフィルタし `pir_adjusted_criticality` を計算する。外部 CTI と
+  内部コンテキストがついに合流する場所である。
+- **攻撃経路のクエリ** — グラフが投入されたら、SAGE（Analysis API・visualizer・
+  ダッシュボードの **Threats** タブ）にアクターカバレッジ・TTP・最もリスクの高い asset を
+  クエリする。これが対価であり、Red/Blue/IR チーム向けの優先順位付き攻撃経路インサイトが
+  得られる。
+
+この概要だけでアナリストは何が可能かを把握できる — コンテキスト作成、スコア済み成果物の
+生成、GCS への永続化、ブラウザでの精緻化、検証、取込、そして最後のクエリ — コマンドを
+一切読まずに。
+
+### ストレージバックエンドの選択（GCS と local）
+
+成果物がどこに永続化されるかはストレージバックエンドで決まり、2 つのソースから
+次の優先順位で解決される:
+
+**`defaults < .beacon_settings.json（Settings UI）< 環境変数`** — 環境変数が常に勝つ。
+
+- **環境変数** — Cloud Run リビジョンに `BEACON_STORAGE=gcs`・
+  `BEACON_STORAGE_BUCKET=<bucket>`・`BEACON_STORAGE_PREFIX=<prefix>` を設定する
+  （Day-1 デプロイで既に設定済み）。本番ではこの経路を推奨する。
+- **Web Settings タブ** — ダッシュボードの **Settings** タブでストレージモード `gcs`
+  （バケット/プレフィックスとともに）を選択すると、その値が `.beacon_settings.json` に
+  永続化される。BEACON 4.1.0 以降、この選択は **すべて** のデータ経路で尊重される —
+  PIR と asset のロード/保存は、`BEACON_STORAGE` 環境変数が設定されていなくても
+  Settings UI の選択を尊重するようになった。（以前のリリースでは、env 変数も併設しない
+  限りデータロードで Settings 値が無視されていた。）
+
+環境変数が優先順位の頂点にあるため、Cloud Run リビジョンに設定された `BEACON_STORAGE` は
+Settings UI が保存した値を上書きする。したがって Cloud Run デプロイでは、リビジョンの
+env 変数を権威とし、Settings タブは主にローカル/スタンドアロン実行で使うことを推奨する。
+
+> **GCS アクセス要件:** ランタイムのサービスアカウント（`beacon-sa`）はバケットに対する
+> `roles/storage.objectAdmin` を必要とし（Day-0 で付与）、バケットが存在し（Day-0）、
+> イメージに `gcs` extra（`google-cloud-storage`）がインストールされている必要がある。
+> これらが整っていれば、アナリスト側で認証情報を扱う必要はない — Cloud Run が
+> サービスアカウントの identity を注入する。
+
+### 詳細コマンド
+
+同じフローを実コマンドで示す。CLI 呼び出しは `uv run` を使い、クロスリポジトリの手順は
+兄弟ディレクトリ `../TRACE` / `../SAGE` のチェックアウトを前提とする。
+
+```bash
+# 1. ビジネスコンテキストの作成（入力文書を編集）
+#    input/context.md  — 業種・地理・クラウンジュエル・規制要件
+
+# 2. PIR + 3 つの asset ドラフトを生成（1 パス）
+uv run beacon pir-generate                    # input/context.md を使用
+#    pir_output.json と assets_<ts>.json / identity_assets_<ts>.json /
+#    user_accounts_<ts>.json を生成。BEACON_STORAGE=gcs ならバケットに格納される。
+
+# 3. ダッシュボードで閲覧・編集（LLM が補えない組織既知フィールド）
+uv run beacon web                             # http://localhost:8000
+#    PIR タブ      — スコアを確認し PIR を承認
+#    Assets タブ   — owner / security_control_ids / security_controls /
+#                    asset_vulnerabilities（CVE → asset_id）
+#    Identity タブ — identity の説明・ロール・なりすましフラグ
+#    Accounts タブ — アカウント種別・特権フラグ・account_on_asset エッジ
+#    Settings タブ — ストレージモード / bucket / prefix・SAGE URL・TRACE path
+#    各タブを再保存すると新しい <type>_<ts>.json がバックエンドに書き込まれる。
+
+# 4. すべての SAGE 入力を TRACE（単一の検証ゲート）で検証
+cd ../TRACE && uv run trace validate-pir --pir pir_output.json
+cd ../TRACE && uv run trace validate-pir --pir pir_output.json --assets assets.json
+
+# 5. SAGE グラフへ取込
+cd ../SAGE && uv run sage load-assets --input output/assets.json
+cd ../SAGE && uv run sage run-etl
+
+# 6. 攻撃経路のクエリ
+cd ../SAGE && uv run sage visualize-graph     # インタラクティブ HTML
+#    あるいはダッシュボードの Threats タブを使う（SAGE API プロキシ:
+#    アクター検索・TTP 参照・threat-summary）。
+```
+
+各ステップの詳細（PIR フィールド、Assets タブ編集、ETL 検証、トラブルシューティング）は
+[docs/usage.ja.md](usage.ja.md) と [docs/pipeline-guide.md](pipeline-guide.md) を参照すること。
+
+---
+
 ## アクセス（本番推奨 = L2）
 
 デプロイ時に `--no-allow-unauthenticated` が既に設定されている。アクセスが必要なアイデンティティに `roles/run.invoker` を付与する。

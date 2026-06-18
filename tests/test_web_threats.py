@@ -236,7 +236,7 @@ class TestSageClientSearchActors:
         return SageAPIClient("http://localhost:8000")
 
     def test_returns_actors_list(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
         fake_data = {"actors": [{"stix_id": "intrusion-set--apt28", "name": "APT28"}]}
@@ -254,7 +254,7 @@ class TestSageClientSearchActors:
         assert result[0]["name"] == "APT28"
 
     def test_timeout_returns_empty_list(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
         with patch("beacon.sage.client.httpx") as mock_httpx:
@@ -266,7 +266,7 @@ class TestSageClientSearchActors:
         assert result == []
 
     def test_http_error_returns_empty_list(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
         with patch("beacon.sage.client.httpx") as mock_httpx:
@@ -280,7 +280,7 @@ class TestSageClientSearchActors:
         assert result == []
 
     def test_bare_list_response_accepted(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
         mock_resp = MagicMock()
@@ -304,7 +304,7 @@ class TestSageClientGetActorTTPs:
         return SageAPIClient("http://localhost:8000")
 
     def test_returns_ttps_from_dict_response(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
         fake_data = {"ttps": [{"ttp_id": "T1190", "name": "Exploit Public-Facing App"}]}
@@ -322,7 +322,7 @@ class TestSageClientGetActorTTPs:
         assert result[0]["ttp_id"] == "T1190"
 
     def test_timeout_returns_empty_list(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
         with patch("beacon.sage.client.httpx") as mock_httpx:
@@ -334,7 +334,7 @@ class TestSageClientGetActorTTPs:
         assert result == []
 
     def test_http_error_returns_empty_list(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
         with patch("beacon.sage.client.httpx") as mock_httpx:
@@ -348,7 +348,7 @@ class TestSageClientGetActorTTPs:
         assert result == []
 
     def test_params_passed_correctly(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
         mock_resp = MagicMock()
@@ -368,7 +368,7 @@ class TestSageClientGetActorTTPs:
         assert params["until"] == "2026-06-01"
 
     def test_none_since_until_not_sent(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
         mock_resp = MagicMock()
@@ -394,7 +394,7 @@ class TestSageClientGetThreatSummary:
         return SageAPIClient("http://localhost:8000")
 
     def test_returns_summary_dict(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
         fake_data = {
@@ -416,7 +416,7 @@ class TestSageClientGetThreatSummary:
         assert result["choke_points"][0]["name"] == "FW-1"
 
     def test_timeout_returns_empty_dict(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
         with patch("beacon.sage.client.httpx") as mock_httpx:
@@ -428,7 +428,7 @@ class TestSageClientGetThreatSummary:
         assert result == {}
 
     def test_http_error_returns_empty_dict(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
         with patch("beacon.sage.client.httpx") as mock_httpx:
@@ -442,7 +442,7 @@ class TestSageClientGetThreatSummary:
         assert result == {}
 
     def test_non_dict_response_returns_empty_dict(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
         mock_resp = MagicMock()
@@ -458,7 +458,7 @@ class TestSageClientGetThreatSummary:
         assert result == {}
 
     def test_params_passed_correctly(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         client_obj = self._make_client()
         mock_resp = MagicMock()

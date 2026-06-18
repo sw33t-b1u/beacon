@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import date
 from unittest.mock import MagicMock, patch
 
-import httpx
+import httpx2 as httpx
 import pytest
 
 from beacon.sage.client import SageAPIClient

@@ -527,7 +527,7 @@ def prioritize_actors(
     behaviour, mirroring recency_active_campaigns.
     """
     # Lazy import to avoid a runtime dependency on httpx when sage_client is None.
-    import httpx  # noqa: PLC0415
+    import httpx2 as httpx  # noqa: PLC0415
 
     org = business_context.organization
     business_misp_sector = _BEACON_TO_MISP_SECTOR.get(org.industry, "Private sector")

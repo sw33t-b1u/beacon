@@ -1159,7 +1159,7 @@ class TestIRBoostFailSoft:
         self.bctx = _finance_context()
 
     def test_httpx_timeout_sets_degraded_and_neutral_factors(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         sage = _StubSageClient(raise_exc=httpx.TimeoutException("simulated"))
         actors = prioritize_actors(
@@ -1177,7 +1177,7 @@ class TestIRBoostFailSoft:
     def test_httpx_http_error_sets_degraded_and_neutral_factors(self):
         from unittest.mock import MagicMock  # noqa: PLC0415
 
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         sage = _StubSageClient(
             raise_exc=httpx.HTTPStatusError("500", request=MagicMock(), response=MagicMock())

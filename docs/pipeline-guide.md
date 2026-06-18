@@ -23,7 +23,7 @@ Key commands:
 - `beacon assets-generate` — generate SAGE-compatible assets.json
 - `beacon identity-generate` — generate identity_assets.json
 - `beacon accounts-generate` — generate user_accounts.json
-- `beacon web` — 5-tab dashboard (http://localhost:8000)
+- `beacon web` — 8-tab dashboard (http://localhost:8000)
 
 → Full details: [BEACON docs/usage.md](usage.md)
 

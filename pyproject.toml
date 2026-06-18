@@ -1,19 +1,19 @@
 [project]
 name = "beacon"
-version = "4.0.0"
+version = "4.1.0"
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.0",
     "google-genai>=1.0",
     "structlog>=24.4.0",
-    "httpx>=0.27.0",
+    "httpx2>=2.4.0",
     "fastapi>=0.111.0",
     "uvicorn[standard]>=0.30.0",
     "python-multipart>=0.0.31",  # CVE-2026-53538/-53539/-53540 fix
     "jinja2>=3.1.0",
     "cryptography>=48.0.1",  # GHSA-537c-gmf6-5ccf fix; transitive via google-genai/uvicorn
     "python-dotenv>=1.0",  # load .env into os.environ at startup
-    "idna>=3.15",  # CVE-2026-45409 fix; transitive via anyio/httpx
+    "idna>=3.18",  # httpx2 requires idna>=3.18 (includes CVE-2026-45409 fix from 3.15); transitive via anyio/httpx2
     "starlette>=1.3.1",  # CVE-2026-48817/-48818/-54282/-54283 fix; transitive via fastapi
     "click>=8.1.0",  # Unified CLI entry (Initiative H Phase 6)
     "google-cloud-storage>=2.18.0",  # GCS StorageBackend (was optional [gcs] until BEACON 2.1.2)

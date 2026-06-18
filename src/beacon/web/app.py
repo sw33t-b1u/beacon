@@ -344,7 +344,7 @@ async def dashboard(request: Request):
 
     if cfg.sage_api_url:
         try:
-            import httpx as _httpx  # noqa: PLC0415
+            import httpx2 as _httpx  # noqa: PLC0415
 
             _base = cfg.sage_api_url.rstrip("/")
 
@@ -770,7 +770,7 @@ async def settings_test_sage(sage_url: str = ""):
         return JSONResponse({"status": "error", "detail": "No URL provided"})
 
     try:
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         async with httpx.AsyncClient(timeout=5.0) as client_h:
             url = sage_url.rstrip("/") + "/choke-points?top_n=1"

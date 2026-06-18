@@ -22,7 +22,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-import httpx
+import httpx2 as httpx
 import structlog
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))

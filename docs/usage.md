@@ -35,7 +35,8 @@ Settings priority chain: **env vars > `.beacon_settings.json` > defaults**.
 
 ## CLI Commands
 
-All commands are exposed through the `beacon` entry point installed by `uv sync`.
+All commands are run via `uv run beacon <subcommand>` (or as `beacon <subcommand>`
+after activating the venv with `source .venv/bin/activate`).
 
 ### `beacon pir-generate`
 
@@ -58,10 +59,10 @@ LLM augmentation is always active: `description`, `rationale`, and
 the organization's language context as parsed from the business context document.
 
 ```bash
-beacon pir-generate                    # uses input/context.md, full LLM mode
-beacon pir-generate --no-sage          # skip SAGE actor-triage enrichment
-beacon pir-generate --use-sage         # explicitly enable SAGE enrichment
-beacon pir-generate --save-context     # save structured BusinessContext to output/
+uv run beacon pir-generate                    # uses input/context.md, full LLM mode
+uv run beacon pir-generate --no-sage          # skip SAGE actor-triage enrichment
+uv run beacon pir-generate --use-sage         # explicitly enable SAGE enrichment
+uv run beacon pir-generate --save-context     # save structured BusinessContext to output/
 ```
 
 ### `beacon assets-generate`
@@ -69,7 +70,7 @@ beacon pir-generate --save-context     # save structured BusinessContext to outp
 Generate `assets.json` from the business context.
 
 ```bash
-beacon assets-generate
+uv run beacon assets-generate
 ```
 
 ### `beacon identity-generate`
@@ -77,7 +78,7 @@ beacon assets-generate
 Generate `identity_assets.json` (Identity nodes + `has_access` edges).
 
 ```bash
-beacon identity-generate
+uv run beacon identity-generate
 ```
 
 ### `beacon accounts-generate`
@@ -85,7 +86,7 @@ beacon identity-generate
 Generate `user_accounts.json` (UserAccount nodes + `account_on_asset` edges).
 
 ```bash
-beacon accounts-generate
+uv run beacon accounts-generate
 ```
 
 ### `beacon web`
@@ -93,7 +94,7 @@ beacon accounts-generate
 Launch the web dashboard.
 
 ```bash
-beacon web                 # http://localhost:8000
+uv run beacon web                 # http://localhost:8000
 ```
 
 ### `beacon taxonomy-refresh`
@@ -102,8 +103,8 @@ beacon web                 # http://localhost:8000
 and MISP Galaxy. Run the updater to rebuild the entire file:
 
 ```bash
-beacon taxonomy-refresh --dry-run   # preview changes, no file write
-beacon taxonomy-refresh             # apply
+uv run beacon taxonomy-refresh --dry-run   # preview changes, no file write
+uv run beacon taxonomy-refresh             # apply
 ```
 
 Options:
@@ -213,7 +214,7 @@ overridable via its matching environment variable:
 BEACON_LLM_SIMPLE=gemini-2.5-flash-lite \
 BEACON_LLM_MEDIUM=gemini-2.5-flash \
 BEACON_LLM_COMPLEX=gemini-2.5-pro \
-beacon pir-generate --context path/to/context.md
+uv run beacon pir-generate --context path/to/context.md
 ```
 
 Set only the tier(s) you want to override; unset tiers use their defaults
@@ -229,7 +230,7 @@ from the dropdown to load it into the review view without regenerating.
 ```bash
 export BEACON_STORAGE=gcs
 export BEACON_STORAGE_BUCKET=my-beacon-bucket
-beacon pir-generate
+uv run beacon pir-generate
 ```
 
 See [docs/setup.md](setup.md) for the full list of storage environment
@@ -253,16 +254,16 @@ the MISP community are reflected in BEACON output without requiring a code chang
 
 ```bash
 # Default: writes to cache/misp-threat-actor.json
-beacon misp-cache-refresh
+uv run beacon misp-cache-refresh
 
 # Custom output path
-beacon misp-cache-refresh --output /path/to/misp-threat-actor.json
+uv run beacon misp-cache-refresh --output /path/to/misp-threat-actor.json
 
 # Validate download without writing to disk
-beacon misp-cache-refresh --dry-run
+uv run beacon misp-cache-refresh --dry-run
 
 # All options
-beacon misp-cache-refresh --help
+uv run beacon misp-cache-refresh --help
 ```
 
 ### Recommended cron entry (daily at 03:00 local)
@@ -332,7 +333,7 @@ and verifying that `pir_adjusted_criticality` is updated correctly.
 
 ```bash
 cd BEACON/
-beacon pir-generate \
+uv run beacon pir-generate \
   --context path/to/business_context.json \
   --output-dir output/
 ```

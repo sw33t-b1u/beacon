@@ -120,7 +120,7 @@ make check
 すでに `business_context.json` があり、LLM コストを避けたい場合に使用。
 
 ```bash
-beacon pir-generate \
+uv run beacon pir-generate \
   --context tests/fixtures/sample_context_manufacturing.json \
   --output output/
 ```
@@ -129,7 +129,7 @@ beacon pir-generate \
 
 ```bash
 # GCP_PROJECT_ID を設定し、ADC を構成済みであること（Step 4 参照）
-beacon pir-generate \
+uv run beacon pir-generate \
   --context input/acme.md \
   --output output/
 ```
@@ -137,7 +137,7 @@ beacon pir-generate \
 中間生成物 `BusinessContext` JSON を確認・再利用したい場合は `--save-context` を追加:
 
 ```bash
-beacon pir-generate \
+uv run beacon pir-generate \
   --context input/acme.md \
   --save-context output/business_context.json
 # 出力: output/pir_output.json, output/collection_plan.md, output/business_context.json

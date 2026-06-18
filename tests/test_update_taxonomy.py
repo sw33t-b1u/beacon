@@ -36,7 +36,7 @@ class TestFetchStixBundle:
         assert _mod.fetch_stix_bundle(str(path)) == SAMPLE_BUNDLE
 
     def test_http_error_raises_runtime_error(self):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         with patch(f"{_PATCH_PREFIX}.httpx") as mock_httpx:
             mock_httpx.HTTPError = httpx.HTTPError
@@ -357,7 +357,7 @@ class TestMainCLI:
         assert rc == 1
 
     def test_mitre_fetch_error_returns_1(self, tmp_path):
-        import httpx  # noqa: PLC0415
+        import httpx2 as httpx  # noqa: PLC0415
 
         taxonomy_file = tmp_path / "taxonomy.json"
         taxonomy_file.write_text(json.dumps({"actor_categories": {}}), encoding="utf-8")

@@ -25,7 +25,7 @@ import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import httpx
+import httpx2 as httpx
 import pytest
 
 from beacon.web import launcher
