@@ -143,6 +143,7 @@ def run_discover_pir(
     to_date: str = "",
     since_days: int | None = None,
     max_candidates: int = 50,
+    include_recent: bool = False,
 ) -> DiscoveryResult:
     """Run ``trace discover-pir --json`` in the TRACE directory.
 
@@ -155,6 +156,7 @@ def run_discover_pir(
         to_date: Optional YYYY-MM-DD end date.
         since_days: Optional relative date window.
         max_candidates: Maximum candidate count requested from TRACE.
+        include_recent: Include recent in-window unmatched articles as fallback candidates.
 
     Returns:
         DiscoveryResult with parsed candidate metadata when stdout is valid
@@ -204,6 +206,8 @@ def run_discover_pir(
         cmd.extend(["--to", to_date])
     if since_days is not None:
         cmd.extend(["--since-days", str(since_days)])
+    if include_recent:
+        cmd.append("--include-recent")
 
     logger.info("trace_discover_pir_start", pir_path=pir_path, trace_root=trace_root)
     try:

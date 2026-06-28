@@ -47,7 +47,9 @@ PIR 駆動ワークフローは 3 段階です:
    を実行します。この処理は RSS/Atom feed を検索して candidate metadata のみを返し、
    この段階では STIX 抽出を行いません。
 2. **候補を承認** — score、公開日、source、title、URL、matched PIR ids、matched terms
-   を確認し、抽出すべき候補だけを選択します。
+   を確認します。**Include recent unmatched articles** チェックボックスを有効にすると、
+   PIR term に合致しなかった期間内の recent 記事も `score: 0.0` として追加され、
+   operator が有用な report を承認できるようになります。抽出すべき候補だけを選択します。
 3. **承認済みを抽出** — **Extract Approved** をクリックします。BEACON は選択候補を
    一時的な TRACE 互換 `sources.yaml` に変換し、PIR path を `trace crawl-batch --pir`
    に渡して実行し、crawl 結果を表示し、一時ファイルを削除します。L2 relevance、

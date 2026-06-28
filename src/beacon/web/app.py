@@ -462,6 +462,7 @@ def _collection_discovery_defaults() -> dict:
         "catalog_path": "",
         "since_days": 30,
         "max_candidates": 50,
+        "include_recent": True,
     }
 
 
@@ -474,6 +475,7 @@ async def collection_discover(
     to_date: str = Form(default=""),
     since_days: int = Form(default=30),
     max_candidates: int = Form(default=50),
+    include_recent: str = Form(default=""),
     csrf_token: str = Form(default=""),
     beacon_csrf: str = Cookie(default=""),
 ):
@@ -492,6 +494,7 @@ async def collection_discover(
         to_date=to_date,
         since_days=since_days,
         max_candidates=max_candidates,
+        include_recent=bool(include_recent),
     )
 
     trace_configured = bool(cfg.trace_root_path)
@@ -526,12 +529,14 @@ async def collection_discover(
                 "to_date": to_date,
                 "since_days": since_days,
                 "max_candidates": max_candidates,
+                "include_recent": bool(include_recent),
             },
             "discovery_defaults": {
                 "pir_path": pir_path,
                 "catalog_path": catalog_path,
                 "since_days": since_days,
                 "max_candidates": max_candidates,
+                "include_recent": bool(include_recent),
             },
         },
     )

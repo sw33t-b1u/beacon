@@ -56,8 +56,13 @@
                value="{{ discovery_defaults.max_candidates if discovery_defaults else 50 }}">
       </div>
     </div>
-    <div style="margin-top:0.75rem;">
+    <div style="margin-top:0.75rem; display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
       <button type="submit" class="btn btn-primary">Discover Articles</button>
+      <label style="font-size:0.88rem; color:#555; display:flex; gap:0.35rem; align-items:center;">
+        <input type="checkbox" name="include_recent" value="1"
+               {% if not discovery_defaults or discovery_defaults.include_recent %}checked{% endif %}>
+        Include recent unmatched articles
+      </label>
     </div>
   </form>
 

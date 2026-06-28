@@ -32,6 +32,7 @@ class TestCollectionDiscoveryPage:
         assert "PIR-driven Article Discovery" in resp.text
         assert "/collection/discover" in resp.text
         assert "discover-pir" in resp.text
+        assert "Include recent unmatched articles" in resp.text
 
 
 class TestCollectionDiscoverRoute:
@@ -70,6 +71,7 @@ class TestCollectionDiscoverRoute:
                     "to_date": "2026-06-30",
                     "since_days": "30",
                     "max_candidates": "25",
+                    "include_recent": "1",
                 },
             )
 
@@ -85,6 +87,7 @@ class TestCollectionDiscoverRoute:
         assert kwargs["to_date"] == "2026-06-30"
         assert kwargs["since_days"] == 30
         assert kwargs["max_candidates"] == 25
+        assert kwargs["include_recent"] is True
 
     def test_discover_shows_failure(self, monkeypatch, tmp_path):
         monkeypatch.setenv("TRACE_ROOT_PATH", str(tmp_path))
@@ -104,6 +107,7 @@ class TestCollectionDiscoverRoute:
                     "pir_path": str(tmp_path / "pir_output.json"),
                     "since_days": "30",
                     "max_candidates": "25",
+                    "include_recent": "1",
                 },
             )
 
@@ -157,6 +161,7 @@ class TestRunDiscoverPir:
                 to_date="2026-06-30",
                 since_days=30,
                 max_candidates=25,
+                include_recent=True,
             )
 
         assert result.success
@@ -170,6 +175,7 @@ class TestRunDiscoverPir:
         assert "input/source_catalog.yaml" in cmd
         assert "--max-candidates" in cmd
         assert "25" in cmd
+        assert "--include-recent" in cmd
 
     def test_nonzero_return_code_keeps_diagnostics(self, tmp_path):
         from beacon.trace.runner import run_discover_pir

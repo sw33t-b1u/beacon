@@ -49,8 +49,10 @@ The PIR-driven workflow has three steps:
    runs `trace discover-pir --json`; this searches RSS/Atom feeds and returns
    candidate metadata only. No STIX extraction happens at this stage.
 2. **Approve candidates** — review score, publication date, source, title, URL,
-   matched PIR ids, and matched terms. Select only the candidates that should
-   be extracted.
+   matched PIR ids, and matched terms. The **Include recent unmatched articles**
+   checkbox asks TRACE to append recent in-window articles with score `0.0` even
+   when no PIR term matched, so the operator can still approve useful reports.
+   Select only the candidates that should be extracted.
 3. **Extract approved** — click **Extract Approved**. BEACON converts the
    selected candidates into a temporary TRACE-compatible `sources.yaml`, passes
    the PIR path to `trace crawl-batch --pir`, displays the crawl result, and
