@@ -25,13 +25,43 @@ The dashboard has eight tabs:
 | **Assets** | Load `assets_*.json` draft, complete org-known fields (owner, security controls, CVE mappings), save to StorageBackend |
 | **Identity** | Load `identity_assets_*.json` draft, complete org-known identity fields (description, roles, impersonation risk flags, has_access edges), save to StorageBackend |
 | **Accounts** | Load `user_accounts_*.json` draft, complete org-known account fields (display name, account type, privilege flags, account_on_asset edges), save to StorageBackend |
-| **Collection** | Run TRACE `crawl-single` / `crawl-batch` via subprocess |
+| **Collection** | Discover PIR-matching CTI articles, approve candidates, and run TRACE `crawl-single` / `crawl-batch` via subprocess |
 | **Threats** | SAGE API proxy: actor search, TTP lookup, threat-summary |
 | **Settings** | Configure storage mode, SAGE URL, TRACE path; persisted to `.beacon_settings.json` |
 
 Settings priority chain: **env vars > `.beacon_settings.json` > defaults**.
 
 ---
+
+
+### Collection tab: discovery, approval, and extraction
+
+The Collection tab is the browser workflow for TRACE-backed CTI collection. It
+requires `TRACE_ROOT_PATH` to point at the TRACE repository root in Settings or
+in the environment. When the path is unset, the tab renders a configuration
+message and does not run TRACE subprocesses.
+
+The PIR-driven workflow has three steps:
+
+1. **Discover articles** — enter the BEACON `pir_output.json` path, optionally
+   enter a TRACE `source_catalog.yaml` path, choose either an absolute
+   `from`/`to` window or `since_days`, and click **Discover Articles**. BEACON
+   runs `trace discover-pir --json`; this searches RSS/Atom feeds and returns
+   candidate metadata only. No STIX extraction happens at this stage.
+2. **Approve candidates** — review score, publication date, source, title, URL,
+   matched PIR ids, and matched terms. Select only the candidates that should
+   be extracted.
+3. **Extract approved** — click **Extract Approved**. BEACON converts the
+   selected candidates into a temporary TRACE-compatible `sources.yaml`, passes
+   the PIR path to `trace crawl-batch --pir`, displays the crawl result, and
+   deletes the temporary file. TRACE remains responsible for L2 relevance, L3
+   extraction, STIX bundle writing, and crawl-state deduplication.
+
+The source catalog is operator-local TRACE runtime configuration. Copy
+`trace/input/source_catalog.example.yaml` to the gitignored
+`trace/input/source_catalog.yaml` and customize the feed list for your
+environment. Tests mock TRACE subprocesses and do not perform live feed
+fetches; live RSS/Atom access is runtime behavior only.
 
 ## CLI Commands
 

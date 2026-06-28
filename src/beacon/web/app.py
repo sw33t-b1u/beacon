@@ -12,6 +12,7 @@ import sys
 import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import urlparse
 
 import structlog
 from fastapi import Cookie, FastAPI, File, Form, HTTPException, Request, UploadFile
@@ -446,10 +447,156 @@ async def collection(request: Request):
             "crawl_history": crawl_history,
             "csrf_token": csrf_token,
             "crawl_result": None,
+            "discovery_result": None,
+            "discovery_defaults": _collection_discovery_defaults(),
         },
     )
     _set_csrf_cookie(response, csrf_token)
     return response
+
+
+def _collection_discovery_defaults() -> dict:
+    """Return default form values for PIR-driven article discovery."""
+    return {
+        "pir_path": str((_resolve_output_dir() / "pir_output.json").resolve()),
+        "catalog_path": "",
+        "since_days": 30,
+        "max_candidates": 50,
+    }
+
+
+@app.post("/collection/discover")
+async def collection_discover(
+    request: Request,
+    pir_path: str = Form(...),
+    catalog_path: str = Form(default=""),
+    from_date: str = Form(default=""),
+    to_date: str = Form(default=""),
+    since_days: int = Form(default=30),
+    max_candidates: int = Form(default=50),
+    csrf_token: str = Form(default=""),
+    beacon_csrf: str = Cookie(default=""),
+):
+    """Discover PIR-matching article candidates through TRACE discover-pir."""
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.trace.runner import load_crawl_state, run_discover_pir  # noqa: PLC0415
+
+    cfg = load_config()
+    result = run_discover_pir(
+        pir_path,
+        cfg.trace_root_path,
+        catalog_path=catalog_path,
+        from_date=from_date,
+        to_date=to_date,
+        since_days=since_days,
+        max_candidates=max_candidates,
+    )
+
+    trace_configured = bool(cfg.trace_root_path)
+    crawl_history: list[dict] = []
+    if trace_configured:
+        try:
+            crawl_history = load_crawl_state(cfg.trace_root_path)
+        except Exception:  # noqa: BLE001
+            crawl_history = []
+
+    new_csrf = _generate_csrf_token()
+    response = templates.TemplateResponse(
+        request=request,
+        name="collection.html",
+        context={
+            "active_tab": "collection",
+            "trace_configured": trace_configured,
+            "crawl_history": crawl_history,
+            "csrf_token": new_csrf,
+            "crawl_result": None,
+            "discovery_result": {
+                "success": result.success,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "return_code": result.return_code,
+                "candidates": result.candidates,
+                "candidate_count": result.candidate_count,
+                "window": result.window,
+                "pir_path": pir_path,
+                "catalog_path": catalog_path,
+                "from_date": from_date,
+                "to_date": to_date,
+                "since_days": since_days,
+                "max_candidates": max_candidates,
+            },
+            "discovery_defaults": {
+                "pir_path": pir_path,
+                "catalog_path": catalog_path,
+                "since_days": since_days,
+                "max_candidates": max_candidates,
+            },
+        },
+    )
+    _set_csrf_cookie(response, new_csrf)
+    return response
+
+
+def _valid_http_url(value: str) -> bool:
+    """Return True when value is a well-formed http(s) URL."""
+    try:
+        parsed = urlparse(value)
+    except Exception:  # noqa: BLE001
+        return False
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
+
+
+def _approved_sources_payload(candidate_json: list[str]) -> dict:
+    """Build a TRACE SourcesDocument-compatible payload from selected candidates."""
+    sources: list[dict] = []
+    seen: set[str] = set()
+    for raw in candidate_json:
+        try:
+            candidate = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise ValueError("selected candidate is not valid JSON") from exc
+        if not isinstance(candidate, dict):
+            raise ValueError("selected candidate must be a JSON object")
+        url = str(candidate.get("url") or "").strip()
+        if not _valid_http_url(url):
+            raise ValueError(f"selected candidate URL is not http(s): {url!r}")
+        key = url.rstrip("/").lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        title = str(candidate.get("title") or "").strip()
+        source_name = str(candidate.get("source_name") or "").strip()
+        label = ": ".join(part for part in (source_name, title) if part) or url
+        pir_ids = candidate.get("matched_pir_ids") or []
+        if not isinstance(pir_ids, list):
+            pir_ids = []
+        sources.append(
+            {
+                "url": url,
+                "label": label,
+                "task": "medium",
+                "pir_ids": [str(pir_id) for pir_id in pir_ids if str(pir_id).strip()],
+            }
+        )
+    if not sources:
+        raise ValueError("select at least one candidate article")
+    return {"version": 1, "sources": sources}
+
+
+def _write_sources_payload_tmp(payload: dict) -> str:
+    """Write TRACE-compatible sources payload to a temporary YAML file."""
+    # JSON is valid YAML and avoids adding a BEACON-side YAML dependency.
+    with tempfile.NamedTemporaryFile(
+        suffix=".yaml",
+        mode="w",
+        encoding="utf-8",
+        delete=False,
+    ) as tmp:
+        json.dump(payload, tmp, ensure_ascii=False, indent=2)
+        tmp.write("\n")
+        return tmp.name
 
 
 @app.post("/collection/crawl-single")
@@ -485,9 +632,72 @@ async def collection_crawl_single(
             "trace_configured": trace_configured,
             "crawl_history": crawl_history,
             "csrf_token": new_csrf,
+            "discovery_result": None,
+            "discovery_defaults": _collection_discovery_defaults(),
             "crawl_result": {
                 "mode": "single",
                 "url": url,
+                "success": result.success,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "return_code": result.return_code,
+                "stix_object_count": result.stix_object_count,
+                "pir_relevance_score": result.pir_relevance_score,
+            },
+        },
+    )
+    _set_csrf_cookie(response, new_csrf)
+    return response
+
+
+@app.post("/collection/extract-approved")
+async def collection_extract_approved(
+    request: Request,
+    pir_path: str = Form(...),
+    candidate_json: list[str] = Form(default=[]),
+    csrf_token: str = Form(default=""),
+    beacon_csrf: str = Cookie(default=""),
+):
+    """Convert approved discovery candidates to sources.yaml and run TRACE crawl-batch."""
+    _verify_csrf(beacon_csrf, csrf_token)
+
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.trace.runner import CrawlResult, load_crawl_state, run_crawl_batch  # noqa: PLC0415
+
+    cfg = load_config()
+    tmp_yaml_path = ""
+    try:
+        sources_payload = _approved_sources_payload(candidate_json)
+        tmp_yaml_path = _write_sources_payload_tmp(sources_payload)
+        result = run_crawl_batch(tmp_yaml_path, cfg.trace_root_path, pir_path=pir_path)
+    except ValueError as exc:
+        result = CrawlResult(success=False, stdout="", stderr=str(exc), return_code=2)
+    finally:
+        if tmp_yaml_path:
+            Path(tmp_yaml_path).unlink(missing_ok=True)
+
+    trace_configured = bool(cfg.trace_root_path)
+    crawl_history: list[dict] = []
+    if trace_configured:
+        try:
+            crawl_history = load_crawl_state(cfg.trace_root_path)
+        except Exception:  # noqa: BLE001
+            crawl_history = []
+
+    new_csrf = _generate_csrf_token()
+    response = templates.TemplateResponse(
+        request=request,
+        name="collection.html",
+        context={
+            "active_tab": "collection",
+            "trace_configured": trace_configured,
+            "crawl_history": crawl_history,
+            "csrf_token": new_csrf,
+            "discovery_result": None,
+            "discovery_defaults": _collection_discovery_defaults(),
+            "crawl_result": {
+                "mode": "approved",
+                "filename": Path(tmp_yaml_path).name if tmp_yaml_path else "approved-candidates",
                 "success": result.success,
                 "stdout": result.stdout,
                 "stderr": result.stderr,
@@ -549,6 +759,8 @@ async def collection_crawl_batch(
             "trace_configured": trace_configured,
             "crawl_history": crawl_history,
             "csrf_token": new_csrf,
+            "discovery_result": None,
+            "discovery_defaults": _collection_discovery_defaults(),
             "crawl_result": {
                 "mode": "batch",
                 "filename": sources_file.filename or "sources.yaml",

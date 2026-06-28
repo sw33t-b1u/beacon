@@ -36,6 +36,19 @@ class CrawlResult:
     pir_relevance_score: float = field(default=0.0)
 
 
+@dataclass
+class DiscoveryResult:
+    """Result of a TRACE discover-pir subprocess invocation."""
+
+    success: bool
+    stdout: str
+    stderr: str
+    return_code: int
+    candidates: list[dict] = field(default_factory=list)
+    candidate_count: int = 0
+    window: dict = field(default_factory=dict)
+
+
 def _validate_url(url: str) -> bool:
     """Return True only for http/https URLs (basic scheme check).
 
@@ -97,6 +110,144 @@ def _parse_stdout_metadata(stdout: str) -> tuple[int, float]:
                     pass
 
     return stix_count, relevance
+
+
+def _parse_discovery_payload(stdout: str) -> tuple[list[dict], dict]:
+    """Parse candidate JSON emitted by ``trace discover-pir --json``.
+
+    Returns an empty result when stdout is not valid JSON or does not carry the
+    expected candidate envelope. The caller still keeps stdout/stderr so the UI
+    can show raw diagnostics.
+    """
+    try:
+        payload = json.loads(stdout)
+    except json.JSONDecodeError:
+        return [], {}
+    if not isinstance(payload, dict):
+        return [], {}
+    candidates = payload.get("candidates")
+    window = payload.get("window")
+    if not isinstance(candidates, list):
+        candidates = []
+    if not isinstance(window, dict):
+        window = {}
+    return candidates, window
+
+
+def run_discover_pir(
+    pir_path: str,
+    trace_root: str,
+    *,
+    catalog_path: str = "",
+    from_date: str = "",
+    to_date: str = "",
+    since_days: int | None = None,
+    max_candidates: int = 50,
+) -> DiscoveryResult:
+    """Run ``trace discover-pir --json`` in the TRACE directory.
+
+    Args:
+        pir_path: Path to BEACON pir_output.json. Absolute paths are safest;
+            relative paths are interpreted by TRACE from ``trace_root``.
+        trace_root: Path to the TRACE repository root (used as cwd).
+        catalog_path: Optional source catalog path.
+        from_date: Optional YYYY-MM-DD start date.
+        to_date: Optional YYYY-MM-DD end date.
+        since_days: Optional relative date window.
+        max_candidates: Maximum candidate count requested from TRACE.
+
+    Returns:
+        DiscoveryResult with parsed candidate metadata when stdout is valid
+        candidate JSON. The function is fail-soft and never raises for
+        subprocess or path errors.
+    """
+    if not trace_root:
+        return DiscoveryResult(
+            success=False,
+            stdout="",
+            stderr="TRACE パスが設定されていません",
+            return_code=-1,
+        )
+    if not pir_path:
+        return DiscoveryResult(
+            success=False,
+            stdout="",
+            stderr="PIR path is required",
+            return_code=-1,
+        )
+
+    trace_path = Path(trace_root)
+    if not trace_path.is_dir():
+        return DiscoveryResult(
+            success=False,
+            stdout="",
+            stderr=f"TRACE root does not exist: {trace_root}",
+            return_code=-1,
+        )
+
+    cmd = [
+        "uv",
+        "run",
+        "trace",
+        "discover-pir",
+        "--pir",
+        pir_path,
+        "--json",
+        "--max-candidates",
+        str(max_candidates),
+    ]
+    if catalog_path:
+        cmd.extend(["--catalog", catalog_path])
+    if from_date:
+        cmd.extend(["--from", from_date])
+    if to_date:
+        cmd.extend(["--to", to_date])
+    if since_days is not None:
+        cmd.extend(["--since-days", str(since_days)])
+
+    logger.info("trace_discover_pir_start", pir_path=pir_path, trace_root=trace_root)
+    try:
+        proc = subprocess.run(
+            cmd,
+            cwd=str(trace_path),
+            capture_output=True,
+            text=True,
+            timeout=_SUBPROCESS_TIMEOUT,
+        )
+    except subprocess.TimeoutExpired as exc:
+        logger.warning("trace_discover_pir_timeout", pir_path=pir_path, error=str(exc))
+        return DiscoveryResult(
+            success=False,
+            stdout="",
+            stderr=f"Subprocess timed out after {_SUBPROCESS_TIMEOUT}s",
+            return_code=-1,
+        )
+    except OSError as exc:
+        logger.warning("trace_discover_pir_oserror", pir_path=pir_path, error=str(exc))
+        return DiscoveryResult(
+            success=False,
+            stdout="",
+            stderr=f"Failed to start subprocess: {exc}",
+            return_code=-1,
+        )
+
+    candidates, window = _parse_discovery_payload(proc.stdout)
+    success = proc.returncode == 0
+    logger.info(
+        "trace_discover_pir_done",
+        pir_path=pir_path,
+        return_code=proc.returncode,
+        candidate_count=len(candidates),
+    )
+    return DiscoveryResult(
+        success=success,
+        stdout=proc.stdout,
+        stderr=proc.stderr,
+        return_code=proc.returncode,
+        candidates=candidates,
+        candidate_count=len(candidates),
+        window=window,
+    )
 
 
 def run_crawl_single(url: str, trace_root: str) -> CrawlResult:
@@ -181,12 +332,13 @@ def run_crawl_single(url: str, trace_root: str) -> CrawlResult:
     )
 
 
-def run_crawl_batch(yaml_path: str, trace_root: str) -> CrawlResult:
+def run_crawl_batch(yaml_path: str, trace_root: str, *, pir_path: str = "") -> CrawlResult:
     """Run ``uv run python -m cmd.crawl_batch --sources <yaml_path>`` in the TRACE directory.
 
     Args:
         yaml_path: Absolute path to the YAML sources file.
         trace_root: Path to the TRACE repository root (used as cwd for subprocess).
+        pir_path: Optional BEACON pir_output.json path passed to TRACE for L2/L3/L4 context.
 
     Returns:
         CrawlResult with success flag, stdout/stderr, and parsed metadata.
@@ -209,7 +361,14 @@ def run_crawl_batch(yaml_path: str, trace_root: str) -> CrawlResult:
         )
 
     cmd = ["uv", "run", "python", "-m", "cmd.crawl_batch", "--sources", yaml_path]
-    logger.info("trace_crawl_batch_start", yaml_path=yaml_path, trace_root=trace_root)
+    if pir_path:
+        cmd.extend(["--pir", pir_path])
+    logger.info(
+        "trace_crawl_batch_start",
+        yaml_path=yaml_path,
+        trace_root=trace_root,
+        pir_path=pir_path or None,
+    )
 
     try:
         proc = subprocess.run(

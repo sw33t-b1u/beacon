@@ -24,13 +24,41 @@ uv run beacon web          # デフォルト: http://localhost:8000
 | **Assets** | `assets_*.json` ドラフトをロードし、org-known フィールド（owner・セキュリティコントロール・CVE マッピング）を補完して StorageBackend に保存 |
 | **Identity** | `identity_assets_*.json` ドラフトをロードし、org-known フィールド（description・roles・impersonation リスクフラグ・has_access エッジ）を補完して StorageBackend に保存 |
 | **Accounts** | `user_accounts_*.json` ドラフトをロードし、org-known フィールド（表示名・アカウント種別・権限フラグ・account_on_asset エッジ）を補完して StorageBackend に保存 |
-| **Collection** | TRACE の `crawl-single` / `crawl-batch` をサブプロセスで実行 |
+| **Collection** | PIR に合致する CTI 記事を探索し、候補を承認して、TRACE の `crawl-single` / `crawl-batch` をサブプロセスで実行 |
 | **Threats** | SAGE API プロキシ: アクター検索・TTP ルックアップ・脅威サマリ |
 | **Settings** | ストレージモード・SAGE URL・TRACE パスを設定。`.beacon_settings.json` に永続化 |
 
 設定の優先順位: **環境変数 > `.beacon_settings.json` > デフォルト値**
 
 ---
+
+
+### Collection タブ: 探索・承認・抽出
+
+Collection タブは TRACE を利用した CTI 収集のブラウザワークフローです。Settings
+または環境変数で `TRACE_ROOT_PATH` が TRACE リポジトリルートを指している必要があります。
+未設定の場合、このタブは設定メッセージを表示し、TRACE subprocess を実行しません。
+
+PIR 駆動ワークフローは 3 段階です:
+
+1. **記事を探索** — BEACON `pir_output.json` のパスを入力し、必要に応じて TRACE
+   `source_catalog.yaml` のパスを入力します。絶対 `from`/`to` 期間または `since_days`
+   を選び、**Discover Articles** をクリックします。BEACON は `trace discover-pir --json`
+   を実行します。この処理は RSS/Atom feed を検索して candidate metadata のみを返し、
+   この段階では STIX 抽出を行いません。
+2. **候補を承認** — score、公開日、source、title、URL、matched PIR ids、matched terms
+   を確認し、抽出すべき候補だけを選択します。
+3. **承認済みを抽出** — **Extract Approved** をクリックします。BEACON は選択候補を
+   一時的な TRACE 互換 `sources.yaml` に変換し、PIR path を `trace crawl-batch --pir`
+   に渡して実行し、crawl 結果を表示し、一時ファイルを削除します。L2 relevance、
+   L3 extraction、STIX bundle 書き出し、crawl-state deduplication は引き続き TRACE が
+   担当します。
+
+source catalog は TRACE の運用者ローカル runtime 設定です。
+`trace/input/source_catalog.example.yaml` を gitignored の
+`trace/input/source_catalog.yaml` にコピーし、自環境の feed 一覧に合わせて調整してください。
+テストでは TRACE subprocess を mock し、live feed fetch は行いません。RSS/Atom への live
+access は runtime 挙動のみです。
 
 ## CLI コマンド
 

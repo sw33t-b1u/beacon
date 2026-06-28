@@ -10,6 +10,143 @@
 </div>
 {% else %}
 
+
+{# ------------------------------------------------------------------ #}
+{# PIR-driven article discovery                                        #}
+{# ------------------------------------------------------------------ #}
+<div class="card">
+  <h2 style="margin-top:0;">PIR-driven Article Discovery</h2>
+  <p style="font-size:0.88rem; color:#666; margin-top:0;">
+    BEACON の <code>pir_output.json</code> を使い、TRACE の
+    <code>discover-pir</code> で RSS/Atom カタログから記事候補を探索します。
+    この段階では STIX 抽出は実行しません。
+  </p>
+  <form method="post" action="/collection/discover">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:0.75rem; align-items:end;">
+      <div>
+        <label for="discover-pir-path">PIR JSON path</label>
+        <input type="text" id="discover-pir-path" name="pir_path"
+               value="{{ discovery_defaults.pir_path if discovery_defaults else '' }}" required>
+      </div>
+      <div>
+        <label for="discover-catalog-path">Catalog path (optional)</label>
+        <input type="text" id="discover-catalog-path" name="catalog_path"
+               placeholder="input/source_catalog.yaml"
+               value="{{ discovery_defaults.catalog_path if discovery_defaults else '' }}">
+      </div>
+      <div>
+        <label for="discover-from">From (optional)</label>
+        <input type="date" id="discover-from" name="from_date"
+               value="{{ discovery_result.from_date if discovery_result else '' }}">
+      </div>
+      <div>
+        <label for="discover-to">To (optional)</label>
+        <input type="date" id="discover-to" name="to_date"
+               value="{{ discovery_result.to_date if discovery_result else '' }}">
+      </div>
+      <div>
+        <label for="discover-since-days">Since days</label>
+        <input type="number" id="discover-since-days" name="since_days" min="1"
+               value="{{ discovery_defaults.since_days if discovery_defaults else 30 }}">
+      </div>
+      <div>
+        <label for="discover-max-candidates">Max candidates</label>
+        <input type="number" id="discover-max-candidates" name="max_candidates" min="1"
+               value="{{ discovery_defaults.max_candidates if discovery_defaults else 50 }}">
+      </div>
+    </div>
+    <div style="margin-top:0.75rem;">
+      <button type="submit" class="btn btn-primary">Discover Articles</button>
+    </div>
+  </form>
+
+  {% if discovery_result %}
+  <div style="margin-top:1rem;">
+    {% if discovery_result.success %}
+    <div class="alert" style="background:#d5f5e3; border-left:4px solid #27ae60;">
+      <strong>成功</strong> — Candidates: {{ discovery_result.candidate_count }}
+      {% if discovery_result.window %}
+      | Window: {{ discovery_result.window['from'] if discovery_result.window['from'] else '—' }}
+      .. {{ discovery_result.window['to'] if discovery_result.window['to'] else '—' }}
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="alert" style="background:#fadbd8; border-left:4px solid #c0392b;">
+      <strong>失敗</strong> — return code: {{ discovery_result.return_code }}
+    </div>
+    {% endif %}
+
+    {% if discovery_result.candidates %}
+    <form method="post" action="/collection/extract-approved" style="margin-top:0.75rem;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="pir_path" value="{{ discovery_result.pir_path | e }}">
+      <table>
+      <thead>
+        <tr>
+          <th>Select</th>
+          <th>Score</th>
+          <th>Published</th>
+          <th>Source</th>
+          <th>Title / URL</th>
+          <th>PIR</th>
+          <th>Matched terms</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for candidate in discovery_result.candidates %}
+        <tr>
+          <td style="text-align:center;">
+            <input type="checkbox" name="candidate_json"
+                   value="{{ candidate | tojson | forceescape }}">
+          </td>
+          <td style="white-space:nowrap;">{{ "%.2f"|format(candidate.score) }}</td>
+          <td style="font-size:0.83rem; white-space:nowrap;">
+            {{ candidate.published_at if candidate.published_at else '—' }}
+          </td>
+          <td>{{ candidate.source_name if candidate.source_name else '—' }}</td>
+          <td style="max-width:380px; word-break:break-word;">
+            <strong>{{ candidate.title if candidate.title else '(untitled)' }}</strong><br>
+            <a href="{{ candidate.url | e }}" target="_blank" rel="noopener noreferrer"
+               style="font-size:0.83rem;">{{ candidate.url | e }}</a>
+            {% if candidate.summary %}
+            <div style="font-size:0.8rem; color:#666; margin-top:0.25rem;">
+              {{ candidate.summary | e }}
+            </div>
+            {% endif %}
+          </td>
+          <td style="font-size:0.83rem;">
+            {{ candidate.matched_pir_ids | join(', ') if candidate.matched_pir_ids else '—' }}
+          </td>
+          <td style="font-size:0.83rem;">
+            {{ candidate.matched_terms | join(', ') if candidate.matched_terms else '—' }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      </table>
+      <div style="margin-top:0.75rem; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+        <button type="submit" class="btn btn-primary">Extract Approved</button>
+        <span style="font-size:0.83rem; color:#777;">
+          選択した候補だけを TRACE crawl-batch に渡して STIX 抽出します。
+        </span>
+      </div>
+    </form>
+    {% elif discovery_result.success %}
+    <p style="font-size:0.88rem; color:#777;">候補記事は見つかりませんでした。</p>
+    {% endif %}
+
+    {% if discovery_result.stderr %}
+    <details style="margin-top:0.25rem;">
+      <summary style="cursor:pointer; font-size:0.88rem; color:#c0392b;">stderr</summary>
+      <pre style="background:#fff5f5; padding:0.75rem; border-radius:4px; font-size:0.8rem;
+                  overflow-x:auto; white-space:pre-wrap; margin-top:0.4rem; color:#c0392b;">{{ discovery_result.stderr | e }}</pre>
+    </details>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
 {# ------------------------------------------------------------------ #}
 {# Crawl Single URL                                                     #}
 {# ------------------------------------------------------------------ #}
@@ -83,10 +220,10 @@
     </p>
   </form>
 
-  {% if crawl_result and crawl_result.mode == 'batch' %}
+  {% if crawl_result and (crawl_result.mode == 'batch' or crawl_result.mode == 'approved') %}
   <div style="margin-top:1rem;">
     <p style="font-size:0.88rem; color:#555; margin-bottom:0.5rem;">
-      ファイル: <code>{{ crawl_result.filename | e }}</code>
+      入力: <code>{{ crawl_result.filename | e }}</code>
     </p>
     {% if crawl_result.success %}
     <div class="alert" style="background:#d5f5e3; border-left:4px solid #27ae60;">
