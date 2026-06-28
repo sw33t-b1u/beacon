@@ -1,0 +1,37 @@
+# CTI Platform console image: BEACON web + TRACE CLI in one Cloud Run service.
+# Build from the claude_pj root so this Dockerfile can copy both sibling repos:
+#   docker build -f beacon/Dockerfile.cti-console -t cti-console .
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Dependency layers (cache-optimized, no dev dependencies)
+COPY beacon/pyproject.toml beacon/uv.lock* /app/beacon/
+RUN cd /app/beacon && uv sync --no-install-project --no-dev --frozen
+
+COPY trace/pyproject.toml trace/uv.lock* /app/trace/
+RUN cd /app/trace && uv sync --no-install-project --no-dev --frozen
+
+# Copy BEACON
+COPY beacon/src/ /app/beacon/src/
+COPY beacon/cmd/ /app/beacon/cmd/
+COPY beacon/schema/ /app/beacon/schema/
+RUN cd /app/beacon && uv sync --no-dev --frozen
+
+# Copy TRACE
+COPY trace/src/ /app/trace/src/
+COPY trace/cmd/ /app/trace/cmd/
+COPY trace/schema/ /app/trace/schema/
+COPY trace/input/source_catalog.example.yaml /app/trace/input/source_catalog.example.yaml
+RUN cd /app/trace && uv sync --no-dev --frozen
+
+ENV TRACE_ROOT_PATH=/app/trace
+ENV PYTHONPATH=/app/beacon/src
+
+EXPOSE 8000
+
+ENTRYPOINT ["sh", "-c", "cd /app/beacon && uv run beacon web --host 0.0.0.0 --port ${PORT:-8000}"]

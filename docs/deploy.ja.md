@@ -348,3 +348,45 @@ SAGE の完全なデプロイ手順は [SAGE deploy.md](../../sage/docs/deploy.m
 ## 対象外
 
 IAP / 内部ロードバランサ / VPC Service Controls はこのガイドでは設定しない。少数の Google Workspace ユーザー運用（数名程度）では、上記の L2 IAM バインディングで十分である。コンテキストアウェアアクセスやカスタムネットワーク構成が必要な場合は https://cloud.google.com/iap/docs を参照すること。
+
+---
+
+## CTI Platform console トポロジ（ブラウザ完結運用の推奨）
+
+Collection が TRACE を呼び、Threats が SAGE を呼ぶブラウザワークフローでは、
+BEACON web と TRACE CLI を 1 つのイメージに同梱した **CTI Platform** Cloud Run service
+をデプロイする。SAGE ETL は単一 writer の Cloud Run Job として分離し、`sage-api` は
+読み取り専用 Analysis API として動かす。
+
+推奨コンポーネント:
+
+| コンポーネント | Cloud Run 種別 | 用途 |
+|---------------|----------------|------|
+| `cti-console` | service | BEACON web UI + TRACE CLI subprocess (`TRACE_ROOT_PATH=/app/trace`) |
+| `sage-api` | service | Threats タブが利用する読み取り専用 SAGE Analysis API |
+| `sage-etl` | job | 共有 GCS storage の `db/sage.db` を更新する単一 writer ETL |
+
+統合 console image はリポジトリルート（`beacon/` と `trace/` の1階層上）からビルドする:
+
+```bash
+export IMAGE=${REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/cloud-run/cti-console
+
+gcloud builds submit . \
+  --tag=${IMAGE} \
+  --file=beacon/Dockerfile.cti-console \
+  --project=${GCP_PROJECT_ID}
+```
+
+SAGE API URL と共有 storage 設定を指定して console service をデプロイする:
+
+```bash
+gcloud run deploy cti-console \
+  --image=${IMAGE} \
+  --region=${REGION} \
+  --project=${GCP_PROJECT_ID} \
+  --service-account="beacon-web@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+  --set-env-vars="TRACE_ROOT_PATH=/app/trace,SAGE_API_URL=${SAGE_API_URL},BEACON_STORAGE=gcs,BEACON_STORAGE_BUCKET=${STORAGE_BUCKET},BEACON_STORAGE_PREFIX=${STORAGE_PREFIX}"
+```
+
+`TRACE_ROOT_PATH=/app/trace` はイメージ内で既定設定され、必要なら上書きできる。
+Collection から TRACE を実行しない構成では、従来の BEACON 単体 image も利用できる。

@@ -15,7 +15,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import structlog
-from fastapi import Cookie, FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi import Cookie, FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.responses import JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
@@ -854,6 +854,51 @@ async def threats_api_actor_ttps(
         until=until or None,
     )
     return JSONResponse({"ttps": ttps})
+
+
+@app.get("/threats/api/indicators")
+async def threats_api_indicators(actor_id: list[str] = Query(default=[])):
+    """JSON proxy: Observables directly linked to the selected actors (SAGE)."""
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.sage.client import SageAPIClient  # noqa: PLC0415
+
+    cfg = load_config()
+    if not cfg.sage_api_url:
+        return JSONResponse({"indicators": [], "error": "SAGE not configured"})
+    if not actor_id:
+        return JSONResponse({"indicators": [], "error": "select at least one actor"})
+
+    client = SageAPIClient(cfg.sage_api_url)
+    indicators = client.get_indicators_for_actors(actor_id)
+    return JSONResponse({"indicators": indicators, "count": len(indicators)})
+
+
+@app.get("/threats/api/export-stix")
+async def threats_api_export_stix(actor_id: list[str] = Query(default=[])):
+    """Proxy: download a STIX 2.1 bundle subset for the selected actors (SAGE)."""
+    import httpx2 as _httpx  # noqa: PLC0415
+
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.sage.client import SageAPIClient  # noqa: PLC0415
+
+    cfg = load_config()
+    if not cfg.sage_api_url:
+        return JSONResponse({"error": "SAGE not configured"}, status_code=503)
+    if not actor_id:
+        return JSONResponse({"error": "select at least one actor"}, status_code=400)
+
+    client = SageAPIClient(cfg.sage_api_url)
+    try:
+        payload = client.export_stix(actor_id)
+    except (_httpx.HTTPError, _httpx.TimeoutException) as exc:
+        logger.warning("sage_export_stix_failed", error=str(exc))
+        return JSONResponse({"error": "SAGE export failed"}, status_code=502)
+
+    return Response(
+        content=payload,
+        media_type="application/stix+json",
+        headers={"Content-Disposition": 'attachment; filename="sage_indicator_export.json"'},
+    )
 
 
 @app.get("/threats/api/threat-summary")

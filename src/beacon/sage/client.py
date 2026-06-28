@@ -247,6 +247,52 @@ class SageAPIClient:
         logger.info("sage_search_actors", name=name, count=len(actors))
         return actors
 
+    def get_indicators_for_actors(self, actor_ids: list[str], limit: int = 1000) -> list[dict]:
+        """Fetch Observables directly linked to the selected actors.
+
+        Calls ``GET /indicators?actor_id=<id>&...``. Returns an empty list on
+        any error (fail-soft — the extraction view degrades gracefully).
+        """
+        if not actor_ids:
+            return []
+        url = f"{self._base_url}/indicators"
+        params: list[tuple[str, str | int]] = [("actor_id", a) for a in actor_ids]
+        params.append(("limit", limit))
+        try:
+            resp = httpx.get(url, params=params, headers=self._auth_headers(), timeout=15)
+            resp.raise_for_status()
+            data = resp.json()
+        except httpx.TimeoutException as exc:
+            logger.warning("sage_indicators_timeout", url=url, error=str(exc))
+            return []
+        except httpx.HTTPError as exc:
+            logger.warning("sage_indicators_error", url=url, error=str(exc))
+            return []
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("sage_indicators_unexpected", url=url, error=str(exc))
+            return []
+
+        indicators: list[dict] = data.get("indicators", []) if isinstance(data, dict) else []
+        logger.info("sage_indicators_fetched", actor_count=len(actor_ids), count=len(indicators))
+        return indicators
+
+    def export_stix(self, actor_ids: list[str], limit: int = 1000) -> bytes:
+        """Download a STIX 2.1 bundle subset for the selected actors.
+
+        Calls ``GET /export/stix?actor_id=<id>&download=true`` and returns the
+        raw bytes. Raises ``httpx.HTTPError`` / ``httpx.TimeoutException`` on
+        transport failure so the caller can surface a clear error to the
+        operator (this is an explicit user action, not a background fetch).
+        """
+        url = f"{self._base_url}/export/stix"
+        params: list[tuple[str, str | int]] = [("actor_id", a) for a in actor_ids]
+        params.append(("limit", limit))
+        params.append(("download", "true"))
+        resp = httpx.get(url, params=params, headers=self._auth_headers(), timeout=30)
+        resp.raise_for_status()
+        logger.info("sage_export_stix", actor_count=len(actor_ids), bytes=len(resp.content))
+        return resp.content
+
     def get_actor_ttps(
         self,
         actor_id: str,

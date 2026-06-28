@@ -1,4 +1,4 @@
-# BEACON — Usage Guide
+# CTI Platform — Usage Guide
 
 Japanese translation: [`docs/usage.ja.md`](usage.ja.md)
 
@@ -16,7 +16,7 @@ Start the dashboard:
 uv run beacon web          # default: http://localhost:8000
 ```
 
-The dashboard has eight tabs:
+The CTI Platform dashboard has eight tabs:
 
 | Tab | Purpose |
 |-----|---------|
@@ -26,13 +26,24 @@ The dashboard has eight tabs:
 | **Identity** | Load `identity_assets_*.json` draft, complete org-known identity fields (description, roles, impersonation risk flags, has_access edges), save to StorageBackend |
 | **Accounts** | Load `user_accounts_*.json` draft, complete org-known account fields (display name, account type, privilege flags, account_on_asset edges), save to StorageBackend |
 | **Collection** | Discover PIR-matching CTI articles, approve candidates, and run TRACE `crawl-single` / `crawl-batch` via subprocess |
-| **Threats** | SAGE API proxy: actor search, TTP lookup, threat-summary |
+| **Threats** | SAGE API proxy: actor search, TTP lookup, threat-summary, and STIX extraction for manual hunting |
 | **Settings** | Configure storage mode, SAGE URL, TRACE path; persisted to `.beacon_settings.json` |
 
 Settings priority chain: **env vars > `.beacon_settings.json` > defaults**.
 
 ---
 
+
+
+### Threats tab: actor search and STIX extraction
+
+The Threats tab proxies SAGE Analysis API. Operators can search actors by keyword
+(e.g. `apt4` to find APT41-like names), inspect actor TTPs, and select one or
+more actors for STIX extraction. **Download STIX Bundle** returns a local STIX
+2.1 file containing indicators directly linked to the selected actors via SAGE's
+`IndicatesActor` edge. TTP/malware multi-hop indicators are intentionally not
+included. The file is intended for manual review and manual SIEM hunting; the
+platform does not push to a SIEM.
 
 ### Collection tab: discovery, approval, and extraction
 

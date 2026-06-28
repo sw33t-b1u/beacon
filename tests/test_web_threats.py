@@ -476,3 +476,52 @@ class TestSageClientGetThreatSummary:
         assert params["asset"] == "asset-007"
         assert params["since"] == "2026-01-01"
         assert params["until"] == "2026-03-31"
+
+
+class TestThreatsApiIndicators:
+    def test_returns_error_when_sage_not_configured(self, monkeypatch):
+        monkeypatch.setenv("SAGE_API_URL", "")
+        resp = client.get("/threats/api/indicators?actor_id=intrusion-set--a")
+        assert resp.status_code == 200
+        assert resp.json()["indicators"] == []
+        assert "error" in resp.json()
+
+    def test_returns_indicators_from_sage(self, monkeypatch):
+        monkeypatch.setenv("SAGE_API_URL", "http://sage")
+        with patch("beacon.sage.client.SageAPIClient.get_indicators_for_actors") as mock_get:
+            mock_get.return_value = [{"value": "203.0.113.10", "obs_type": "ip"}]
+            resp = client.get("/threats/api/indicators?actor_id=intrusion-set--a")
+        assert resp.status_code == 200
+        assert resp.json()["count"] == 1
+        mock_get.assert_called_once_with(["intrusion-set--a"])
+
+
+class TestThreatsApiExportStix:
+    def test_returns_error_when_sage_not_configured(self, monkeypatch):
+        monkeypatch.setenv("SAGE_API_URL", "")
+        resp = client.get("/threats/api/export-stix?actor_id=intrusion-set--a")
+        assert resp.status_code == 503
+
+    def test_downloads_stix_from_sage(self, monkeypatch):
+        monkeypatch.setenv("SAGE_API_URL", "http://sage")
+        payload = b'{"type":"bundle","objects":[]}'
+        with patch(
+            "beacon.sage.client.SageAPIClient.export_stix",
+            return_value=payload,
+        ) as mock_export:
+            resp = client.get("/threats/api/export-stix?actor_id=intrusion-set--a")
+        assert resp.status_code == 200
+        assert resp.content == payload
+        assert resp.headers["content-type"].startswith("application/stix+json")
+        assert "attachment" in resp.headers["content-disposition"]
+        mock_export.assert_called_once_with(["intrusion-set--a"])
+
+
+class TestThreatsStixExtractionUi:
+    def test_get_shows_stix_extraction_controls_when_sage_configured(self, monkeypatch):
+        monkeypatch.setenv("SAGE_API_URL", "http://sage")
+        resp = client.get("/threats")
+        assert resp.status_code == 200
+        assert "STIX Extraction" in resp.text
+        assert "Download STIX Bundle" in resp.text
+        assert "CTI Platform" in resp.text

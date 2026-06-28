@@ -1,4 +1,4 @@
-# BEACON — 使用ガイド
+# CTI Platform — 使用ガイド
 
 英語版（正本）: [`docs/usage.md`](usage.md)
 
@@ -15,7 +15,7 @@
 uv run beacon web          # デフォルト: http://localhost:8000
 ```
 
-ダッシュボードは 8 つのタブで構成されます:
+CTI Platform ダッシュボードは 8 つのタブで構成されます:
 
 | タブ | 用途 |
 |------|------|
@@ -25,13 +25,23 @@ uv run beacon web          # デフォルト: http://localhost:8000
 | **Identity** | `identity_assets_*.json` ドラフトをロードし、org-known フィールド（description・roles・impersonation リスクフラグ・has_access エッジ）を補完して StorageBackend に保存 |
 | **Accounts** | `user_accounts_*.json` ドラフトをロードし、org-known フィールド（表示名・アカウント種別・権限フラグ・account_on_asset エッジ）を補完して StorageBackend に保存 |
 | **Collection** | PIR に合致する CTI 記事を探索し、候補を承認して、TRACE の `crawl-single` / `crawl-batch` をサブプロセスで実行 |
-| **Threats** | SAGE API プロキシ: アクター検索・TTP ルックアップ・脅威サマリ |
+| **Threats** | SAGE API プロキシ: アクター検索・TTP ルックアップ・脅威サマリ・手動ハンティング向け STIX 抽出 |
 | **Settings** | ストレージモード・SAGE URL・TRACE パスを設定。`.beacon_settings.json` に永続化 |
 
 設定の優先順位: **環境変数 > `.beacon_settings.json` > デフォルト値**
 
 ---
 
+
+
+### Threats タブ: アクター検索と STIX 抽出
+
+Threats タブは SAGE Analysis API をプロキシします。operator はキーワードで actor を検索し
+（例: `apt4` で APT41 に近い名前を検索）、actor TTP を確認し、1つ以上の actor を選択して
+STIX 抽出できます。**Download STIX Bundle** は、SAGE の `IndicatesActor` edge で選択
+actor に直接紐づく indicator を含む STIX 2.1 ファイルをローカルに返します。TTP/malware
+経由の多段 indicator は意図的に含めません。このファイルは人手レビューと手動 SIEM hunting
+向けであり、platform が SIEM に直接送信することはありません。
 
 ### Collection タブ: 探索・承認・抽出
 

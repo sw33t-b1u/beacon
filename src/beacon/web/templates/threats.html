@@ -1,7 +1,8 @@
 {% extends "base.html" %}
-{% block title %}BEACON — Threats{% endblock %}
+{% block title %}CTI Platform — Threats{% endblock %}
 {% block content %}
 <h1>Threats</h1>
+<p style="color:#666;">CTI Platform view for SAGE actor search, exposure analysis, and STIX extraction.</p>
 
 {% if not sage_configured %}
 <div class="alert alert-info" style="border-left-color:#e67e22; background:#fef9e7;">
@@ -50,6 +51,19 @@
   </div>
 
   <div id="actor-results"></div>
+
+  <div class="card" id="stix-extract-card" style="display:none;">
+    <h2 style="margin-top:0;">STIX Extraction</h2>
+    <p style="font-size:0.88rem; color:#666; margin-top:0;">
+      Select one or more actors above, preview direct indicators, then download a STIX 2.1 bundle for manual SIEM hunting.
+    </p>
+    <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="previewIndicators()">Preview Indicators</button>
+      <button class="btn btn-primary" onclick="downloadStixBundle()">Download STIX Bundle</button>
+      <span id="extract-status" style="font-size:0.88rem; color:#555;"></span>
+    </div>
+    <div id="indicator-preview" style="margin-top:0.75rem;"></div>
+  </div>
 </div>
 
 {# ------------------------------------------------------------------ #}
@@ -183,6 +197,7 @@
     return `
       <div class="actor-card">
         <div class="actor-card-header" onclick="toggleActor(${idx})">
+          <input type="checkbox" class="actor-select" value="${actorId}" onclick="event.stopPropagation(); updateExtractCard();">
           <h3>${escapeHtml(actor.name || '(unnamed)')}</h3>
           <span class="tag">${escapeHtml(soph)}</span>
           <small style="color:#777;">Last seen: ${escapeHtml(lastSeen)}</small>
@@ -248,6 +263,70 @@
     return `
       <table class="ttp-table">
         <thead><tr><th>TTP ID</th><th>Name</th><th>Phase</th><th>Last Seen</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+
+
+  function selectedActorIds() {
+    return Array.from(document.querySelectorAll('.actor-select:checked')).map(cb => cb.value).filter(Boolean);
+  }
+
+  function updateExtractCard() {
+    const card = document.getElementById('stix-extract-card');
+    if (card) card.style.display = selectedActorIds().length ? '' : 'none';
+  }
+
+  async function previewIndicators() {
+    const ids = selectedActorIds();
+    const statusEl = document.getElementById('extract-status');
+    const previewEl = document.getElementById('indicator-preview');
+    if (!ids.length) {
+      statusEl.textContent = 'Select at least one actor.';
+      return;
+    }
+    statusEl.innerHTML = '<span class="spinner"></span> Loading indicators…';
+    const params = new URLSearchParams();
+    ids.forEach(id => params.append('actor_id', id));
+    try {
+      const resp = await fetch('/threats/api/indicators?' + params.toString());
+      const data = await resp.json();
+      if (data.error) {
+        statusEl.textContent = 'Error: ' + data.error;
+        return;
+      }
+      const indicators = data.indicators || [];
+      statusEl.textContent = indicators.length + ' indicator link(s) found';
+      previewEl.innerHTML = indicators.length ? renderIndicatorTable(indicators) : '<p class="empty-msg">No direct indicators for the selected actors.</p>';
+    } catch (err) {
+      statusEl.textContent = 'Request failed: ' + err.message;
+    }
+  }
+
+  function downloadStixBundle() {
+    const ids = selectedActorIds();
+    const statusEl = document.getElementById('extract-status');
+    if (!ids.length) {
+      statusEl.textContent = 'Select at least one actor.';
+      return;
+    }
+    const params = new URLSearchParams();
+    ids.forEach(id => params.append('actor_id', id));
+    window.location = '/threats/api/export-stix?' + params.toString();
+  }
+
+  function renderIndicatorTable(indicators) {
+    const rows = indicators.map(i => `
+      <tr>
+        <td>${escapeHtml(i.obs_type || '—')}</td>
+        <td><code>${escapeHtml(i.value || '—')}</code></td>
+        <td>${escapeHtml(i.tlp || '—')}</td>
+        <td>${escapeHtml(i.actor_name || i.actor_stix_id || '—')}</td>
+      </tr>`).join('');
+    return `
+      <table class="ttp-table">
+        <thead><tr><th>Type</th><th>Value</th><th>TLP</th><th>Actor</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>`;
   }

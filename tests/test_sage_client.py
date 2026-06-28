@@ -334,3 +334,47 @@ class TestSageAPIClientAuthHeaders:
     def test_http_base_url_never_attaches_static_token(self):
         client = SageAPIClient(self.HTTP_URL, bearer_token="static-abc")
         assert client._auth_headers() == {}
+
+
+class TestSageAPIClientIndicatorExtraction:
+    def _make_client(self):
+        return SageAPIClient("http://localhost:8000")
+
+    def test_get_indicators_for_actors_calls_sage(self):
+        client = self._make_client()
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = {"indicators": [{"value": "203.0.113.10"}]}
+        mock_resp.raise_for_status.return_value = None
+        with patch("beacon.sage.client.httpx") as mock_httpx:
+            mock_httpx.get.return_value = mock_resp
+            mock_httpx.TimeoutException = Exception
+            mock_httpx.HTTPError = Exception
+            result = client.get_indicators_for_actors(["intrusion-set--a"], limit=5)
+
+        assert result == [{"value": "203.0.113.10"}]
+        url = mock_httpx.get.call_args[0][0]
+        params = mock_httpx.get.call_args[1]["params"]
+        assert url.endswith("/indicators")
+        assert ("actor_id", "intrusion-set--a") in params
+        assert ("limit", 5) in params
+
+    def test_get_indicators_for_actors_empty_input_no_call(self):
+        client = self._make_client()
+        with patch("beacon.sage.client.httpx") as mock_httpx:
+            assert client.get_indicators_for_actors([]) == []
+            mock_httpx.get.assert_not_called()
+
+    def test_export_stix_returns_bytes(self):
+        client = self._make_client()
+        mock_resp = MagicMock()
+        mock_resp.content = b'{"type":"bundle"}'
+        mock_resp.raise_for_status.return_value = None
+        with patch("beacon.sage.client.httpx") as mock_httpx:
+            mock_httpx.get.return_value = mock_resp
+            payload = client.export_stix(["intrusion-set--a"], limit=7)
+
+        assert payload == b'{"type":"bundle"}'
+        params = mock_httpx.get.call_args[1]["params"]
+        assert ("actor_id", "intrusion-set--a") in params
+        assert ("limit", 7) in params
+        assert ("download", "true") in params

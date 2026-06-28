@@ -360,3 +360,47 @@ See [SAGE deploy.md](../../sage/docs/deploy.md) for the full SAGE deploy procedu
 ## Out of scope
 
 IAP / Internal Load Balancer / VPC Service Controls are not configured by this guide. For small Google Workspace user counts (a few users), the L2 IAM binding above is sufficient. If you need context-aware access or custom network topology, see https://cloud.google.com/iap/docs.
+
+---
+
+## CTI Platform console topology (recommended for browser-complete operation)
+
+For the browser workflow where Collection can call TRACE and Threats can call
+SAGE, deploy a combined **CTI Platform** Cloud Run service that contains BEACON
+web and the TRACE CLI in one image. Keep SAGE ETL as a separate Cloud Run Job
+(single writer), and run `sage-api` as the read-only analysis API.
+
+Recommended components:
+
+| Component | Cloud Run type | Purpose |
+|-----------|----------------|---------|
+| `cti-console` | service | BEACON web UI + TRACE CLI subprocess (`TRACE_ROOT_PATH=/app/trace`) |
+| `sage-api` | service | Read-only SAGE Analysis API used by the Threats tab |
+| `sage-etl` | job | Single-writer ETL that updates `db/sage.db` in shared GCS storage |
+
+Build the combined console image from the repository root (one level above the
+`beacon/` and `trace/` directories):
+
+```bash
+export IMAGE=${REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/cloud-run/cti-console
+
+gcloud builds submit . \
+  --tag=${IMAGE} \
+  --file=beacon/Dockerfile.cti-console \
+  --project=${GCP_PROJECT_ID}
+```
+
+Deploy the console service with the SAGE API URL and shared storage settings:
+
+```bash
+gcloud run deploy cti-console \
+  --image=${IMAGE} \
+  --region=${REGION} \
+  --project=${GCP_PROJECT_ID} \
+  --service-account="beacon-web@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+  --set-env-vars="TRACE_ROOT_PATH=/app/trace,SAGE_API_URL=${SAGE_API_URL},BEACON_STORAGE=gcs,BEACON_STORAGE_BUCKET=${STORAGE_BUCKET},BEACON_STORAGE_PREFIX=${STORAGE_PREFIX}"
+```
+
+`TRACE_ROOT_PATH=/app/trace` is set in the image and can be overridden. The
+existing BEACON-only image remains available for deployments that do not need
+Collection to execute TRACE from the browser.
