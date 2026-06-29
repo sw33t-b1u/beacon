@@ -363,61 +363,12 @@ IAP / Internal Load Balancer / VPC Service Controls are not configured by this g
 
 ---
 
-## CTI Platform console topology (recommended for browser-complete operation)
+## CTI Platform unified deployment (recommended)
 
-For the enterprise CTI workflow where analysts draft PIRs in BEACON, collect
-threat-actor IoCs/TTPs with TRACE, and hand results to hunting/SOC teams through
-SAGE, deploy a combined **CTI Platform** Cloud Run service. The service contains
-BEACON web and a pinned TRACE checkout in one image. Keep SAGE ETL as a separate
-single-writer Cloud Run Job, and run `sage-api` as the read-only analysis API.
+For browser-complete operation, prefer the unified CTI Platform runbook:
+[`docs/deploy-cti-platform.md`](deploy-cti-platform.md). It deploys the minimal
+platform in one ordered flow: `sage-api`, `cti-console`, the `sage-api` invoker
+grant for `beacon-sa`, and `sage-etl`, with an optional `trace-crawl` job.
 
-Recommended components:
-
-| Component | Cloud Run type | Purpose |
-|-----------|----------------|---------|
-| `cti-console` | service | BEACON web UI + TRACE CLI subprocess (`TRACE_ROOT_PATH=/app/trace`) |
-| `sage-api` | service | Read-only SAGE Analysis API used by the Threats tab |
-| `sage-etl` | job | Single-writer ETL that updates `db/sage.db` in shared GCS storage |
-
-Build the console image from the **BEACON repository root**. By default the image
-uses the latest TRACE `main`, which keeps the CTI console aligned with the current
-BEACON/TRACE/SAGE workflow. For reproducible production rebuilds, set `TRACE_REF`
-to a tested TRACE commit or tag.
-
-```bash
-export IMAGE=${REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/cloud-run/cti-console
-
-gcloud builds submit . \
-  --config=cloudbuild.cti-console.yaml \
-  --substitutions=_IMAGE=${IMAGE} \
-  --project=${GCP_PROJECT_ID}
-```
-
-Deploy the console service with the SAGE API URL and shared storage settings:
-
-```bash
-gcloud run deploy cti-console \
-  --image=${IMAGE} \
-  --region=${REGION} \
-  --project=${GCP_PROJECT_ID} \
-  --no-allow-unauthenticated \
-  --port=8000 \
-  --service-account="beacon-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
-  --set-env-vars="TRACE_ROOT_PATH=/app/trace,SAGE_API_URL=${SAGE_API_URL},BEACON_STORAGE=gcs,BEACON_STORAGE_BUCKET=${STORAGE_BUCKET},BEACON_STORAGE_PREFIX=${STORAGE_PREFIX},TRACE_STORAGE=gcs,TRACE_STORAGE_BUCKET=${STORAGE_BUCKET},TRACE_STORAGE_PREFIX=${STORAGE_PREFIX}"
-```
-
-Use the same bucket and prefix for BEACON, TRACE, and SAGE when you want the
-browser workflow to be end-to-end: BEACON writes `pir/` and `assets/`, TRACE
-writes `stix/`, and SAGE reads `stix/` plus publishes `db/sage.db`. An empty
-`STORAGE_PREFIX` is valid and writes directly to `pir/`, `assets/`, `stix/`,
-and `db/` at the bucket root.
-
-`cti-console` is deployed with `--no-allow-unauthenticated`, matching the
-BEACON-only service policy. Grant `roles/run.invoker` to the Google users or
-groups that should open the browser console; do not use public unauthenticated
-access for this service.
-
-The console image fetches TRACE at build time and installs it under `/app/trace`.
-`TRACE_ROOT_PATH=/app/trace` is set in the image and can be overridden. The
-existing BEACON-only image remains available for deployments that do not need
-Collection to execute TRACE from the browser.
+Use the BEACON-only `beacon-web` flow above only when Collection does not need to
+execute TRACE from the browser.
