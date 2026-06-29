@@ -380,11 +380,13 @@ Recommended components:
 | `sage-etl` | job | Single-writer ETL that updates `db/sage.db` in shared GCS storage |
 
 Build the console image from the **BEACON repository root**. `TRACE_REF` pins the
-TRACE version that is known to be compatible with this BEACON release; do not
+TRACE commit/tag that is known to be compatible with this BEACON release; do not
 track `main` in production because PIR/STIX contract drift can break collection.
+The default commit includes `trace discover-pir`, `--include-recent`, and
+`input/source_catalog.example.yaml`, which are required by the Collection tab.
 
 ```bash
-export TRACE_REF=v3.0.1
+export TRACE_REF=cdc133cc7b5b4ae30f3831c42d322c8f13f2932c
 export IMAGE=${REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/cloud-run/cti-console
 
 gcloud builds submit . \

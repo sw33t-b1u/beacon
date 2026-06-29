@@ -367,12 +367,13 @@ pin 済み TRACE checkout を 1 つのイメージに同梱した **CTI Platform
 | `sage-api` | service | Threats タブが利用する読み取り専用 SAGE Analysis API |
 | `sage-etl` | job | 共有 GCS storage の `db/sage.db` を更新する単一 writer ETL |
 
-console image は **BEACON リポジトリルート**からビルドする。`TRACE_REF` はこの BEACON
-release と互換性を確認した TRACE version に固定する。PIR/STIX contract drift により収集が
-壊れる可能性があるため、本番では `main` 追従にしない。
+console image は **BEACON リポジトリルート**からビルドする。`TRACE_REF` はこの BEACON release と互換性を確認した TRACE commit/tag に固定する。
+PIR/STIX contract drift により収集が壊れる可能性があるため、本番では `main` 追従にしない。
+既定 commit は Collection タブが必要とする `trace discover-pir`、`--include-recent`、
+`input/source_catalog.example.yaml` を含む。
 
 ```bash
-export TRACE_REF=v3.0.1
+export TRACE_REF=cdc133cc7b5b4ae30f3831c42d322c8f13f2932c
 export IMAGE=${REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/cloud-run/cti-console
 
 gcloud builds submit . \

@@ -2,11 +2,11 @@
 # Submit from beacon/:
 #   gcloud builds submit . \
 #     --config=cloudbuild.cti-console.yaml \
-#     --substitutions=_IMAGE=${IMAGE},_TRACE_REF=v3.0.1
+#     --substitutions=_IMAGE=${IMAGE},_TRACE_REF=cdc133cc7b5b4ae30f3831c42d322c8f13f2932c
 
 substitutions:
   _IMAGE: "cti-console:dev"
-  _TRACE_REF: "v3.0.1"
+  _TRACE_REF: "cdc133cc7b5b4ae30f3831c42d322c8f13f2932c"
 
 steps:
   - name: gcr.io/cloud-builders/docker

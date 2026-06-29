@@ -1,17 +1,22 @@
 # CTI Platform console image: BEACON web + TRACE CLI in one Cloud Run service.
 # Build from the BEACON repository root:
-#   docker build -f Dockerfile.cti-console --build-arg TRACE_REF=v3.0.1 -t cti-console .
+#   docker build -f Dockerfile.cti-console \
+#     --build-arg TRACE_REF=cdc133cc7b5b4ae30f3831c42d322c8f13f2932c \
+#     -t cti-console .
 
 FROM python:3.12-slim AS trace-source
 
-ARG TRACE_REF=v3.0.1
+ARG TRACE_REF=cdc133cc7b5b4ae30f3831c42d322c8f13f2932c
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates git \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
-RUN git clone --depth 1 --branch "${TRACE_REF}" https://github.com/sw33t-b1u/trace.git trace
+RUN git clone --filter=blob:none https://github.com/sw33t-b1u/trace.git trace \
+    && cd trace \
+    && git checkout --detach "${TRACE_REF}" \
+    && rm -rf .git
 
 FROM python:3.12-slim
 
