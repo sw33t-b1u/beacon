@@ -1379,9 +1379,8 @@ the trigger value field is informational metadata in both consumers.
 ### Removed — URL/PDF → STIX extraction moved to TRACE
 
 The URL/PDF → STIX 2.1 extraction pipeline has been transferred to the new
-sibling project **TRACE** (Threat Report Analyzer & Crawling Engine) at
-`/Users/test/Projects/claude_pj/TRACE/`. BEACON now focuses on internal
-context (assets, PIR) generation only.
+sibling project **TRACE** (Threat Report Analyzer & Crawling Engine). BEACON
+now focuses on internal context (assets, PIR) generation only.
 
 - Removed `src/beacon/ingest/stix_extractor.py` (→ `TRACE/src/trace_engine/stix/extractor.py`)
 - Removed `src/beacon/ingest/report_reader.py` (→ `TRACE/src/trace_engine/ingest/report_reader.py`)

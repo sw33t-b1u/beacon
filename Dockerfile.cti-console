@@ -1,5 +1,5 @@
 # CTI Platform console image: BEACON web + TRACE CLI in one Cloud Run service.
-# Build from the claude_pj root so this Dockerfile can copy both sibling repos:
+# Build from the workspace root so this Dockerfile can copy both sibling repos:
 #   docker build -f beacon/Dockerfile.cti-console -t cti-console .
 
 FROM python:3.12-slim

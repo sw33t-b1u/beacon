@@ -1,5 +1,5 @@
 # Root-context Cloud Build ignore file for beacon/Dockerfile.cti-console.
-# Paths are relative to the claude_pj root passed to `gcloud builds submit .`.
+# Paths are relative to the workspace root passed to `gcloud builds submit .`.
 
 # VCS / agent harness state
 .git/

@@ -1,5 +1,5 @@
-# Build the CTI Platform console image from the claude_pj repository root.
-# Submit from /Users/test/Projects/claude_pj (or equivalent root):
+# Build the CTI Platform console image from the workspace root.
+# Submit from the workspace root:
 #   gcloud builds submit . \
 #     --config=beacon/cloudbuild.cti-console.yaml \
 #     --ignore-file=beacon/.gcloudignore.cti-console \
