@@ -398,9 +398,23 @@ gcloud run deploy cti-console \
   --image=${IMAGE} \
   --region=${REGION} \
   --project=${GCP_PROJECT_ID} \
-  --service-account="beacon-web@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
-  --set-env-vars="TRACE_ROOT_PATH=/app/trace,SAGE_API_URL=${SAGE_API_URL},BEACON_STORAGE=gcs,BEACON_STORAGE_BUCKET=${STORAGE_BUCKET},BEACON_STORAGE_PREFIX=${STORAGE_PREFIX}"
+  --no-allow-unauthenticated \
+  --port=8000 \
+  --service-account="beacon-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+  --set-env-vars="TRACE_ROOT_PATH=/app/trace,SAGE_API_URL=${SAGE_API_URL},BEACON_STORAGE=gcs,BEACON_STORAGE_BUCKET=${STORAGE_BUCKET},BEACON_STORAGE_PREFIX=${STORAGE_PREFIX},TRACE_STORAGE=gcs,TRACE_STORAGE_BUCKET=${STORAGE_BUCKET},TRACE_STORAGE_PREFIX=${STORAGE_PREFIX}"
 ```
+
+
+Use the same bucket and prefix for BEACON, TRACE, and SAGE when you want the
+browser workflow to be end-to-end: BEACON writes `pir/` and `assets/`, TRACE
+writes `stix/`, and SAGE reads `stix/` plus publishes `db/sage.db`. An empty
+`STORAGE_PREFIX` is valid and writes directly to `pir/`, `assets/`, `stix/`,
+and `db/` at the bucket root.
+
+`cti-console` is deployed with `--no-allow-unauthenticated`, matching the
+BEACON-only service policy. Grant `roles/run.invoker` to the Google users or
+groups that should open the browser console; do not use public unauthenticated
+access for this service.
 
 `TRACE_ROOT_PATH=/app/trace` is set in the image and can be overridden. The
 existing BEACON-only image remains available for deployments that do not need

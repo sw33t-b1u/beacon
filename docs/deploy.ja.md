@@ -385,9 +385,21 @@ gcloud run deploy cti-console \
   --image=${IMAGE} \
   --region=${REGION} \
   --project=${GCP_PROJECT_ID} \
-  --service-account="beacon-web@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
-  --set-env-vars="TRACE_ROOT_PATH=/app/trace,SAGE_API_URL=${SAGE_API_URL},BEACON_STORAGE=gcs,BEACON_STORAGE_BUCKET=${STORAGE_BUCKET},BEACON_STORAGE_PREFIX=${STORAGE_PREFIX}"
+  --no-allow-unauthenticated \
+  --port=8000 \
+  --service-account="beacon-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+  --set-env-vars="TRACE_ROOT_PATH=/app/trace,SAGE_API_URL=${SAGE_API_URL},BEACON_STORAGE=gcs,BEACON_STORAGE_BUCKET=${STORAGE_BUCKET},BEACON_STORAGE_PREFIX=${STORAGE_PREFIX},TRACE_STORAGE=gcs,TRACE_STORAGE_BUCKET=${STORAGE_BUCKET},TRACE_STORAGE_PREFIX=${STORAGE_PREFIX}"
 ```
+
+
+ブラウザワークフローを end-to-end で動かす場合は、BEACON / TRACE / SAGE で同じ
+bucket と prefix を使う。BEACON は `pir/` と `assets/`、TRACE は `stix/` に書き、
+SAGE は `stix/` を読み `db/sage.db` を publish する。`STORAGE_PREFIX` を空にする
+構成も有効で、その場合は bucket root の `pir/`、`assets/`、`stix/`、`db/` を使う。
+
+`cti-console` は BEACON 単体 service と同じく `--no-allow-unauthenticated` で
+デプロイする。ブラウザ console を開く必要がある Google ユーザーまたは group に
+`roles/run.invoker` を付与する。認証不要の公開アクセスは使用しない。
 
 `TRACE_ROOT_PATH=/app/trace` はイメージ内で既定設定され、必要なら上書きできる。
 Collection から TRACE を実行しない構成では、従来の BEACON 単体 image も利用できる。
