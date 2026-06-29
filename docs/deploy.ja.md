@@ -353,9 +353,10 @@ IAP / 内部ロードバランサ / VPC Service Controls はこのガイドで�
 
 ## CTI Platform console トポロジ（ブラウザ完結運用の推奨）
 
-Collection が TRACE を呼び、Threats が SAGE を呼ぶブラウザワークフローでは、
-BEACON web と TRACE CLI を 1 つのイメージに同梱した **CTI Platform** Cloud Run service
-をデプロイする。SAGE ETL は単一 writer の Cloud Run Job として分離し、`sage-api` は
+企業 CTI チームが BEACON で PIR を策定し、TRACE で脅威アクターの IoC/TTP を収集し、
+SAGE を通じてハンティング/SOC チームへ連携するブラウザワークフローでは、BEACON web と
+pin 済み TRACE checkout を 1 つのイメージに同梱した **CTI Platform** Cloud Run service を
+デプロイする。SAGE ETL は単一 writer の Cloud Run Job として分離し、`sage-api` は
 読み取り専用 Analysis API として動かす。
 
 推奨コンポーネント:
@@ -366,15 +367,17 @@ BEACON web と TRACE CLI を 1 つのイメージに同梱した **CTI Platform*
 | `sage-api` | service | Threats タブが利用する読み取り専用 SAGE Analysis API |
 | `sage-etl` | job | 共有 GCS storage の `db/sage.db` を更新する単一 writer ETL |
 
-統合 console image はリポジトリルート（`beacon/` と `trace/` の1階層上）からビルドする:
+console image は **BEACON リポジトリルート**からビルドする。`TRACE_REF` はこの BEACON
+release と互換性を確認した TRACE version に固定する。PIR/STIX contract drift により収集が
+壊れる可能性があるため、本番では `main` 追従にしない。
 
 ```bash
+export TRACE_REF=v3.0.1
 export IMAGE=${REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/cloud-run/cti-console
 
 gcloud builds submit . \
-  --config=beacon/cloudbuild.cti-console.yaml \
-  --ignore-file=beacon/.gcloudignore.cti-console \
-  --substitutions=_IMAGE=${IMAGE} \
+  --config=cloudbuild.cti-console.yaml \
+  --substitutions=_IMAGE=${IMAGE},_TRACE_REF=${TRACE_REF} \
   --project=${GCP_PROJECT_ID}
 ```
 
@@ -391,15 +394,15 @@ gcloud run deploy cti-console \
   --set-env-vars="TRACE_ROOT_PATH=/app/trace,SAGE_API_URL=${SAGE_API_URL},BEACON_STORAGE=gcs,BEACON_STORAGE_BUCKET=${STORAGE_BUCKET},BEACON_STORAGE_PREFIX=${STORAGE_PREFIX},TRACE_STORAGE=gcs,TRACE_STORAGE_BUCKET=${STORAGE_BUCKET},TRACE_STORAGE_PREFIX=${STORAGE_PREFIX}"
 ```
 
+ブラウザワークフローを end-to-end で動かす場合は、BEACON / TRACE / SAGE で同じ bucket
+と prefix を使う。BEACON は `pir/` と `assets/`、TRACE は `stix/` に書き、SAGE は
+`stix/` を読み `db/sage.db` を publish する。`STORAGE_PREFIX` を空にする構成も有効で、
+その場合は bucket root の `pir/`、`assets/`、`stix/`、`db/` を使う。
 
-ブラウザワークフローを end-to-end で動かす場合は、BEACON / TRACE / SAGE で同じ
-bucket と prefix を使う。BEACON は `pir/` と `assets/`、TRACE は `stix/` に書き、
-SAGE は `stix/` を読み `db/sage.db` を publish する。`STORAGE_PREFIX` を空にする
-構成も有効で、その場合は bucket root の `pir/`、`assets/`、`stix/`、`db/` を使う。
+`cti-console` は BEACON 単体 service と同じく `--no-allow-unauthenticated` でデプロイする。
+ブラウザ console を開く必要がある Google ユーザーまたは group に `roles/run.invoker` を付与する。
+認証不要の公開アクセスは使用しない。
 
-`cti-console` は BEACON 単体 service と同じく `--no-allow-unauthenticated` で
-デプロイする。ブラウザ console を開く必要がある Google ユーザーまたは group に
-`roles/run.invoker` を付与する。認証不要の公開アクセスは使用しない。
-
-`TRACE_ROOT_PATH=/app/trace` はイメージ内で既定設定され、必要なら上書きできる。
-Collection から TRACE を実行しない構成では、従来の BEACON 単体 image も利用できる。
+console image は build 時に TRACE を取得し、`/app/trace` に配置する。`TRACE_ROOT_PATH=/app/trace`
+はイメージ内で既定設定され、必要なら上書きできる。Collection から TRACE を実行しない構成では、
+従来の BEACON 単体 image も利用できる。

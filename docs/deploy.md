@@ -365,10 +365,11 @@ IAP / Internal Load Balancer / VPC Service Controls are not configured by this g
 
 ## CTI Platform console topology (recommended for browser-complete operation)
 
-For the browser workflow where Collection can call TRACE and Threats can call
-SAGE, deploy a combined **CTI Platform** Cloud Run service that contains BEACON
-web and the TRACE CLI in one image. Keep SAGE ETL as a separate Cloud Run Job
-(single writer), and run `sage-api` as the read-only analysis API.
+For the enterprise CTI workflow where analysts draft PIRs in BEACON, collect
+threat-actor IoCs/TTPs with TRACE, and hand results to hunting/SOC teams through
+SAGE, deploy a combined **CTI Platform** Cloud Run service. The service contains
+BEACON web and a pinned TRACE checkout in one image. Keep SAGE ETL as a separate
+single-writer Cloud Run Job, and run `sage-api` as the read-only analysis API.
 
 Recommended components:
 
@@ -378,16 +379,17 @@ Recommended components:
 | `sage-api` | service | Read-only SAGE Analysis API used by the Threats tab |
 | `sage-etl` | job | Single-writer ETL that updates `db/sage.db` in shared GCS storage |
 
-Build the combined console image from the repository root (one level above the
-`beacon/` and `trace/` directories):
+Build the console image from the **BEACON repository root**. `TRACE_REF` pins the
+TRACE version that is known to be compatible with this BEACON release; do not
+track `main` in production because PIR/STIX contract drift can break collection.
 
 ```bash
+export TRACE_REF=v3.0.1
 export IMAGE=${REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/cloud-run/cti-console
 
 gcloud builds submit . \
-  --config=beacon/cloudbuild.cti-console.yaml \
-  --ignore-file=beacon/.gcloudignore.cti-console \
-  --substitutions=_IMAGE=${IMAGE} \
+  --config=cloudbuild.cti-console.yaml \
+  --substitutions=_IMAGE=${IMAGE},_TRACE_REF=${TRACE_REF} \
   --project=${GCP_PROJECT_ID}
 ```
 
@@ -404,7 +406,6 @@ gcloud run deploy cti-console \
   --set-env-vars="TRACE_ROOT_PATH=/app/trace,SAGE_API_URL=${SAGE_API_URL},BEACON_STORAGE=gcs,BEACON_STORAGE_BUCKET=${STORAGE_BUCKET},BEACON_STORAGE_PREFIX=${STORAGE_PREFIX},TRACE_STORAGE=gcs,TRACE_STORAGE_BUCKET=${STORAGE_BUCKET},TRACE_STORAGE_PREFIX=${STORAGE_PREFIX}"
 ```
 
-
 Use the same bucket and prefix for BEACON, TRACE, and SAGE when you want the
 browser workflow to be end-to-end: BEACON writes `pir/` and `assets/`, TRACE
 writes `stix/`, and SAGE reads `stix/` plus publishes `db/sage.db`. An empty
@@ -416,6 +417,7 @@ BEACON-only service policy. Grant `roles/run.invoker` to the Google users or
 groups that should open the browser console; do not use public unauthenticated
 access for this service.
 
+The console image fetches TRACE at build time and installs it under `/app/trace`.
 `TRACE_ROOT_PATH=/app/trace` is set in the image and can be overridden. The
 existing BEACON-only image remains available for deployments that do not need
 Collection to execute TRACE from the browser.

@@ -1,6 +1,17 @@
 # CTI Platform console image: BEACON web + TRACE CLI in one Cloud Run service.
-# Build from the workspace root so this Dockerfile can copy both sibling repos:
-#   docker build -f beacon/Dockerfile.cti-console -t cti-console .
+# Build from the BEACON repository root:
+#   docker build -f Dockerfile.cti-console --build-arg TRACE_REF=v3.0.1 -t cti-console .
+
+FROM python:3.12-slim AS trace-source
+
+ARG TRACE_REF=v3.0.1
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+RUN git clone --depth 1 --branch "${TRACE_REF}" https://github.com/sw33t-b1u/trace.git trace
 
 FROM python:3.12-slim
 
@@ -9,24 +20,26 @@ WORKDIR /app
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Dependency layers (cache-optimized, no dev dependencies)
-COPY beacon/pyproject.toml beacon/uv.lock* /app/beacon/
+# Dependency layers (cache-optimized, no dev dependencies).
+# BEACON comes from the local build context; TRACE comes from the pinned tag
+# fetched in the trace-source stage.
+COPY pyproject.toml uv.lock* /app/beacon/
 RUN cd /app/beacon && uv sync --no-install-project --no-dev --frozen
 
-COPY trace/pyproject.toml trace/uv.lock* /app/trace/
+COPY --from=trace-source /src/trace/pyproject.toml /src/trace/uv.lock /app/trace/
 RUN cd /app/trace && uv sync --no-install-project --no-dev --frozen
 
 # Copy BEACON
-COPY beacon/src/ /app/beacon/src/
-COPY beacon/cmd/ /app/beacon/cmd/
-COPY beacon/schema/ /app/beacon/schema/
+COPY src/ /app/beacon/src/
+COPY cmd/ /app/beacon/cmd/
+COPY schema/ /app/beacon/schema/
 RUN cd /app/beacon && uv sync --no-dev --frozen
 
 # Copy TRACE
-COPY trace/src/ /app/trace/src/
-COPY trace/cmd/ /app/trace/cmd/
-COPY trace/schema/ /app/trace/schema/
-COPY trace/input/source_catalog.example.yaml /app/trace/input/source_catalog.example.yaml
+COPY --from=trace-source /src/trace/src/ /app/trace/src/
+COPY --from=trace-source /src/trace/cmd/ /app/trace/cmd/
+COPY --from=trace-source /src/trace/schema/ /app/trace/schema/
+COPY --from=trace-source /src/trace/input/source_catalog.example.yaml /app/trace/input/source_catalog.example.yaml
 RUN cd /app/trace && uv sync --no-dev --frozen
 
 ENV TRACE_ROOT_PATH=/app/trace

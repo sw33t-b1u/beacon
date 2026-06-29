@@ -6,6 +6,10 @@
 
 # Git metadata
 .git/
+.codex/
+.claude/
+.plans/
+.agents/
 
 # Python bytecode
 __pycache__/
@@ -19,6 +23,7 @@ __pycache__/
 input/
 output/
 cache/
+.beacon_settings.json
 
 # Secrets
 .env
