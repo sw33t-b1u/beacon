@@ -1,0 +1,26 @@
+# Build the CTI Platform console image from the claude_pj repository root.
+# Submit from /Users/test/Projects/claude_pj (or equivalent root):
+#   gcloud builds submit . \
+#     --config=beacon/cloudbuild.cti-console.yaml \
+#     --ignore-file=beacon/.gcloudignore.cti-console \
+#     --substitutions=_IMAGE=${IMAGE}
+
+substitutions:
+  _IMAGE: "cti-console:dev"
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - beacon/Dockerfile.cti-console
+      - -t
+      - ${_IMAGE}
+      - .
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_IMAGE}
+
+images:
+  - ${_IMAGE}

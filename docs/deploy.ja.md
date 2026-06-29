@@ -372,8 +372,9 @@ BEACON web と TRACE CLI を 1 つのイメージに同梱した **CTI Platform*
 export IMAGE=${REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/cloud-run/cti-console
 
 gcloud builds submit . \
-  --tag=${IMAGE} \
-  --file=beacon/Dockerfile.cti-console \
+  --config=beacon/cloudbuild.cti-console.yaml \
+  --ignore-file=beacon/.gcloudignore.cti-console \
+  --substitutions=_IMAGE=${IMAGE} \
   --project=${GCP_PROJECT_ID}
 ```
 
