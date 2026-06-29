@@ -1,12 +1,14 @@
 # Build the CTI Platform console image from the BEACON repository root.
-# Submit from beacon/:
+# Submit from beacon/ (TRACE_REF defaults to the latest TRACE main):
 #   gcloud builds submit . \
 #     --config=cloudbuild.cti-console.yaml \
-#     --substitutions=_IMAGE=${IMAGE},_TRACE_REF=cdc133cc7b5b4ae30f3831c42d322c8f13f2932c
+#     --substitutions=_IMAGE=${IMAGE}
+# Pin a specific TRACE commit/tag for reproducible builds:
+#   ... --substitutions=_IMAGE=${IMAGE},_TRACE_REF=<commit-or-tag>
 
 substitutions:
   _IMAGE: "cti-console:dev"
-  _TRACE_REF: "cdc133cc7b5b4ae30f3831c42d322c8f13f2932c"
+  _TRACE_REF: "main"
 
 steps:
   - name: gcr.io/cloud-builders/docker

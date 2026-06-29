@@ -379,19 +379,17 @@ Recommended components:
 | `sage-api` | service | Read-only SAGE Analysis API used by the Threats tab |
 | `sage-etl` | job | Single-writer ETL that updates `db/sage.db` in shared GCS storage |
 
-Build the console image from the **BEACON repository root**. `TRACE_REF` pins the
-TRACE commit/tag that is known to be compatible with this BEACON release; do not
-track `main` in production because PIR/STIX contract drift can break collection.
-The default commit includes `trace discover-pir`, `--include-recent`, and
-`input/source_catalog.example.yaml`, which are required by the Collection tab.
+Build the console image from the **BEACON repository root**. By default the image
+uses the latest TRACE `main`, which keeps the CTI console aligned with the current
+BEACON/TRACE/SAGE workflow. For reproducible production rebuilds, set `TRACE_REF`
+to a tested TRACE commit or tag.
 
 ```bash
-export TRACE_REF=cdc133cc7b5b4ae30f3831c42d322c8f13f2932c
 export IMAGE=${REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/cloud-run/cti-console
 
 gcloud builds submit . \
   --config=cloudbuild.cti-console.yaml \
-  --substitutions=_IMAGE=${IMAGE},_TRACE_REF=${TRACE_REF} \
+  --substitutions=_IMAGE=${IMAGE} \
   --project=${GCP_PROJECT_ID}
 ```
 
