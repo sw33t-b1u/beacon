@@ -52,7 +52,9 @@ With the default unified config, `PIR_GCS_BUCKET=${STORAGE_BUCKET}` and
 - Local sibling checkouts of `beacon/`, `sage/`, and `trace/` when using the
   script defaults. Override `SAGE_REPO` / `TRACE_REPO` if your layout differs.
 - Choose a tested `TRACE_REF` (tag or commit) for reproducible production
-  builds. Leaving `TRACE_REF=main` tracks the latest TRACE and can introduce
+  builds. The cti-console image requires TRACE 3.1.0 or later because it bundles
+  `discover-pir` and `input/source_catalog.example.yaml` for the Collection tab.
+  Leaving `TRACE_REF=main` tracks the latest TRACE and can introduce
   BEACON/TRACE PIR-STIX contract drift.
 
 The orchestration script runs real `gcloud` commands. Use `--dry-run` first.
@@ -72,8 +74,8 @@ REGION="us-central1"
 STORAGE_BUCKET="your-cti-platform-bucket"
 STORAGE_PREFIX="prod/"        # Empty is valid; keep the trailing slash if non-empty.
 
-# Reproducible cti-console build. Replace with the tested TRACE tag/commit.
-TRACE_REF="v3.0.1"
+# Reproducible cti-console build. Requires TRACE >= 3.1.0.
+TRACE_REF="v3.1.0"
 
 # Optional if the repos are not siblings of beacon/.
 # SAGE_REPO="../sage"

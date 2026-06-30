@@ -45,7 +45,9 @@ gs://${PIR_GCS_BUCKET}/${PIR_ONLY_DIR}/pir.json
 - `gcloud` がインストール済みで認証済みであること。
 - 対象 project で Cloud Run service/job、IAM binding、Artifact Registry、Cloud Build、GCS bucket を作成・変更できる権限があること。
 - script 既定値を使う場合、`beacon/`、`sage/`、`trace/` が sibling checkout であること。配置が違う場合は `SAGE_REPO` / `TRACE_REPO` を上書きします。
-- 本番再現性のため、検証済みの `TRACE_REF`（tag または commit）を選ぶこと。`TRACE_REF=main` のままだと最新 TRACE を追従し、BEACON/TRACE の PIR-STIX contract drift を招く可能性があります。
+- 本番再現性のため、検証済みの `TRACE_REF`（tag または commit）を選ぶこと。cti-console image は Collection tab 用に
+  `discover-pir` と `input/source_catalog.example.yaml` を同梱するため、TRACE 3.1.0 以降が必要です。
+  `TRACE_REF=main` のままだと最新 TRACE を追従し、BEACON/TRACE の PIR-STIX contract drift を招く可能性があります。
 
 orchestration script は実際の `gcloud` を実行します。まず `--dry-run` で確認してください。
 
@@ -63,8 +65,8 @@ REGION="us-central1"
 STORAGE_BUCKET="your-cti-platform-bucket"
 STORAGE_PREFIX="prod/"        # 空も有効。非空なら末尾 slash を維持する。
 
-# 再現可能な cti-console build。検証済み TRACE tag/commit に置き換える。
-TRACE_REF="v3.0.1"
+# 再現可能な cti-console build。TRACE >= 3.1.0 が必要。
+TRACE_REF="v3.1.0"
 
 # repo が beacon/ の sibling でない場合のみ指定。
 # SAGE_REPO="../sage"
