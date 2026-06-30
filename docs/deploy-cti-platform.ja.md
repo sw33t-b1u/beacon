@@ -150,6 +150,21 @@ infrastructure は PIR data が無くても deploy できます。`sage-etl` 実
    TRACE に渡し、TRACE は `TRACE_STORAGE=gcs` 経由で PIR / catalog 入力を解決する。
    あるいは `sources.yaml` を `gs://${STORAGE_BUCKET}/input/sources.yaml` に upload して、
    任意の `trace-crawl` job を使います。
+
+   discovery source catalog（`source_catalog.yaml`）は `discover-pir` 用の
+   operator feed 一覧で、`crawl-batch` が使う `sources.yaml` とは別物です。
+   どちらも `input` category に置きます。catalog は次の場所へ upload します。
+
+   ```bash
+   gcloud storage cp ./source_catalog.yaml \
+     gs://${STORAGE_BUCKET}/${STORAGE_PREFIX}input/source_catalog.yaml
+   ```
+
+   その後、Discovery form の "Catalog path" に
+   `${STORAGE_PREFIX}input/source_catalog.yaml` のような storage key を指定します。
+   `input/source_catalog.yaml` や `gs://...` URI でも解決されます。空欄のままだと
+   image 同梱の `input/source_catalog.example.yaml` template に fallback するため、
+   PIR 語に合う catalog を用意するまでは候補 0 件になりがちです。
 4. graph ingest 前に TRACE で PIR / assets / STIX を検証する。artifact path は運用により異なるため、詳細な command は standalone TRACE usage guide を参照してください。
 5. reviewed/validated PIR を ETL 用の安定パスに promote する。
 

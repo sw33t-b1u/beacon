@@ -166,6 +166,21 @@ The infrastructure can be deployed before PIR data exists. Before executing
    resolves PIR/catalog inputs through `TRACE_STORAGE=gcs`. You can also run
    the optional `trace-crawl` job after uploading `sources.yaml` to
    `gs://${STORAGE_BUCKET}/input/sources.yaml`.
+
+   The discovery source catalog (`source_catalog.yaml`) is the operator feed
+   list for `discover-pir`; it is distinct from the `sources.yaml` consumed by
+   `crawl-batch`. Both live under the `input` category. Upload the catalog to:
+
+   ```bash
+   gcloud storage cp ./source_catalog.yaml \
+     gs://${STORAGE_BUCKET}/${STORAGE_PREFIX}input/source_catalog.yaml
+   ```
+
+   Then set the Discovery form's "Catalog path" to a storage key such as
+   `${STORAGE_PREFIX}input/source_catalog.yaml` (a bare `input/source_catalog.yaml`
+   or a `gs://...` URI also resolves). Leaving it blank falls back to the
+   image-bundled `input/source_catalog.example.yaml` template, which usually
+   yields zero candidates until you supply a catalog matching your PIR terms.
 4. Validate the PIR/assets/STIX with TRACE before graph ingestion. The exact
    validation command depends on the artifact paths you choose; the standalone
    TRACE usage guide remains the detailed reference.
