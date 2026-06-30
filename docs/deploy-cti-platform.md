@@ -52,8 +52,9 @@ With the default unified config, `PIR_GCS_BUCKET=${STORAGE_BUCKET}` and
 - Local sibling checkouts of `beacon/`, `sage/`, and `trace/` when using the
   script defaults. Override `SAGE_REPO` / `TRACE_REPO` if your layout differs.
 - Choose a tested `TRACE_REF` (tag or commit) for reproducible production
-  builds. The cti-console image requires TRACE 3.1.0 or later because it bundles
-  `discover-pir` and `input/source_catalog.example.yaml` for the Collection tab.
+  builds. The cti-console image requires TRACE 3.2.0 or later because it bundles
+  `discover-pir`, `input/source_catalog.example.yaml`, and GCS-native input
+  resolution for the Collection tab.
   Leaving `TRACE_REF=main` tracks the latest TRACE and can introduce
   BEACON/TRACE PIR-STIX contract drift.
 
@@ -74,8 +75,8 @@ REGION="us-central1"
 STORAGE_BUCKET="your-cti-platform-bucket"
 STORAGE_PREFIX="prod/"        # Empty is valid; keep the trailing slash if non-empty.
 
-# Reproducible cti-console build. Requires TRACE >= 3.1.0.
-TRACE_REF="v3.1.0"
+# Reproducible cti-console build. Requires TRACE >= 3.2.0.
+TRACE_REF="v3.2.0"
 
 # Optional if the repos are not siblings of beacon/.
 # SAGE_REPO="../sage"
@@ -159,8 +160,11 @@ The infrastructure can be deployed before PIR data exists. Before executing
 
 2. Draft/review PIR and assets in the UI. With the unified env vars, artifacts
    are stored in the shared GCS bucket/prefix.
-3. Run TRACE collection from the Collection tab, or run the optional
-   `trace-crawl` job after uploading `sources.yaml` to
+3. Run TRACE collection from the Collection tab. In the unified GCS
+   configuration, the console passes storage keys such as
+   `${STORAGE_PREFIX}pir/pir_output_<timestamp>.json` to TRACE, and TRACE
+   resolves PIR/catalog inputs through `TRACE_STORAGE=gcs`. You can also run
+   the optional `trace-crawl` job after uploading `sources.yaml` to
    `gs://${STORAGE_BUCKET}/input/sources.yaml`.
 4. Validate the PIR/assets/STIX with TRACE before graph ingestion. The exact
    validation command depends on the artifact paths you choose; the standalone

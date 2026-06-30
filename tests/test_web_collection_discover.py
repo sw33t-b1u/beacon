@@ -204,3 +204,30 @@ class TestRunDiscoverPir:
         assert not result.success
         assert "timed out" in result.stderr
         assert result.return_code == -1
+
+
+def test_default_discovery_pir_reference_uses_gcs_storage_key(monkeypatch):
+    from beacon.web.app import _default_discovery_pir_reference
+
+    class FakeStorage:
+        def list_files(self, category: str):
+            assert category == "pir"
+            return ["pir_output_202606301000.json", "pir_output_202606301159.json"]
+
+    monkeypatch.setenv("BEACON_STORAGE", "gcs")
+    monkeypatch.setenv("BEACON_STORAGE_BUCKET", "cti-bucket")
+    monkeypatch.setenv("BEACON_STORAGE_PREFIX", "prod/")
+    monkeypatch.setattr("beacon.storage.create_storage_backend", lambda cfg: FakeStorage())
+
+    assert _default_discovery_pir_reference() == "prod/pir/pir_output_202606301159.json"
+
+
+def test_default_discovery_pir_reference_keeps_local_absolute_default(monkeypatch):
+    from pathlib import Path
+
+    from beacon.web.app import _default_discovery_pir_reference
+
+    monkeypatch.setenv("BEACON_STORAGE", "local")
+    monkeypatch.delenv("BEACON_OUTPUT_DIR", raising=False)
+
+    assert _default_discovery_pir_reference() == str((Path("output") / "pir_output.json").resolve())

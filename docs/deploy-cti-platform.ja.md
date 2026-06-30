@@ -46,7 +46,7 @@ gs://${PIR_GCS_BUCKET}/${PIR_ONLY_DIR}/pir.json
 - 対象 project で Cloud Run service/job、IAM binding、Artifact Registry、Cloud Build、GCS bucket を作成・変更できる権限があること。
 - script 既定値を使う場合、`beacon/`、`sage/`、`trace/` が sibling checkout であること。配置が違う場合は `SAGE_REPO` / `TRACE_REPO` を上書きします。
 - 本番再現性のため、検証済みの `TRACE_REF`（tag または commit）を選ぶこと。cti-console image は Collection tab 用に
-  `discover-pir` と `input/source_catalog.example.yaml` を同梱するため、TRACE 3.1.0 以降が必要です。
+  `discover-pir`、`input/source_catalog.example.yaml`、GCS-native input resolution を同梱するため、TRACE 3.2.0 以降が必要です。
   `TRACE_REF=main` のままだと最新 TRACE を追従し、BEACON/TRACE の PIR-STIX contract drift を招く可能性があります。
 
 orchestration script は実際の `gcloud` を実行します。まず `--dry-run` で確認してください。
@@ -65,8 +65,8 @@ REGION="us-central1"
 STORAGE_BUCKET="your-cti-platform-bucket"
 STORAGE_PREFIX="prod/"        # 空も有効。非空なら末尾 slash を維持する。
 
-# 再現可能な cti-console build。TRACE >= 3.1.0 が必要。
-TRACE_REF="v3.1.0"
+# 再現可能な cti-console build。TRACE >= 3.2.0 が必要。
+TRACE_REF="v3.2.0"
 
 # repo が beacon/ の sibling でない場合のみ指定。
 # SAGE_REPO="../sage"
@@ -145,8 +145,11 @@ infrastructure は PIR data が無くても deploy できます。`sage-etl` 実
    ```
 
 2. UI で PIR と assets を draft / review する。統合 env vars により、artifact は共有 GCS bucket/prefix に保存されます。
-3. Collection タブから TRACE 収集を実行する。あるいは `sources.yaml` を
-   `gs://${STORAGE_BUCKET}/input/sources.yaml` に upload して、任意の `trace-crawl` job を使います。
+3. Collection タブから TRACE 収集を実行する。統合 GCS config では、console は
+   `${STORAGE_PREFIX}pir/pir_output_<timestamp>.json` のような storage key を
+   TRACE に渡し、TRACE は `TRACE_STORAGE=gcs` 経由で PIR / catalog 入力を解決する。
+   あるいは `sources.yaml` を `gs://${STORAGE_BUCKET}/input/sources.yaml` に upload して、
+   任意の `trace-crawl` job を使います。
 4. graph ingest 前に TRACE で PIR / assets / STIX を検証する。artifact path は運用により異なるため、詳細な command は standalone TRACE usage guide を参照してください。
 5. reviewed/validated PIR を ETL 用の安定パスに promote する。
 

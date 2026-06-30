@@ -458,12 +458,40 @@ async def collection(request: Request):
 def _collection_discovery_defaults() -> dict:
     """Return default form values for PIR-driven article discovery."""
     return {
-        "pir_path": str((_resolve_output_dir() / "pir_output.json").resolve()),
+        "pir_path": _default_discovery_pir_reference(),
         "catalog_path": "",
         "since_days": 30,
         "max_candidates": 50,
         "include_recent": True,
     }
+
+
+def _default_discovery_pir_reference() -> str:
+    """Return a TRACE-readable PIR reference for the Collection tab.
+
+    Local mode keeps the historical absolute ``output/pir_output.json`` path.
+    GCS mode uses the shared storage key (``<prefix>/pir/<filename>``) so TRACE
+    can resolve it through its own StorageBackend without Cloud Run temp files.
+    """
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    cfg = load_config()
+    if getattr(cfg, "storage_backend", "local") != "gcs":
+        return str((_resolve_output_dir() / "pir_output.json").resolve())
+
+    try:
+        storage = create_storage_backend(cfg)
+        pir_files = [name for name in storage.list_files("pir") if name.endswith(".json")]
+    except Exception:  # noqa: BLE001
+        pir_files = []
+    filename = sorted(pir_files)[-1] if pir_files else "pir_output.json"
+    return _storage_reference(cfg.storage_prefix, "pir", filename)
+
+
+def _storage_reference(prefix: str, category: str, filename: str) -> str:
+    parts = [part.strip("/") for part in (prefix, category, filename) if part and part.strip("/")]
+    return "/".join(parts)
 
 
 @app.post("/collection/discover")
