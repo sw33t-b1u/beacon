@@ -1075,12 +1075,13 @@ async def settings_test_sage(sage_url: str = ""):
 @app.get("/pir")
 async def pir_page(request: Request, beacon_session: str = Cookie(default="")):
     """Unified PIR page: generate + stored PIRs list + review."""
-    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.config import AVAILABLE_LLM_MODELS, load_config  # noqa: PLC0415
     from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    cfg = load_config()
 
     # Load stored PIR filenames from StorageBackend
     try:
-        cfg = load_config()
         storage = create_storage_backend(cfg)
         stored_pir_files = storage.list_files("pir")
         stored_pir_files = [f for f in stored_pir_files if f.endswith(".json")]
@@ -1101,6 +1102,12 @@ async def pir_page(request: Request, beacon_session: str = Cookie(default="")):
             "stored_pir_files": stored_pir_files,
             "pirs": pirs,
             "collection_plan": collection_plan,
+            "available_llm_models": AVAILABLE_LLM_MODELS,
+            "llm_model_defaults": {
+                "simple": cfg.llm_model_simple,
+                "medium": cfg.llm_model_medium,
+                "complex": cfg.llm_model_complex,
+            },
         },
     )
     _set_csrf_cookie(response, csrf_token)

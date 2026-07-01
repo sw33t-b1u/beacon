@@ -236,14 +236,14 @@ uv run beacon taxonomy-refresh             # 実際に更新
 BEACON は複雑度ティアごとにモデルを選択します。各ティアは対応する環境変数で個別にオーバーライドできます:
 
 ```bash
-BEACON_LLM_SIMPLE=gemini-2.5-flash-lite \
-BEACON_LLM_MEDIUM=gemini-2.5-flash \
+BEACON_LLM_SIMPLE=gemini-3.1-flash-lite \
+BEACON_LLM_MEDIUM=gemini-3.5-flash \
 BEACON_LLM_COMPLEX=gemini-2.5-pro \
 uv run beacon pir-generate --context path/to/context.md
 ```
 
 オーバーライドしたいティアの変数のみ設定してください。未設定のティアはデフォルト値
-（`gemini-2.5-flash-lite` / `gemini-2.5-flash` / `gemini-2.5-pro`）を使用します。
+（`gemini-3.1-flash-lite` / `gemini-3.5-flash` / `gemini-2.5-pro`）を使用します。
 
 ### 過去の PIR 結果を読み込む
 

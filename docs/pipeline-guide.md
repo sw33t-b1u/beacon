@@ -84,8 +84,8 @@ improving PIR accuracy as the system accumulates operational history.
 | Variable | Default | Purpose |
 |---|---|---|
 | `GCP_PROJECT_ID` | (none) | Vertex AI project for LLM calls |
-| `BEACON_LLM_SIMPLE` | `gemini-2.5-flash-lite` | Model for simple extraction tasks |
-| `BEACON_LLM_MEDIUM` | `gemini-2.5-flash` | Model for medium-complexity analysis |
+| `BEACON_LLM_SIMPLE` | `gemini-3.1-flash-lite` | Model for simple extraction tasks |
+| `BEACON_LLM_MEDIUM` | `gemini-3.5-flash` | Model for medium-complexity analysis |
 | `BEACON_LLM_COMPLEX` | `gemini-2.5-pro` | Model for complex reasoning (PIR generation) |
 | `SAGE_API_URL` | (none) | SAGE API base URL (enables `--use-sage`) |
 | `BEACON_IR_LOOKBACK_DAYS` | `365` | IR-boost lookback window in days |
@@ -100,8 +100,8 @@ improving PIR accuracy as the system accumulates operational history.
 | Variable | Default | Purpose |
 |---|---|---|
 | `GCP_PROJECT_ID` | (none) | Vertex AI project for LLM calls |
-| `TRACE_LLM_SIMPLE` | `gemini-2.5-flash-lite` | Model for relevance scoring |
-| `TRACE_LLM_MEDIUM` | `gemini-2.5-flash` | Model for STIX extraction |
+| `TRACE_LLM_SIMPLE` | `gemini-3.1-flash-lite` | Model for relevance scoring |
+| `TRACE_LLM_MEDIUM` | `gemini-3.5-flash` | Model for STIX extraction |
 | `TRACE_RELEVANCE_THRESHOLD` | `0.5` | L2 PIR relevance gate threshold (0.0–1.0) |
 | `TRACE_CRAWL_CONCURRENCY` | `4` | Parallel crawl workers |
 | `TRACE_FEED_MAX_ENTRIES` | `50` | Max RSS feed entries per source |

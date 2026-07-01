@@ -6,6 +6,26 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [4.2.0] — 2026-07-01
+
+### Changed
+
+- Updated the default BEACON Gemini model tiers for `us-central1` Vertex AI:
+  `BEACON_LLM_SIMPLE` now defaults to `gemini-3.1-flash-lite`, and
+  `BEACON_LLM_MEDIUM` now defaults to `gemini-3.5-flash`.
+  `BEACON_LLM_COMPLEX` remains `gemini-2.5-pro` until a suitable Gemini 3.x Pro
+  GA model is available without switching the Vertex location to `global`.
+- Made the PIR web model selectors config-driven. The dropdowns now render from
+  BEACON's model catalog and show the effective `.env` / config default for
+  each tier, avoiding stale hard-coded model IDs in `pir.html`.
+
+### Documentation
+
+- Refreshed BEACON and pipeline docs to show the current Gemini defaults for
+  BEACON and TRACE.
+
+---
+
 ## [4.1.0] — 2026-06-18
 
 ### Changed

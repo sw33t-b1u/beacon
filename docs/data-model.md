@@ -274,9 +274,9 @@ Any active business trigger escalates `tactical` → `operational` regardless of
 
 | Step | Trigger | Model |
 |------|---------|-------|
-| MD → BusinessContext (`parse_markdown`) | `.md` input | `gemini-2.5-flash-lite` |
-| Threat tag completion (`map_threats`) | Dictionary: 0 matches | `gemini-2.5-flash-lite` |
-| PIR text augmentation (`build_pirs`) | `use_llm=True` always | `gemini-2.5-flash` |
+| MD → BusinessContext (`parse_markdown`) | `.md` input | `gemini-3.1-flash-lite` |
+| Threat tag completion (`map_threats`) | Dictionary: 0 matches | `gemini-3.1-flash-lite` |
+| PIR text augmentation (`build_pirs`) | `use_llm=True` always | `gemini-3.5-flash` |
 | Likelihood scoring assist (`score`) | Dictionary: no basis | `gemini-2.5-pro` |
 
 Authentication uses Application Default Credentials (ADC). No API key management required.
