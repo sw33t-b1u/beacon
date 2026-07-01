@@ -49,8 +49,8 @@ cp .env.example .env
 |--------|------|-----------|------|
 | `GCP_PROJECT_ID` | LLM モード | — | GCP プロジェクト ID |
 | `VERTEX_LOCATION` | 任意 | `us-central1` | Vertex AI リージョン |
-| `BEACON_LLM_SIMPLE` | 任意 | `gemini-3.1-flash-lite` | 軽量タスク用モデル |
-| `BEACON_LLM_MEDIUM` | 任意 | `gemini-3.5-flash` | 中程度タスク用モデル |
+| `BEACON_LLM_SIMPLE` | 任意 | `gemini-2.5-flash` | 軽量タスク用モデル |
+| `BEACON_LLM_MEDIUM` | 任意 | `gemini-2.5-flash` | 中程度タスク用モデル |
 | `BEACON_LLM_COMPLEX` | 任意 | `gemini-2.5-pro` | 複雑推論用モデル |
 | `GHE_API_BASE` | 任意 | `https://api.github.com` | セルフホスト GHE 用に上書き |
 | `SAGE_API_URL` | SAGE モード | — | SAGE Analysis API の URL（Settings タブからも設定可） |

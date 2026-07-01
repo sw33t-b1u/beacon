@@ -254,14 +254,14 @@ BEACON selects a model per complexity tier. Each tier is independently
 overridable via its matching environment variable:
 
 ```bash
-BEACON_LLM_SIMPLE=gemini-3.1-flash-lite \
-BEACON_LLM_MEDIUM=gemini-3.5-flash \
+BEACON_LLM_SIMPLE=gemini-2.5-flash \
+BEACON_LLM_MEDIUM=gemini-2.5-flash \
 BEACON_LLM_COMPLEX=gemini-2.5-pro \
 uv run beacon pir-generate --context path/to/context.md
 ```
 
 Set only the tier(s) you want to override; unset tiers use their defaults
-(`gemini-3.1-flash-lite` / `gemini-3.5-flash` / `gemini-2.5-pro`).
+(`gemini-2.5-flash` / `gemini-2.5-flash` / `gemini-2.5-pro`).
 
 ### Load a previous PIR result
 

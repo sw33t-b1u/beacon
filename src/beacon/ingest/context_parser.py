@@ -31,7 +31,7 @@ def parse_markdown(
 ) -> BusinessContext:
     """Parse a Markdown strategy document into BusinessContext (one-shot LLM).
 
-    Uses gemini-3.1-flash-lite via Vertex AI to convert the document to
+    Uses gemini-2.5-flash via Vertex AI to convert the document to
     BusinessContext JSON in a single call.
     """
     from beacon.llm.client import call_llm_json, load_prompt  # noqa: PLC0415

@@ -3,6 +3,13 @@
 {% block content %}
 <h1>Priority Intelligence Requirements</h1>
 
+{% if pir_error %}
+<div class="alert" style="background:#fadbd8; border-left:4px solid #c0392b; margin-bottom:1rem;">
+  <strong>PIR generation failed.</strong><br>
+  {{ pir_error }}
+</div>
+{% endif %}
+
 {# ------------------------------------------------------------------ #}
 {# Section 1: Stored PIRs (StorageBackend auto-load)                   #}
 {# ------------------------------------------------------------------ #}

@@ -273,9 +273,9 @@ uv run beacon pir-generate --context ... --output pir_output.json \
 
 | ステップ | トリガー | モデル |
 |---------|---------|-------|
-| MD → BusinessContext（`parse_markdown`） | `.md` 入力 | `gemini-3.1-flash-lite` |
-| 脅威タグ補完（`map_threats`） | 辞書: 0 マッチ | `gemini-3.1-flash-lite` |
-| PIR テキスト拡充（`build_pirs`） | `use_llm=True` 常時 | `gemini-3.5-flash` |
+| MD → BusinessContext（`parse_markdown`） | `.md` 入力 | `gemini-2.5-flash` |
+| 脅威タグ補完（`map_threats`） | 辞書: 0 マッチ | `gemini-2.5-flash` |
+| PIR テキスト拡充（`build_pirs`） | `use_llm=True` 常時 | `gemini-2.5-flash` |
 | 可能性スコアリング補助（`score`） | 辞書: 根拠なし | `gemini-2.5-pro` |
 
 認証は Application Default Credentials（ADC）を使用します。API キー管理は不要です。

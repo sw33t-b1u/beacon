@@ -8,12 +8,11 @@ from dataclasses import dataclass, field
 # Selectable Gemini models for the PIR web UI dropdowns and per-request
 # overrides. Kept in one place so the web UI stays in sync with the tier
 # defaults below instead of hard-coding the list in a template. Every entry
-# must be available in VERTEX_LOCATION (us-central1); Gemini 3.x preview models
-# (e.g. gemini-3.1-pro-preview) require the global endpoint and are therefore
-# intentionally excluded.
+# must be available in VERTEX_LOCATION (us-central1). Gemini 3.x models are
+# excluded because they are not served on the us-central1 regional endpoint
+# (global / EU multi-region only) and would fail with a 404 there.
 AVAILABLE_LLM_MODELS: tuple[str, ...] = (
-    "gemini-3.1-flash-lite",
-    "gemini-3.5-flash",
+    "gemini-2.5-flash",
     "gemini-2.5-pro",
 )
 
@@ -28,10 +27,10 @@ class Config:
 
     # LLM model selection (overridable per environment)
     llm_model_simple: str = field(
-        default_factory=lambda: os.environ.get("BEACON_LLM_SIMPLE", "gemini-3.1-flash-lite")
+        default_factory=lambda: os.environ.get("BEACON_LLM_SIMPLE", "gemini-2.5-flash")
     )
     llm_model_medium: str = field(
-        default_factory=lambda: os.environ.get("BEACON_LLM_MEDIUM", "gemini-3.5-flash")
+        default_factory=lambda: os.environ.get("BEACON_LLM_MEDIUM", "gemini-2.5-flash")
     )
     llm_model_complex: str = field(
         default_factory=lambda: os.environ.get("BEACON_LLM_COMPLEX", "gemini-2.5-pro")

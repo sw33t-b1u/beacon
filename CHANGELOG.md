@@ -6,6 +6,27 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [4.2.1] — 2026-07-01
+
+### Fixed
+
+- Reverted the default Gemini model tiers to two `us-central1`-available GA
+  models. 4.2.0's `gemini-3.1-flash-lite` / `gemini-3.5-flash` defaults caused a
+  Vertex `404 NOT_FOUND` because those models are served only on the global /
+  EU multi-region endpoint, not the `us-central1` regional endpoint.
+  `BEACON_LLM_SIMPLE` and `BEACON_LLM_MEDIUM` now default to `gemini-2.5-flash`,
+  and `BEACON_LLM_COMPLEX` stays `gemini-2.5-pro`. The PIR model dropdown
+  (`AVAILABLE_LLM_MODELS`) now offers only these two models.
+- `/pir/generate` now catches LLM/pipeline failures and re-renders the PIR page
+  with a readable error (including the configured models and `VERTEX_LOCATION`)
+  instead of returning a bare HTTP 500.
+
+### Documentation
+
+- Updated BEACON and pipeline docs to the two-model `us-central1` configuration.
+
+---
+
 ## [4.2.0] — 2026-07-01
 
 ### Changed

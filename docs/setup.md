@@ -48,8 +48,8 @@ Edit `.env` and fill in the required values:
 |----------|----------|---------|-------------|
 | `GCP_PROJECT_ID` | LLM mode | — | GCP project ID |
 | `VERTEX_LOCATION` | No | `us-central1` | Vertex AI region |
-| `BEACON_LLM_SIMPLE` | No | `gemini-3.1-flash-lite` | Simple task model |
-| `BEACON_LLM_MEDIUM` | No | `gemini-3.5-flash` | Medium task model |
+| `BEACON_LLM_SIMPLE` | No | `gemini-2.5-flash` | Simple task model |
+| `BEACON_LLM_MEDIUM` | No | `gemini-2.5-flash` | Medium task model |
 | `BEACON_LLM_COMPLEX` | No | `gemini-2.5-pro` | Complex reasoning model |
 | `GHE_API_BASE` | No | `https://api.github.com` | Override for self-hosted GHE |
 | `SAGE_API_URL` | SAGE mode | — | SAGE Analysis API URL (also configurable via Settings tab) |

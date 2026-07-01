@@ -14,8 +14,8 @@ def _make_config(**kwargs) -> Config:
     defaults = dict(
         gcp_project_id="test-project",
         vertex_location="us-central1",
-        llm_model_simple="gemini-3.1-flash-lite",
-        llm_model_medium="gemini-3.5-flash",
+        llm_model_simple="gemini-2.5-flash",
+        llm_model_medium="gemini-2.5-flash",
         llm_model_complex="gemini-2.5-pro",
         llm_max_output_tokens_simple=32768,
         llm_max_output_tokens_medium=32768,
@@ -87,7 +87,7 @@ class TestCallLlm:
             call_llm("medium", "test", config=config)
 
         call_kwargs = mock_client.models.generate_content.call_args.kwargs
-        assert call_kwargs["model"] == "gemini-3.5-flash"
+        assert call_kwargs["model"] == "gemini-2.5-flash"
 
 
 class TestMaxOutputTokens:
@@ -237,7 +237,7 @@ class TestCallLlmIntegration:
     """Integration tests — require real Vertex AI. Run with: make test-integration"""
 
     def test_simple_call_returns_json(self):
-        """Smoke test: call gemini-3.1-flash-lite and get a JSON response."""
+        """Smoke test: call gemini-2.5-flash and get a JSON response."""
         import os
 
         if not os.environ.get("GCP_PROJECT_ID"):

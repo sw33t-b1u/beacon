@@ -84,8 +84,8 @@ FollowedBy 遷移 weight を計算し、PIR ベースの criticality 調整を�
 | 変数 | デフォルト | 用途 |
 |---|---|---|
 | `GCP_PROJECT_ID` | (なし) | Vertex AI プロジェクト ID |
-| `BEACON_LLM_SIMPLE` | `gemini-3.1-flash-lite` | 単純な抽出タスク用モデル |
-| `BEACON_LLM_MEDIUM` | `gemini-3.5-flash` | 中程度の分析用モデル |
+| `BEACON_LLM_SIMPLE` | `gemini-2.5-flash` | 単純な抽出タスク用モデル |
+| `BEACON_LLM_MEDIUM` | `gemini-2.5-flash` | 中程度の分析用モデル |
 | `BEACON_LLM_COMPLEX` | `gemini-2.5-pro` | 複雑な推論（PIR 生成）用モデル |
 | `SAGE_API_URL` | (なし) | SAGE API ベース URL（`--use-sage` 有効化） |
 | `BEACON_IR_LOOKBACK_DAYS` | `365` | IR boost ルックバックウィンドウ（日数） |
@@ -100,8 +100,8 @@ FollowedBy 遷移 weight を計算し、PIR ベースの criticality 調整を�
 | 変数 | デフォルト | 用途 |
 |---|---|---|
 | `GCP_PROJECT_ID` | (なし) | Vertex AI プロジェクト ID |
-| `TRACE_LLM_SIMPLE` | `gemini-3.1-flash-lite` | relevance scoring 用モデル |
-| `TRACE_LLM_MEDIUM` | `gemini-3.5-flash` | STIX 抽出用モデル |
+| `TRACE_LLM_SIMPLE` | `gemini-2.5-flash` | relevance scoring 用モデル |
+| `TRACE_LLM_MEDIUM` | `gemini-2.5-flash` | STIX 抽出用モデル |
 | `TRACE_RELEVANCE_THRESHOLD` | `0.5` | L2 PIR relevance gate しきい値（0.0–1.0） |
 | `TRACE_CRAWL_CONCURRENCY` | `4` | 並列クロールワーカー数 |
 | `TRACE_FEED_MAX_ENTRIES` | `50` | RSS フィードあたりの最大エントリ数 |

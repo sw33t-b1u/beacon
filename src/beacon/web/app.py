@@ -1075,19 +1075,6 @@ async def settings_test_sage(sage_url: str = ""):
 @app.get("/pir")
 async def pir_page(request: Request, beacon_session: str = Cookie(default="")):
     """Unified PIR page: generate + stored PIRs list + review."""
-    from beacon.config import AVAILABLE_LLM_MODELS, load_config  # noqa: PLC0415
-    from beacon.storage import create_storage_backend  # noqa: PLC0415
-
-    cfg = load_config()
-
-    # Load stored PIR filenames from StorageBackend
-    try:
-        storage = create_storage_backend(cfg)
-        stored_pir_files = storage.list_files("pir")
-        stored_pir_files = [f for f in stored_pir_files if f.endswith(".json")]
-    except Exception:
-        stored_pir_files = []
-
     session = load_session(beacon_session) if beacon_session else None
     pirs = session["pirs"] if session else []
     collection_plan = session.get("collection_plan", "") if session else ""
@@ -1096,22 +1083,46 @@ async def pir_page(request: Request, beacon_session: str = Cookie(default="")):
     response = templates.TemplateResponse(
         request=request,
         name="pir.html",
-        context={
-            "active_tab": "pir",
-            "csrf_token": csrf_token,
-            "stored_pir_files": stored_pir_files,
-            "pirs": pirs,
-            "collection_plan": collection_plan,
-            "available_llm_models": AVAILABLE_LLM_MODELS,
-            "llm_model_defaults": {
-                "simple": cfg.llm_model_simple,
-                "medium": cfg.llm_model_medium,
-                "complex": cfg.llm_model_complex,
-            },
-        },
+        context=_pir_page_context(csrf_token, pirs=pirs, collection_plan=collection_plan),
     )
     _set_csrf_cookie(response, csrf_token)
     return response
+
+
+def _pir_page_context(
+    csrf_token: str,
+    *,
+    pirs: list | None = None,
+    collection_plan: str = "",
+    error_message: str | None = None,
+) -> dict:
+    """Build the Jinja context shared by the PIR page GET route and the
+    ``/pir/generate`` error path, so both render the same stored-PIR list and
+    config-driven model selectors."""
+    from beacon.config import AVAILABLE_LLM_MODELS, load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    cfg = load_config()
+    try:
+        storage = create_storage_backend(cfg)
+        stored_pir_files = [f for f in storage.list_files("pir") if f.endswith(".json")]
+    except Exception:  # noqa: BLE001
+        stored_pir_files = []
+
+    return {
+        "active_tab": "pir",
+        "csrf_token": csrf_token,
+        "stored_pir_files": stored_pir_files,
+        "pirs": pirs or [],
+        "collection_plan": collection_plan,
+        "available_llm_models": AVAILABLE_LLM_MODELS,
+        "llm_model_defaults": {
+            "simple": cfg.llm_model_simple,
+            "medium": cfg.llm_model_medium,
+            "complex": cfg.llm_model_complex,
+        },
+        "pir_error": error_message,
+    }
 
 
 @app.post("/pir/generate")
@@ -1137,6 +1148,32 @@ async def pir_generate(
 
     try:
         pirs, collection_plan_md = _run_pipeline(tmp_path, config=cfg)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception(
+            "pir_generate_failed",
+            error=str(exc),
+            model_simple=cfg.llm_model_simple,
+            model_medium=cfg.llm_model_medium,
+            model_complex=cfg.llm_model_complex,
+            vertex_location=cfg.vertex_location,
+        )
+        new_csrf = _generate_csrf_token()
+        response = templates.TemplateResponse(
+            request=request,
+            name="pir.html",
+            context=_pir_page_context(
+                new_csrf,
+                error_message=(
+                    "PIR generation failed while calling the LLM or processing the "
+                    "uploaded context. Check that the selected Gemini models are "
+                    f"available in VERTEX_LOCATION={cfg.vertex_location}. "
+                    f"Details: {exc}"
+                ),
+            ),
+            status_code=400,
+        )
+        _set_csrf_cookie(response, new_csrf)
+        return response
     finally:
         tmp_path.unlink(missing_ok=True)
 
