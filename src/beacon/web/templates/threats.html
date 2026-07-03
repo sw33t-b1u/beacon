@@ -2,7 +2,7 @@
 {% block title %}CTI Platform — Threats{% endblock %}
 {% block content %}
 <h1>Threats</h1>
-<p style="color:#666;">CTI Platform view for SAGE actor search, exposure analysis, and STIX extraction.</p>
+<p style="color:#666;">SAGE の actor 検索、露出分析、STIX 抽出を行う CTI Platform ビューです。</p>
 
 {% if not sage_configured %}
 <div class="alert alert-info" style="border-left-color:#e67e22; background:#fef9e7;">
@@ -16,11 +16,11 @@
 {# ------------------------------------------------------------------ #}
 <div class="card" style="padding:1rem;">
   <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
-    <strong style="font-size:0.9rem;">View:</strong>
+    <strong style="font-size:0.9rem;">表示:</strong>
     <button id="btn-actor-view" class="btn btn-primary" onclick="switchView('actor')">Actor</button>
     <button id="btn-asset-view" class="btn btn-secondary" onclick="switchView('asset')">Asset</button>
 
-    <span style="margin-left:1.5rem; font-size:0.9rem; font-weight:500;">Time range:</span>
+    <span style="margin-left:1.5rem; font-size:0.9rem; font-weight:500;">期間:</span>
     <button class="btn btn-secondary time-preset" data-months="1" onclick="setPreset(1)">1M</button>
     <button class="btn btn-secondary time-preset" data-months="3" onclick="setPreset(3)">3M</button>
     <button class="btn btn-secondary time-preset" data-months="6" onclick="setPreset(6)">6M</button>
@@ -38,14 +38,14 @@
 {# ------------------------------------------------------------------ #}
 <div id="actor-view">
   <div class="card">
-    <h2 style="margin-top:0;">Actor Search</h2>
+    <h2 style="margin-top:0;">Actor 検索</h2>
     <div style="display:flex; gap:0.75rem; align-items:flex-end;">
       <div style="flex:1;">
-        <label for="actor-name-input">Actor name (partial match)</label>
+        <label for="actor-name-input">Actor 名（部分一致）</label>
         <input type="text" id="actor-name-input" placeholder="e.g. APT28, Lazarus …"
                onkeydown="if(event.key==='Enter') searchActors()">
       </div>
-      <button class="btn btn-primary" onclick="searchActors()">Search</button>
+      <button class="btn btn-primary" onclick="searchActors()">検索</button>
     </div>
     <div id="actor-search-status" style="margin-top:0.75rem; font-size:0.88rem; color:#555;"></div>
   </div>
@@ -53,13 +53,13 @@
   <div id="actor-results"></div>
 
   <div class="card" id="stix-extract-card" style="display:none;">
-    <h2 style="margin-top:0;">STIX Extraction</h2>
+    <h2 style="margin-top:0;">STIX 抽出</h2>
     <p style="font-size:0.88rem; color:#666; margin-top:0;">
-      Select one or more actors above, preview direct indicators, then download a STIX 2.1 bundle for manual SIEM hunting.
+      上で 1 つ以上の actor を選択し、直接関連する indicators をプレビューしたうえで、手動 SIEM hunting 用の STIX 2.1 bundle をダウンロードします。
     </p>
     <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
-      <button class="btn btn-secondary" onclick="previewIndicators()">Preview Indicators</button>
-      <button class="btn btn-primary" onclick="downloadStixBundle()">Download STIX Bundle</button>
+      <button class="btn btn-secondary" onclick="previewIndicators()">Indicators をプレビュー</button>
+      <button class="btn btn-primary" onclick="downloadStixBundle()">STIX Bundle をダウンロード</button>
       <span id="extract-status" style="font-size:0.88rem; color:#555;"></span>
     </div>
     <div id="indicator-preview" style="margin-top:0.75rem;"></div>
@@ -78,7 +78,7 @@
         <input type="text" id="asset-id-input" placeholder="e.g. asset-001"
                onkeydown="if(event.key==='Enter') loadThreatSummary()">
       </div>
-      <button class="btn btn-primary" onclick="loadThreatSummary()">Load</button>
+      <button class="btn btn-primary" onclick="loadThreatSummary()">読み込み</button>
     </div>
     <div id="asset-status" style="margin-top:0.75rem; font-size:0.88rem; color:#555;"></div>
   </div>
@@ -161,11 +161,11 @@
     const resultsEl = document.getElementById('actor-results');
 
     if (!name) {
-      statusEl.textContent = 'Please enter an actor name.';
+      statusEl.textContent = 'Actor 名を入力してください。';
       return;
     }
 
-    statusEl.innerHTML = '<span class="spinner"></span> Searching…';
+    statusEl.innerHTML = '<span class="spinner"></span> 検索中…';
     resultsEl.innerHTML = '';
 
     const params = new URLSearchParams({ name });
@@ -174,18 +174,18 @@
       const data = await resp.json();
 
       if (data.error) {
-        statusEl.textContent = 'Error: ' + data.error;
+        statusEl.textContent = 'エラー: ' + data.error;
         return;
       }
 
       const actors = data.actors || [];
       statusEl.textContent = actors.length
-        ? actors.length + ' actor(s) found'
-        : 'No actors found for "' + name + '".';
+        ? actors.length + ' actor(s) が見つかりました'
+        : '"' + name + '" に一致する actor は見つかりませんでした。';
 
       resultsEl.innerHTML = actors.map((a, i) => renderActorCard(a, i)).join('');
     } catch (err) {
-      statusEl.textContent = 'Request failed: ' + err.message;
+      statusEl.textContent = 'リクエストに失敗しました: ' + err.message;
     }
   }
 
@@ -198,7 +198,7 @@
       <div class="actor-card">
         <div class="actor-card-header" onclick="toggleActor(${idx})">
           <input type="checkbox" class="actor-select" value="${actorId}" onclick="event.stopPropagation(); updateExtractCard();">
-          <h3>${escapeHtml(actor.name || '(unnamed)')}</h3>
+          <h3>${escapeHtml(actor.name || '(名称なし)')}</h3>
           <span class="tag">${escapeHtml(soph)}</span>
           <small style="color:#777;">Last seen: ${escapeHtml(lastSeen)}</small>
           <span id="toggle-icon-${idx}" style="font-size:0.8rem; color:#aaa;">▶</span>
@@ -236,7 +236,7 @@
 
     if (contentEl.dataset.loaded) return; // already fetched
 
-    statusEl.innerHTML = '<span class="spinner"></span> Loading TTPs…';
+    statusEl.innerHTML = '<span class="spinner"></span> TTP を読み込み中…';
     const params = getDateParams();
     params.set('actor_id', actorId);
 
@@ -245,10 +245,10 @@
       const data = await resp.json();
       const ttps = data.ttps || [];
       statusEl.textContent = '';
-      contentEl.innerHTML = ttps.length ? renderTTPTable(ttps) : '<p class="empty-msg">No TTPs found for this actor in the selected time range.</p>';
+      contentEl.innerHTML = ttps.length ? renderTTPTable(ttps) : '<p class="empty-msg">選択期間内でこの actor に関連する TTP は見つかりませんでした。</p>';
       contentEl.dataset.loaded = '1';
     } catch (err) {
-      statusEl.textContent = 'Failed to load TTPs: ' + err.message;
+      statusEl.textContent = 'TTP の読み込みに失敗しました: ' + err.message;
     }
   }
 
@@ -283,24 +283,24 @@
     const statusEl = document.getElementById('extract-status');
     const previewEl = document.getElementById('indicator-preview');
     if (!ids.length) {
-      statusEl.textContent = 'Select at least one actor.';
+      statusEl.textContent = '少なくとも 1 つの actor を選択してください。';
       return;
     }
-    statusEl.innerHTML = '<span class="spinner"></span> Loading indicators…';
+    statusEl.innerHTML = '<span class="spinner"></span> indicators を読み込み中…';
     const params = new URLSearchParams();
     ids.forEach(id => params.append('actor_id', id));
     try {
       const resp = await fetch('/threats/api/indicators?' + params.toString());
       const data = await resp.json();
       if (data.error) {
-        statusEl.textContent = 'Error: ' + data.error;
+        statusEl.textContent = 'エラー: ' + data.error;
         return;
       }
       const indicators = data.indicators || [];
-      statusEl.textContent = indicators.length + ' indicator link(s) found';
-      previewEl.innerHTML = indicators.length ? renderIndicatorTable(indicators) : '<p class="empty-msg">No direct indicators for the selected actors.</p>';
+      statusEl.textContent = indicators.length + ' 件の indicator link が見つかりました';
+      previewEl.innerHTML = indicators.length ? renderIndicatorTable(indicators) : '<p class="empty-msg">選択した actor に直接関連する indicators はありません。</p>';
     } catch (err) {
-      statusEl.textContent = 'Request failed: ' + err.message;
+      statusEl.textContent = 'リクエストに失敗しました: ' + err.message;
     }
   }
 
@@ -308,7 +308,7 @@
     const ids = selectedActorIds();
     const statusEl = document.getElementById('extract-status');
     if (!ids.length) {
-      statusEl.textContent = 'Select at least one actor.';
+      statusEl.textContent = '少なくとも 1 つの actor を選択してください。';
       return;
     }
     const params = new URLSearchParams();
@@ -338,11 +338,11 @@
     const resultsEl = document.getElementById('asset-summary-results');
 
     if (!assetId) {
-      statusEl.textContent = 'Please enter an asset ID.';
+      statusEl.textContent = 'Asset ID を入力してください。';
       return;
     }
 
-    statusEl.innerHTML = '<span class="spinner"></span> Loading threat summary…';
+    statusEl.innerHTML = '<span class="spinner"></span> threat summary を読み込み中…';
     resultsEl.innerHTML = '';
 
     const params = getDateParams();
@@ -353,19 +353,19 @@
       const data = await resp.json();
 
       if (data.error) {
-        statusEl.textContent = 'Error: ' + data.error;
+        statusEl.textContent = 'エラー: ' + data.error;
         return;
       }
 
       if (!data || Object.keys(data).length === 0) {
-        statusEl.textContent = 'No threat summary available for asset "' + assetId + '".';
+        statusEl.textContent = 'Asset "' + assetId + '" の threat summary はありません。';
         return;
       }
 
-      statusEl.textContent = 'Threat summary loaded.';
+      statusEl.textContent = 'Threat summary を読み込みました。';
       resultsEl.innerHTML = renderThreatSummary(data);
     } catch (err) {
-      statusEl.textContent = 'Request failed: ' + err.message;
+      statusEl.textContent = 'リクエストに失敗しました: ' + err.message;
     }
   }
 
@@ -378,7 +378,7 @@
       <div class="summary-section">
         <h3>Attack Paths (${paths.length})</h3>
         ${paths.length ? '<ul>' + paths.map(p => '<li>' + escapeHtml(JSON.stringify(p)) + '</li>').join('') + '</ul>'
-          : '<p class="empty-msg">None found.</p>'}
+          : '<p class="empty-msg">見つかりませんでした。</p>'}
       </div>`);
 
     // Choke points
@@ -387,7 +387,7 @@
       <div class="summary-section">
         <h3>Choke Points (${choke.length})</h3>
         ${choke.length ? '<ul>' + choke.map(c => '<li>' + escapeHtml(c.name || JSON.stringify(c)) + '</li>').join('') + '</ul>'
-          : '<p class="empty-msg">None found.</p>'}
+          : '<p class="empty-msg">見つかりませんでした。</p>'}
       </div>`);
 
     // Vulnerabilities
@@ -396,7 +396,7 @@
       <div class="summary-section">
         <h3>Vulnerabilities (${vulns.length})</h3>
         ${vulns.length ? '<ul>' + vulns.map(v => '<li><code>' + escapeHtml(v.cve_id || v.id || JSON.stringify(v)) + '</code> — ' + escapeHtml(v.description || '') + '</li>').join('') + '</ul>'
-          : '<p class="empty-msg">None found.</p>'}
+          : '<p class="empty-msg">見つかりませんでした。</p>'}
       </div>`);
 
     // Incidents
@@ -405,7 +405,7 @@
       <div class="summary-section">
         <h3>Incidents (${incidents.length})</h3>
         ${incidents.length ? '<ul>' + incidents.map(i => '<li>' + escapeHtml(i.name || i.incident_id || JSON.stringify(i)) + '</li>').join('') + '</ul>'
-          : '<p class="empty-msg">None found.</p>'}
+          : '<p class="empty-msg">見つかりませんでした。</p>'}
       </div>`);
 
     return '<div class="card">' + sections.join('') + '</div>';

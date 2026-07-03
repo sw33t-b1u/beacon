@@ -11,22 +11,22 @@
   <div class="card" style="margin-bottom:0;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
       <h2 style="margin:0; font-size:1rem; color:#555; text-transform:uppercase; letter-spacing:0.05em;">PIR</h2>
-      <a href="/pir" style="font-size:0.83rem; color:#0057b7;">View PIR tab &rarr;</a>
+      <a href="/pir" style="font-size:0.83rem; color:#0057b7;">PIR タブを開く &rarr;</a>
     </div>
     <div style="font-size:2rem; font-weight:700; color:#1a1a2e; margin-bottom:0.25rem;">
       {{ pir_count }}
     </div>
-    <div style="font-size:0.88rem; color:#555; margin-bottom:0.5rem;">PIR files stored</div>
+    <div style="font-size:0.88rem; color:#555; margin-bottom:0.5rem;">保存済み PIR ファイル</div>
     {% if approval_total > 0 %}
     <div style="font-size:0.88rem; color:#555;">
-      Approved: <strong style="color:{% if approval_approved == approval_total %}#27ae60{% else %}#e67e22{% endif %};">{{ approval_approved }}/{{ approval_total }}</strong>
+      承認済み: <strong style="color:{% if approval_approved == approval_total %}#27ae60{% else %}#e67e22{% endif %};">{{ approval_approved }}/{{ approval_total }}</strong>
     </div>
     {% else %}
-    <div style="font-size:0.88rem; color:#aaa;">Approval status: —</div>
+    <div style="font-size:0.88rem; color:#aaa;">承認状況: —</div>
     {% endif %}
     {% if latest_pir_filename %}
     <div style="font-size:0.8rem; color:#777; margin-top:0.4rem; word-break:break-all;">
-      Latest: <code>{{ latest_pir_filename | e }}</code>
+      最新: <code>{{ latest_pir_filename | e }}</code>
     </div>
     {% endif %}
   </div>
@@ -37,17 +37,17 @@
   <div class="card" style="margin-bottom:0;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
       <h2 style="margin:0; font-size:1rem; color:#555; text-transform:uppercase; letter-spacing:0.05em;">Collection</h2>
-      <a href="/collection" style="font-size:0.83rem; color:#0057b7;">View Collection tab &rarr;</a>
+      <a href="/collection" style="font-size:0.83rem; color:#0057b7;">Collection タブを開く &rarr;</a>
     </div>
     <div style="font-size:2rem; font-weight:700; color:#1a1a2e; margin-bottom:0.25rem;">
       {{ stix_bundle_count }}
     </div>
-    <div style="font-size:0.88rem; color:#555; margin-bottom:0.5rem;">STIX bundles stored</div>
+    <div style="font-size:0.88rem; color:#555; margin-bottom:0.5rem;">保存済み STIX バンドル</div>
     <div style="font-size:0.88rem; color:#555; margin-bottom:0.25rem;">
-      Total crawls: <strong>{{ crawl_total }}</strong>
+      クロール合計: <strong>{{ crawl_total }}</strong>
     </div>
     <div style="font-size:0.88rem; color:#555;">
-      Last 24h: <strong>{{ crawl_last_24h }}</strong>
+      直近 24 時間: <strong>{{ crawl_last_24h }}</strong>
     </div>
   </div>
 
@@ -57,17 +57,17 @@
   <div class="card" style="margin-bottom:0;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
       <h2 style="margin:0; font-size:1rem; color:#555; text-transform:uppercase; letter-spacing:0.05em;">Threats</h2>
-      <a href="/threats" style="font-size:0.83rem; color:#0057b7;">View Threats tab &rarr;</a>
+      <a href="/threats" style="font-size:0.83rem; color:#0057b7;">Threats タブを開く &rarr;</a>
     </div>
     {% if sage_offline %}
     <div class="alert alert-info" style="margin-bottom:0.5rem; font-size:0.83rem;">
-      SAGE offline — showing —
+      SAGE offline — 表示できません
     </div>
     {% endif %}
     <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.5rem; margin-bottom:0.75rem;">
       <div style="text-align:center;">
         <div style="font-size:1.5rem; font-weight:700; color:#1a1a2e;">{{ actor_count }}</div>
-        <div style="font-size:0.78rem; color:#777;">Targeting Actors</div>
+        <div style="font-size:0.78rem; color:#777;">関連 Actor</div>
         {% if actor_count == "—" %}<div style="font-size:0.68rem; color:#aaa;">(SAGE に count API なし)</div>{% endif %}
       </div>
       <div style="text-align:center;">
@@ -82,7 +82,7 @@
       </div>
     </div>
     {% if choke_points %}
-    <div style="font-size:0.83rem; color:#555; font-weight:600; margin-bottom:0.3rem;">Choke-points top-5</div>
+    <div style="font-size:0.83rem; color:#555; font-weight:600; margin-bottom:0.3rem;">Choke-points 上位 5 件</div>
     <ol style="margin:0; padding-left:1.2rem; font-size:0.83rem; color:#333;">
       {% for cp in choke_points %}
       <li style="margin-bottom:0.15rem;">{{ cp | e }}</li>
@@ -100,16 +100,16 @@
 {# ------------------------------------------------------------------ #}
 <div class="card">
   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
-    <h2 style="margin:0;">Recent Incidents</h2>
-    <a href="/threats" style="font-size:0.83rem; color:#0057b7;">View Threats tab &rarr;</a>
+    <h2 style="margin:0;">最近のインシデント</h2>
+    <a href="/threats" style="font-size:0.83rem; color:#0057b7;">Threats タブを開く &rarr;</a>
   </div>
   {% if recent_incidents %}
   <table>
     <thead>
       <tr>
         <th>ID</th>
-        <th>Name / Description</th>
-        <th>Date</th>
+        <th>名前 / 説明</th>
+        <th>日時</th>
       </tr>
     </thead>
     <tbody>
@@ -128,9 +128,9 @@
     </tbody>
   </table>
   {% elif sage_offline %}
-  <p style="font-size:0.88rem; color:#aaa;">SAGE offline — incident data unavailable.</p>
+  <p style="font-size:0.88rem; color:#aaa;">SAGE offline — インシデントデータを取得できません。</p>
   {% else %}
-  <p style="font-size:0.88rem; color:#aaa;">No recent incidents found.</p>
+  <p style="font-size:0.88rem; color:#aaa;">最近のインシデントは見つかりませんでした。</p>
   {% endif %}
 </div>
 

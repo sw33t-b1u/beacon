@@ -32,7 +32,9 @@ class TestCollectionDiscoveryPage:
         assert "PIR-driven Article Discovery" in resp.text
         assert "/collection/discover" in resp.text
         assert "discover-pir" in resp.text
-        assert "Include recent unmatched articles" in resp.text
+        assert "最近の未マッチ記事も含める" in resp.text
+        assert "gs://" in resp.text
+        assert "Run Batch の実行条件" in resp.text
 
 
 class TestCollectionDiscoverRoute:
@@ -231,3 +233,29 @@ def test_default_discovery_pir_reference_keeps_local_absolute_default(monkeypatc
     monkeypatch.delenv("BEACON_OUTPUT_DIR", raising=False)
 
     assert _default_discovery_pir_reference() == str((Path("output") / "pir_output.json").resolve())
+
+
+def test_default_discovery_catalog_reference_uses_gcs_uri(monkeypatch):
+    from beacon.web.app import _default_discovery_catalog_reference
+
+    class FakeStorage:
+        def list_files(self, category: str):
+            assert category == "input"
+            return ["random.yaml", "source_catalog.yaml", "notes.txt"]
+
+    monkeypatch.setenv("BEACON_STORAGE", "gcs")
+    monkeypatch.setenv("BEACON_STORAGE_BUCKET", "cti-bucket")
+    monkeypatch.setenv("BEACON_STORAGE_PREFIX", "prod/")
+    monkeypatch.setattr("beacon.storage.create_storage_backend", lambda cfg: FakeStorage())
+
+    assert (
+        _default_discovery_catalog_reference() == "gs://cti-bucket/prod/input/source_catalog.yaml"
+    )
+
+
+def test_default_discovery_catalog_reference_keeps_local_empty(monkeypatch):
+    from beacon.web.app import _default_discovery_catalog_reference
+
+    monkeypatch.setenv("BEACON_STORAGE", "local")
+
+    assert _default_discovery_catalog_reference() == ""

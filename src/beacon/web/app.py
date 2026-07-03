@@ -459,11 +459,62 @@ def _collection_discovery_defaults() -> dict:
     """Return default form values for PIR-driven article discovery."""
     return {
         "pir_path": _default_discovery_pir_reference(),
-        "catalog_path": "",
+        "catalog_path": _default_discovery_catalog_reference(),
         "since_days": 30,
         "max_candidates": 50,
         "include_recent": True,
     }
+
+
+def _default_discovery_catalog_reference() -> str:
+    """Return a TRACE-readable source catalog reference when GCS can list one.
+
+    TRACE accepts local paths, storage keys, and ``gs://`` URIs for
+    ``discover-pir --catalog``. The field remains optional, so this helper is
+    intentionally fail-soft: if BEACON is not in GCS mode, no catalog is found,
+    or credentials are unavailable, the UI falls back to an empty field.
+    """
+    from beacon.config import load_config  # noqa: PLC0415
+    from beacon.storage import create_storage_backend  # noqa: PLC0415
+
+    cfg = load_config()
+    if getattr(cfg, "storage_backend", "local") != "gcs":
+        return ""
+
+    try:
+        storage = create_storage_backend(cfg)
+        catalog_files = [
+            name for name in storage.list_files("input") if name.endswith((".yaml", ".yml"))
+        ]
+    except Exception:  # noqa: BLE001
+        catalog_files = []
+    if not catalog_files:
+        return ""
+
+    filename = _pick_discovery_catalog_filename(catalog_files)
+    bucket = getattr(cfg, "storage_bucket", "")
+    if bucket:
+        return _gcs_reference(bucket, cfg.storage_prefix, "input", filename)
+    return _storage_reference(cfg.storage_prefix, "input", filename)
+
+
+def _pick_discovery_catalog_filename(catalog_files: list[str]) -> str:
+    """Choose the most likely discovery source catalog from GCS input files."""
+    preferred = ("source_catalog.yaml", "source_catalog.yml", "source_catalog.example.yaml")
+    for name in preferred:
+        if name in catalog_files:
+            return name
+
+    catalog_named = sorted(name for name in catalog_files if "catalog" in name.lower())
+    if catalog_named:
+        return catalog_named[-1]
+
+    return sorted(catalog_files)[-1]
+
+
+def _gcs_reference(bucket: str, prefix: str, category: str, filename: str) -> str:
+    key = _storage_reference(prefix, category, filename)
+    return f"gs://{bucket}/{key}"
 
 
 def _default_discovery_pir_reference() -> str:

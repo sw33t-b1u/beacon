@@ -30,10 +30,14 @@
                value="{{ discovery_defaults.pir_path if discovery_defaults else '' }}" required>
       </div>
       <div>
-        <label for="discover-catalog-path">Catalog path (optional)</label>
+        <label for="discover-catalog-path">カタログパス（任意）</label>
         <input type="text" id="discover-catalog-path" name="catalog_path"
-               placeholder="input/source_catalog.yaml"
+               placeholder="gs://cti-bucket/prod/input/source_catalog.yaml または input/source_catalog.yaml"
                value="{{ discovery_defaults.catalog_path if discovery_defaults else '' }}">
+        <p style="font-size:0.78rem; color:#777; margin:0.25rem 0 0;">
+          TRACE はローカルパス、StorageBackend key（例: <code>input/source_catalog.yaml</code>）、
+          <code>gs://</code> URI を解決できます。GCS モードで候補が見つかる場合は自動補完されます。
+        </p>
       </div>
       <div>
         <label for="discover-from">From (optional)</label>
@@ -61,7 +65,7 @@
       <label style="font-size:0.88rem; color:#555; display:flex; gap:0.35rem; align-items:center;">
         <input type="checkbox" name="include_recent" value="1"
                {% if not discovery_defaults or discovery_defaults.include_recent %}checked{% endif %}>
-        Include recent unmatched articles
+        最近の未マッチ記事も含める
       </label>
     </div>
   </form>
@@ -220,9 +224,16 @@
       </div>
       <button type="submit" class="btn btn-primary">Run Batch</button>
     </div>
-    <p style="font-size:0.83rem; color:#777; margin-top:0.4rem;">
+    <div class="alert alert-info" style="margin-top:0.75rem; font-size:0.83rem;">
+      <strong>Run Batch の実行条件:</strong>
+      アップロードした YAML 内の全 URL を対象にします。From/To や since-days によるタイムフレーム絞り込み、
+      画面上の最大抽出件数制限はありません。TRACE 側の <code>crawl_state.json</code> により
+      URL と本文ハッシュの重複はスキップされます。このアップロード経路では PIR relevance ゲートは使わず、
+      1 回の実行は最大 300 秒でタイムアウトします。PIR relevance で絞り込みたい場合は、上の
+      <strong>PIR-driven Article Discovery</strong> で候補を選択して <strong>Extract Approved</strong> を実行してください。
+      <br>
       TRACE の <code>sources_candidate.yaml</code> 形式に準拠した YAML ファイルをアップロードしてください。
-    </p>
+    </div>
   </form>
 
   {% if crawl_result and (crawl_result.mode == 'batch' or crawl_result.mode == 'approved') %}
