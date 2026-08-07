@@ -56,6 +56,11 @@ class ThreatProfile:
     priority_ttps: list[str]
     active_triggers: list[str]
     matched_categories: list[str]  # e.g. ["state_sponsored.China", "espionage"]
+    # Fine-grained BEACON industry (ten-value vocabulary) that produced this
+    # profile. ``matched_categories`` above is resolved against the four coarse
+    # MISP ``cfr-target-category`` buckets, so this field preserves the original
+    # industry resolution for reporting / downstream re-ranking (BEACON 4.3.0).
+    fine_industry: str = ""
 
 
 def map_threats(
@@ -90,6 +95,8 @@ def map_threats(
     for cat_path, info in _iter_actor_categories(actor_cats):
         if not _industry_matches(info, coarse_industry):
             continue
+        if not _fine_industry_matches(info, industry):
+            continue
         if not _geography_matches(info, geographies):
             continue
 
@@ -119,6 +126,7 @@ def map_threats(
         priority_ttps=sorted(priority_ttps),
         active_triggers=triggers,
         matched_categories=matched_categories,
+        fine_industry=industry,
     )
 
 
@@ -142,6 +150,27 @@ def _industry_matches(info: dict, coarse_industry: str) -> bool:
     if not target_industries:
         return True  # empty means "no narrowing" — accept
     return coarse_industry in target_industries
+
+
+def _fine_industry_matches(info: dict, fine_industry: str) -> bool:
+    """Optional fine-grained sector narrowing (BEACON 4.3.0, forward-compatible).
+
+    The MISP-derived taxonomy currently carries only the four coarse
+    ``cfr-target-category`` buckets in ``target_industries``, so BEACON's ten
+    industries collapse onto four and industry resolution is lost at the
+    category level (e.g. ``healthcare`` and ``manufacturing`` both become
+    ``Private sector``). When a future ``beacon taxonomy-refresh`` populates a
+    finer ``target_sectors`` list (BEACON's ten-value industry vocabulary) on an
+    actor category, this predicate narrows matches to it. When the field is
+    absent — as in every taxonomy shipped up to 4.3.0 — it returns ``True``,
+    preserving current matching behaviour exactly (no change to P1/P2 selection).
+    Regenerating the taxonomy with ``target_sectors`` requires network access to
+    MITRE ATT&CK / MISP Galaxy and is a maintainer/user handoff step.
+    """
+    target_sectors = info.get("target_sectors", [])
+    if not target_sectors:
+        return True
+    return fine_industry in target_sectors
 
 
 def _geography_matches(info: dict, org_geographies: list[str]) -> bool:

@@ -227,11 +227,16 @@ hosts yields two edges.
 
 Only P1 and P2 are included in `pir_output.json`. P3 items are tracked in `collection_plan.md` (generated with `--collection-plan`).
 
+> **Score ranges.** `likelihood` is `1–5`, but `impact` is quantised to `2–5`
+> because `business_impact` is a four-level enum (`low`→2, `medium`→3,
+> `high`→4, `critical`→5) with no bucket that maps to 1. The composite
+> (`likelihood × impact`) therefore spans `2–25`, not `1–25`.
+
 | Priority | Composite score | Typical example |
 |----------|-----------------|-----------------|
 | P1 | ≥ 20 | Nation-state APT targeting industry crown jewels |
 | P2 | 12–19 | Active ransomware campaign against the sector |
-| P3 (plan only) | 1–11 | Generic CVE advisory with low industry relevance |
+| P3 (plan only) | 2–11 | Generic CVE advisory with low industry relevance |
 
 ---
 
@@ -264,9 +269,16 @@ uv run beacon pir-generate --context ... --output pir_output.json \
 |-------|-----------|-------------|---------|
 | `strategic` | 20–25 | +12 months | Nation-state APT targeting industry IP |
 | `operational` | 12–19 | +6 months | Active ransomware campaign |
-| `tactical` | 1–11 | +1 month | Specific CVE exploitation |
+| `tactical` | 2–11 | +1 month | Specific CVE exploitation |
 
 Any active business trigger escalates `tactical` → `operational` regardless of score (NIST SP 800-37 R2 event-driven trigger framework). Triggers are detected from BusinessContext structural fields and corroborated by external citations — see [`schema/triggers.md`](../schema/triggers.md) for the ten-trigger contract.
+
+> **Trigger signal path (two stages by design, not a double-count bug).** An
+> active trigger acts twice on purpose: (1) it adds `+1` to `likelihood` in the
+> risk score (raising the numeric composite), and (2) it escalates a residual
+> `tactical` result to `operational` here. Stage (2) is the safety net for the
+> case where a low `impact` keeps the composite in the tactical band even though
+> a material business trigger fired. All ten triggers are weighted uniformly.
 
 ---
 

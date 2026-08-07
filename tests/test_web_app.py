@@ -779,7 +779,7 @@ class TestAssetsRoute:
         resp = fresh.get("/assets")
         assert resp.status_code == 200
         # Without a loaded doc the template shows a hint to load a draft
-        assert b"No assets draft loaded" in resp.content
+        assert "保存済み Assets ドラフトはありません".encode() in resp.content
 
     def test_get_with_loaded_doc_shows_assets_table(self):
         session_id, cookies = _create_assets_session()
@@ -1207,7 +1207,7 @@ class TestIdentityRoute:
         fresh = TestClient(app, cookies={})
         resp = fresh.get("/identity")
         assert resp.status_code == 200
-        assert b"No identity draft loaded" in resp.content
+        assert "保存済み Identity ドラフトはありません".encode() in resp.content
 
     def test_get_with_loaded_doc_shows_identities_table(self):
         session_id, cookies = _create_identity_session()
@@ -1567,7 +1567,7 @@ class TestAccountsRoute:
         fresh = TestClient(app, cookies={})
         resp = fresh.get("/accounts")
         assert resp.status_code == 200
-        assert b"No accounts draft loaded" in resp.content
+        assert "保存済み Accounts ドラフトはありません".encode() in resp.content
 
     def test_get_with_loaded_doc_shows_accounts_table(self):
         session_id, cookies = _create_accounts_session()

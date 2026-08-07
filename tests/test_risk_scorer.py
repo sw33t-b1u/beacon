@@ -29,7 +29,9 @@ class TestManufacturingRiskScore:
         assert self.risk.composite == self.risk.likelihood * self.risk.impact
 
     def test_composite_in_valid_range(self):
-        assert 1 <= self.risk.composite <= 25
+        # Impact is quantised to 2–5 (business_impact enum has 4 levels), so the
+        # composite floor is 2, not 1 (BEACON 4.3.0).
+        assert 2 <= self.risk.composite <= 25
 
     def test_likelihood_boosted_by_any_trigger(self):
         # Manufacturing fixture activates multiple triggers (it_ot_convergence,
@@ -144,3 +146,36 @@ class TestActorTriageBoost:
         without = score(self.elements, self.threat)
         with_zero = score(self.elements, self.threat, top_actor_likelihood=0.0)
         assert without.likelihood == with_zero.likelihood
+
+
+# ---------------------------------------------------------------------------
+# Impact quantisation — single canonical mapping, floor of 2 (BEACON 4.3.0)
+# ---------------------------------------------------------------------------
+
+
+class TestImpactQuantisation:
+    """Impact derives from a 4-level business_impact enum, so it is 2–5 and
+    never 1; the mapping lives in a single constant (_IMPACT_WEIGHTS)."""
+
+    def _elements(self, impacts):
+        from types import SimpleNamespace  # noqa: PLC0415
+
+        # _compute_impact only reads .crown_jewel_impacts, so a stub suffices.
+        return SimpleNamespace(crown_jewel_impacts=impacts)
+
+    def test_impact_never_below_two(self):
+        from beacon.analysis.risk_scorer import _IMPACT_WEIGHTS, _compute_impact  # noqa: PLC0415
+
+        assert min(_IMPACT_WEIGHTS.values()) == 2
+        for level in ("low", "medium", "high", "critical"):
+            assert 2 <= _compute_impact(self._elements([level])) <= 5
+
+    def test_impact_default_is_two_when_no_crown_jewels(self):
+        from beacon.analysis.risk_scorer import _compute_impact  # noqa: PLC0415
+
+        assert _compute_impact(self._elements([])) == 2
+
+    def test_impact_takes_highest_severity(self):
+        from beacon.analysis.risk_scorer import _compute_impact  # noqa: PLC0415
+
+        assert _compute_impact(self._elements(["low", "critical", "medium"])) == 5

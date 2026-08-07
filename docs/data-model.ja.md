@@ -226,11 +226,16 @@ identity 層より細かい account レベルの粒度 (個別ログイン識別
 
 `pir_output.json` には P1 と P2 のみが含まれます。P3 は `collection_plan.md`（`--collection-plan` で生成）に記録されます。
 
+> **スコアレンジ。** `likelihood` は `1–5` ですが、`impact` は `2–5` に量子化されます。
+> `business_impact` が4段階の enum（`low`→2 / `medium`→3 / `high`→4 / `critical`→5）で、
+> 1 に対応するバケットが存在しないためです。したがって composite（`likelihood × impact`）は
+> `1–25` ではなく `2–25` の範囲を取ります。
+
 | 優先度 | composite スコア | 典型例 |
 |-------|-----------------|-------|
 | P1 | ≥ 20 | 業種クラウンジュエルを標的とする国家支援型 APT |
 | P2 | 12–19 | 業種を狙う進行中のランサムウェアキャンペーン |
-| P3（計画のみ） | 1–11 | 業種関連性の低い一般的な CVE 情報 |
+| P3（計画のみ） | 2–11 | 業種関連性の低い一般的な CVE 情報 |
 
 ---
 
@@ -263,9 +268,11 @@ uv run beacon pir-generate --context ... --output pir_output.json \
 |--------|-----------|-------------|-----|
 | `strategic` | 20–25 | +12 ヶ月 | 業種 IP を標的とする国家支援型 APT |
 | `operational` | 12–19 | +6 ヶ月 | 進行中のランサムウェアキャンペーン |
-| `tactical` | 1–11 | +1 ヶ月 | 特定 CVE の悪用 |
+| `tactical` | 2–11 | +1 ヶ月 | 特定 CVE の悪用 |
 
 ビジネストリガーが 1 件以上検出されれば、composite に関わらず `tactical` → `operational` に昇格します（NIST SP 800-37 R2 event-driven trigger framework に準拠）。トリガーは BusinessContext 構造化フィールドから検出され、外部出典で裏付けられています — 10 トリガーの正式契約は [`schema/triggers.md`](../schema/triggers.md) を参照。
+
+> **トリガーの作用経路（バグではなく意図的な二段階）。** アクティブなトリガーは意図的に二度作用します。(1) リスクスコアの `likelihood` に `+1`（composite の数値を押し上げる）、(2) ここで残余の `tactical` を `operational` に昇格。(2) は、重大なビジネストリガーが立っているのに `impact` が低く composite が tactical 帯に留まるケースの安全網です。10 トリガーはすべて等重みで扱われます。
 
 ---
 

@@ -20,6 +20,11 @@ _IMPACT_WEIGHTS = {
     "medium": 3,
     "low": 2,
 }
+# NOTE: ``business_impact`` is a 4-level enum, so impact is quantised to the
+# range 2–5 (there is no "1" bucket). Likelihood is 1–5, hence the composite
+# ``likelihood × impact`` lands in 2–25 (not 1–25). This single mapping is the
+# only source of truth for impact weighting — do not re-declare it locally
+# (BEACON 4.3.0 consolidation).
 
 _LIKELIHOOD_BASE = {
     # matched_category count → base likelihood
@@ -33,8 +38,8 @@ _LIKELIHOOD_BASE = {
 @dataclass
 class RiskScore:
     likelihood: int  # 1–5
-    impact: int  # 1–5
-    composite: int  # likelihood × impact (max 25)
+    impact: int  # 2–5 (business_impact enum has 4 levels; no "1" bucket)
+    composite: int  # likelihood × impact (2–25)
     intelligence_level: IntelligenceLevel
     rationale: str
 
@@ -69,7 +74,12 @@ def score(
         likelihood = _llm_assist_likelihood(elements, threat, likelihood, config)
 
     # Actor triage boost — top-ranked actor with meaningful likelihood raises alarm.
-    # Threshold 0.05 filters noise from near-zero product-form scores.
+    # Threshold 0.05 filters noise from near-zero product-form scores: actor
+    # likelihood is Intent × Capability × Opportunity (three [0,1] factors, each
+    # itself a geometric mean), so even a moderately-ranked actor commonly lands
+    # well below 0.1. 0.05 is the empirical floor that separates a real top
+    # actor from product-form rounding noise; see actor_triage.py for the
+    # factor floor that keeps sparse-data actors above hard zero (BEACON 4.3.0).
     if top_actor_likelihood >= 0.05:
         likelihood = min(likelihood + 1, 5)
         logger.info("risk_actor_triage_boost", top_actor_likelihood=top_actor_likelihood)
@@ -118,6 +128,8 @@ def _compute_impact(elements: ExtractedElements) -> int:
     if not elements.crown_jewel_impacts:
         return 2  # default: low-medium
 
+    # Impact is derived from the highest crown-jewel business_impact and is
+    # therefore always in 2–5 (the enum has no level that maps to 1).
     max_impact = max(_IMPACT_WEIGHTS.get(imp, 2) for imp in elements.crown_jewel_impacts)
     return max_impact
 
@@ -127,11 +139,16 @@ def _recommend_level(composite: int, active_triggers: list[str]) -> Intelligence
 
     composite 20–25 → strategic
     composite 12–19 → operational
-    composite  1–11 → tactical
+    composite  2–11 → tactical  (composite floor is 2: impact never scores 1)
 
-    Any active trigger escalates `tactical` → `operational` (symmetric
-    treatment per NIST SP 800-37 R2 event-driven trigger framework; see
-    docs/triggers.md).
+    Trigger signal path (intentional two-stage design, not a bug): an active
+    trigger already adds +1 to *likelihood* in ``_compute_likelihood`` (raising
+    the numeric composite), and here it *additionally* escalates a residual
+    ``tactical`` result to ``operational``. The escalation is the safety net for
+    the case where a low impact keeps the composite in the tactical band even
+    though a material business trigger fired. All ten triggers are treated
+    uniformly (see schema/triggers.md); "symmetric" refers to that equal
+    weighting across triggers, not to any downward de-escalation.
     """
     if composite >= 20:
         return "strategic"
@@ -193,9 +210,13 @@ def _llm_assist_likelihood(
     """
     from beacon.llm.client import call_llm_json  # noqa: PLC0415
 
-    _impact_map = {"low": 1, "medium": 2, "high": 3, "critical": 4}
+    # Reuse the single canonical impact ranking (_IMPACT_WEIGHTS) to pick the
+    # highest-severity crown-jewel label for the prompt. The previous local
+    # ``_impact_map`` used a divergent 1–4 scale; because both scales are
+    # monotonic the selected label is identical, so this is behaviour-preserving
+    # while removing the duplicated mapping (BEACON 4.3.0).
     max_cj_impact = max(
-        elements.crown_jewel_impacts or ["low"], key=lambda x: _impact_map.get(x, 1)
+        elements.crown_jewel_impacts or ["low"], key=lambda x: _IMPACT_WEIGHTS.get(x, 2)
     )
     prompt = (
         "You are a threat intelligence analyst. Estimate the likelihood score (1-5) that "

@@ -361,6 +361,34 @@ def evasion_capability_score(de_ttp_count: int) -> float:
 
 
 # ---------------------------------------------------------------------------
+# Aggregation factor floor (BEACON 4.3.0)
+# ---------------------------------------------------------------------------
+# Capability and Opportunity are geometric means of three [0, 1] sub-factors.
+# A single sub-factor of exactly 0 — which in practice usually means the
+# underlying MISP/ATT&CK field was ABSENT rather than the actor genuinely
+# scoring zero — would collapse the whole factor (and thus likelihood) to 0 and
+# drop an otherwise-capable actor out of the ranking. To keep sparse-data actors
+# ranked low but non-zero, each sub-factor is clamped to a small floor *inside
+# the geometric mean only*; the raw sub-factor values are still reported
+# verbatim in ScoreBreakdown for transparency. Intent is deliberately excluded:
+# Intent == 0 remains a hard gate (see prioritize_actors).
+_FACTOR_FLOOR = 0.05
+
+
+def _floored_geomean(*factors: float) -> float:
+    """Geometric mean with each factor clamped to ``[_FACTOR_FLOOR, 1.0]``.
+
+    Prevents a single missing/zero sub-factor from zeroing an aggregate score
+    while preserving monotonic ranking (BEACON 4.3.0).
+    """
+    clamped = [min(max(f, _FACTOR_FLOOR), 1.0) for f in factors]
+    prod = 1.0
+    for c in clamped:
+        prod *= c
+    return prod ** (1 / len(clamped))
+
+
+# ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
 
@@ -520,6 +548,9 @@ def prioritize_actors(
       4. Sets likelihood = Intent × Capability × Opportunity.
          Intent == 0.0 triggers the hard gate: likelihood stays 0.0 and
          rationale records "Intent gate failed".
+         Capability and Opportunity use a floored geometric mean
+         (``_floored_geomean``) so a single absent sub-factor does not zero an
+         intent-passing but data-sparse actor (BEACON 4.3.0).
     Returns list sorted by likelihood descending.
 
     `reference` overrides the "now" used for recency / IR-lookback windows
@@ -637,6 +668,9 @@ def prioritize_actors(
         # ------ Capability — Depth × Breadth aggregation ------
         # Depth: 3-factor geometric mean of quality factors.
         # Breadth: 3-factor geometric mean of quantity factors.
+        # Both use the floored geometric mean so a single absent sub-factor
+        # (e.g. no defense-evasion TTPs recorded) does not zero Capability
+        # for an otherwise-capable actor (BEACON 4.3.0; see _floored_geomean).
         _soph = sophistication_score(stix_soph)
         _ttp_n = ttp_count_norm(profile.get("technique_count", 0))
         _rec = recency_active_campaigns(
@@ -649,18 +683,15 @@ def prioritize_actors(
             profile.get("campaign_last_seen"),
         )
         _evas = evasion_capability_score(profile.get("defense_evasion_ttp_count", 0))
-        _depth = (_soph * _tool * _evas) ** (1 / 3)
-        _breadth = (_ttp_n * _pers * _rec) ** (1 / 3)
+        _depth = _floored_geomean(_soph, _tool, _evas)
+        _breadth = _floored_geomean(_ttp_n, _pers, _rec)
         capability_score = min(max(_depth * _breadth, 0.0), 1.0)
 
-        # ------ Opportunity — 3-factor geometric mean ------
+        # ------ Opportunity — 3-factor floored geometric mean ------
         _vic = victimology_match(actor_industries, business_sectors)
         _geo = geographic_match(actor_geos, business_geos)
         _surf = _surface_ttp_coverage(cat_ttps, all_surface_ttps)
-        opportunity_score = min(
-            max((_vic * _geo * _surf) ** (1 / 3), 0.0),
-            1.0,
-        )
+        opportunity_score = min(max(_floored_geomean(_vic, _geo, _surf), 0.0), 1.0)
 
         likelihood = min(intent_score * capability_score * opportunity_score, 1.0)
         rationale_text = (

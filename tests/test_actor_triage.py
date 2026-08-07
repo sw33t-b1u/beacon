@@ -1226,3 +1226,49 @@ class TestSchemaVersionBumped:
 
         doc = PIROutputDocument(pirs=[])
         assert doc.schema_version == "2.0.0"
+
+
+# ---------------------------------------------------------------------------
+# Aggregation factor floor — sparse-data actors stay non-zero (BEACON 4.3.0)
+# ---------------------------------------------------------------------------
+
+
+class TestFactorFloor:
+    """_floored_geomean keeps a single missing sub-factor from zeroing an
+    aggregate, so an intent-passing but data-sparse actor is ranked low, not
+    dropped."""
+
+    def test_floored_geomean_never_zero_with_single_zero(self):
+        from beacon.analysis.actor_triage import _FACTOR_FLOOR, _floored_geomean  # noqa: PLC0415
+
+        # One factor is 0 (absent data); result must stay > 0.
+        assert _floored_geomean(1.0, 1.0, 0.0) > 0.0
+        # All-zero clamps to the floor exactly.
+        assert abs(_floored_geomean(0.0, 0.0, 0.0) - _FACTOR_FLOOR) < 1e-9
+
+    def test_floored_geomean_preserves_full_signal(self):
+        from beacon.analysis.actor_triage import _floored_geomean  # noqa: PLC0415
+
+        assert abs(_floored_geomean(1.0, 1.0, 1.0) - 1.0) < 1e-9
+
+    def test_floored_geomean_is_monotonic(self):
+        from beacon.analysis.actor_triage import _floored_geomean  # noqa: PLC0415
+
+        low = _floored_geomean(0.2, 0.0, 0.0)
+        high = _floored_geomean(0.9, 0.0, 0.0)
+        assert high > low
+
+    def test_capable_actor_with_missing_data_not_zeroed(self):
+        # APT29 in the two-actor fixture passes the Intent gate but has no
+        # defense-evasion / campaign-count / surface-TTP data; before the floor
+        # its Capability (and thus likelihood) collapsed to 0. It must now be
+        # ranked low but strictly positive.
+        misp = MispClient(cache_path=_TRIAGE_MISP_FIXTURE)
+        surface_map = _make_empty_surface_map()
+        bctx = _finance_context()
+        results = prioritize_actors(bctx, _TWO_ACTOR_TAXONOMY, surface_map, misp)
+        apt29 = [r for r in results if r.actor_id == _APT29_ACTOR_ID]
+        assert len(apt29) == 1
+        assert apt29[0].likelihood > 0.0
+        assert apt29[0].score_breakdown.capability.score > 0.0
+        assert apt29[0].score_breakdown.opportunity.score > 0.0

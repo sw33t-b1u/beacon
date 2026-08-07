@@ -21,7 +21,7 @@ BEACON provides four output pipelines, all driven from the same context document
          │    │ Step 1: Element Ext. │  objectives, crown jewels, assets     │
          │    │ Step 2: Asset Map    │  → SAGE tags (plm, ot, erp …)        │
          │    │ Step 3: Threat Map   │  industry × geography → actor tags    │
-         │    │ Step 4: Risk Score   │  Likelihood × Impact (1–5)            │
+         │    │ Step 4: Risk Score   │  Likelihood 1–5 × Impact 2–5          │
          │    │ Step 5: PIR Build    │  SAGE-compatible PIR JSON             │
          │    └──────────────────────┘                                       │
          │                        output/pir_output.json ────────────────────┘

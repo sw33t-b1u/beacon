@@ -6,6 +6,57 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versio
 
 ---
 
+## [4.3.0] — 2026-08-07
+
+### Changed
+
+- Actor triage (`analysis/actor_triage.py`) now aggregates the Capability and
+  Opportunity factors with a *floored* geometric mean (`_FACTOR_FLOOR = 0.05`).
+  A single absent MISP/ATT&CK sub-factor (for example, no defense-evasion TTPs
+  or no attributed campaigns) previously collapsed an intent-passing actor's
+  Capability — and therefore its likelihood — to exactly 0, silently dropping
+  otherwise-capable but data-sparse actors out of the ranking. They are now
+  ranked low but non-zero. Raw sub-factor values are still reported verbatim in
+  `ScoreBreakdown`, and the `Intent == 0` hard gate is unchanged.
+
+### Fixed
+
+- Consolidated risk scoring onto a single impact mapping (`_IMPACT_WEIGHTS`) in
+  `analysis/risk_scorer.py` and removed the divergent `_impact_map` used inside
+  the LLM likelihood-assist path. Both scales were monotonic, so the selected
+  severity label is identical — behaviour is unchanged, but the duplicated
+  mapping (a maintenance hazard) is gone.
+- The single-PIR review view (`GET /pir/{pir_id}`, and the legacy
+  `GET /review/pir/{pir_id}` redirect) rendered `pir.html` with a hand-built
+  context that omitted `available_llm_models` and `llm_model_defaults`, raising
+  a Jinja `UndefinedError` (HTTP 500). It now reuses the shared
+  `_pir_page_context()` builder, so the model selectors render identically to
+  the `/pir` route.
+
+### Documentation
+
+- Clarified score ranges across README and `docs/data-model.md` /
+  `docs/data-model.ja.md`: `impact` is quantised to 2–5 (the `business_impact`
+  enum has four levels, none mapping to 1), so the composite spans 2–25, not
+  1–25. Corrected the P3 / `tactical` bands (1–11 → 2–11), the README pipeline
+  diagram, and added explicit range notes (EN/JA).
+- Documented the two-stage business-trigger signal path (a trigger adds +1 to
+  likelihood *and* escalates a residual `tactical` result to `operational`) as
+  intentional design rather than a double-count bug, and recorded the rationale
+  for the 0.05 actor-triage boost threshold.
+
+### Added
+
+- Forward-compatible fine-industry narrowing hook (`target_sectors`) in
+  `analysis/threat_mapper.py`, plus a new `ThreatProfile.fine_industry` field
+  that preserves BEACON's ten-value industry resolution alongside the four
+  coarse MISP `cfr-target-category` buckets. The hook is a no-op on every
+  taxonomy shipped through 4.3.0 (no `target_sectors` present), so P1/P2
+  selection is unchanged; populating finer sectors requires a
+  `beacon taxonomy-refresh` (network; maintainer handoff).
+
+---
+
 ## [4.2.1] — 2026-07-01
 
 ### Fixed

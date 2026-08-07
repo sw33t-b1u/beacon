@@ -522,6 +522,6 @@ class TestThreatsStixExtractionUi:
         monkeypatch.setenv("SAGE_API_URL", "http://sage")
         resp = client.get("/threats")
         assert resp.status_code == 200
-        assert "STIX Extraction" in resp.text
-        assert "Download STIX Bundle" in resp.text
+        assert "STIX 抽出" in resp.text
+        assert "STIX Bundle をダウンロード" in resp.text
         assert "CTI Platform" in resp.text

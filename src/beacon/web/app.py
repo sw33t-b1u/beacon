@@ -1546,27 +1546,15 @@ async def pir_single(request: Request, pir_id: str):
     session_id = create_session({"pirs": matching, "collection_plan": ""})
     csrf_token = _generate_csrf_token()
 
-    from beacon.config import load_config  # noqa: PLC0415
-    from beacon.storage import create_storage_backend  # noqa: PLC0415
-
-    try:
-        cfg = load_config()
-        storage = create_storage_backend(cfg)
-        stored_pir_files = storage.list_files("pir")
-        stored_pir_files = [f for f in stored_pir_files if f.endswith(".json")]
-    except Exception:
-        stored_pir_files = []
-
+    # Reuse the shared PIR page context builder so this single-PIR view renders
+    # with the same config-driven model selectors as the /pir route. The
+    # previous hand-built context omitted ``available_llm_models`` and
+    # ``llm_model_defaults``, which made ``pir.html`` raise a Jinja
+    # UndefinedError (HTTP 500) on this route (BEACON 4.3.0 fix).
     response = templates.TemplateResponse(
         request=request,
         name="pir.html",
-        context={
-            "active_tab": "pir",
-            "pirs": matching,
-            "collection_plan": "",
-            "csrf_token": csrf_token,
-            "stored_pir_files": stored_pir_files,
-        },
+        context=_pir_page_context(csrf_token, pirs=matching),
     )
     response.set_cookie(
         "beacon_session", session_id, httponly=True, secure=True, samesite="lax", max_age=86400
