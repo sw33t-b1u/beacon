@@ -43,8 +43,16 @@ _AMBIENT_ENV_PREFIXES_TO_SCRUB = ("BEACON_", "GHE_")
 
 
 @pytest.fixture(autouse=True)
-def _hermetic_env(monkeypatch):
-    """Scrub ambient product/proxy env so tests never attempt real network."""
+def _hermetic_env(monkeypatch, tmp_path):
+    """Scrub ambient product/proxy env so tests never attempt real network.
+
+    Scrubbing BEACON_STORAGE(_BASE_DIR) alone makes create_storage_backend()
+    fall back to the default LocalStorage(base_dir="output"), so any test that
+    exercises a save path without mocking the StorageBackend (e.g. POST
+    /pir/generate) would leak artifacts into the real repo ./output/ tree.
+    Pin storage to a per-test tmp directory after the scrub so such writes are
+    isolated and never pollute the working copy.
+    """
     import os  # noqa: PLC0415
 
     for _key in _AMBIENT_ENV_KEYS_TO_SCRUB:
@@ -52,6 +60,11 @@ def _hermetic_env(monkeypatch):
     for _key in list(os.environ):
         if _key.startswith(_AMBIENT_ENV_PREFIXES_TO_SCRUB):
             monkeypatch.delenv(_key, raising=False)
+
+    # Isolate local artifact writes to a per-test tmp dir (set AFTER the scrub
+    # loop above, which strips all BEACON_* keys).
+    monkeypatch.setenv("BEACON_STORAGE", "local")
+    monkeypatch.setenv("BEACON_STORAGE_BASE_DIR", str(tmp_path / "beacon-output"))
 
 
 _PROJECT_ROOT = str(Path(__file__).parent.parent)
